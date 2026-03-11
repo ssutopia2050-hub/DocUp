@@ -71,7 +71,14 @@
     <!-- Metadata form -->
     <div class="doc-form" id="doc-form">
 
-        <input type="text" placeholder="College Name" id="college" required>
+        <select id="college" required>
+            <option value="">Select College</option>
+
+            <% colleges.forEach(college => { %>
+            <option value="<%= college %>"><%= college %></option>
+            <% }) %>
+
+        </select>
 
         <select id="year" required>
             <option value="">Year</option>

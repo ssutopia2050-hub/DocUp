@@ -5,6 +5,8 @@ import college from "./models/college.js";
 import Docs from "./models/Docs.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
+import fs from "fs";
+import csv from "csv-parser";
 import MongoStore from "connect-mongo";
 import { v2 as cloudinary } from "cloudinary";
 const app = express();
@@ -42,6 +44,19 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
+let collegesList = [];
+
+fs.createReadStream("College_data.csv")
+    .pipe(csv())
+    .on("data", (row)=>{
+        if(row.College_Name){
+            collegesList.push(row.College_Name.trim());
+        }
+    })
+    .on("end", ()=>{
+        collegesList = [...new Set(collegesList)].sort();
+        console.log("Colleges Loaded :", collegesList.length);
+    });
 /******************************
            Server Start
  ******************************/
@@ -355,9 +370,33 @@ app.post("/dashboard", async (req, res) => {
       Uploads
  ******************************/
 app.get("/uploads", async (req, res) => {
-    const data = await user_profile.findOne({email:req.session.email});
-    res.render("uploads",{data});
-})
+
+    const data = await user_profile.findOne({ email: req.session.email });
+
+    const colleges = [];
+
+    fs.createReadStream("College_data.csv")
+        .pipe(csv())
+        .on("data", (row) => {
+
+            // change column name if different
+            if (row["College_Name"]) {
+                colleges.push(row["College_Name"].trim());
+            }
+
+        })
+        .on("end", () => {
+
+            const uniqueColleges = [...new Set(colleges)].sort();
+
+            res.render("uploads", {
+                data,
+                colleges: uniqueColleges
+            });
+
+        });
+
+});
 app.post("/upload_docs", upload.single("file"), async (req, res) => {
     try {
         // 1️⃣ Upload file to Cloudinary
