@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dashboard.css">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+   <div class="topbar">
+       <div class="logo-text-container">
+           DocUp
+       </div>
+       <div class="pg-links">
+           <a href="">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                   <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+               </svg>
+               <span style="border-bottom:1px solid rgba(255,255,255,0.47)">FindDocs</span>
+           </a>
+           <p style="border:1px solid orangered;
+               padding:15px 25px;
+               border-radius:30px;
+               display:flex;
+               gap:10px;
+               align-items:center;
+               white-space:nowrap;">
+               <span style="color:orangered">DocScore :</span>
+               <span style="color:white"><%= data.Doc_score %></span>
+               <img style="height:20px;" src="/fire.png" alt="">
+           </p>
+           <a href="/uploads">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                   <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+               </svg>
+               Uploads
+           </a>
+           <a href="">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                   <path d="M19.14 12.94a7.43 7.43 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.28 7.28 0 00-1.63-.95l-.36-2.54A.5.5 0 0014.9 2h-3.8a.5.5 0 00-.49.41l-.36 2.54a7.28 7.28 0 00-1.63.95l-2.39-.96a.5.5 0 00-.6.22L3.71 8.48a.5.5 0 00.12.64l2.03 1.58a7.43 7.43 0 000 1.88L3.83 14.16a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.6.22l2.39-.96c.5.38 1.05.7 1.63.95l.36 2.54a.5.5 0 00.49.41h3.8a.5.5 0 00.49-.41l.36-2.54c.58-.25 1.13-.57 1.63-.95l2.39.96a.5.5 0 00.6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/>
+               </svg>
+               Settings
+           </a>
+       </div>
+   </div>
+   <div class="search-param-container">
+       <form action="/dashboard" method="POST" class="search-form">
+
+           <input type="text" placeholder="Enter College Name or Enter Subject Keyword . . ." name="search_parameter_text" required  spellcheck="false">
+
+           <select name="year" required>
+               <option value="all">All Years</option>
+               <option value="year1">Year 1</option>
+               <option value="year2">Year 2</option>
+               <option value="year3">Year 3</option>
+               <option value="year4">Year 4</option>
+           </select>
+
+           <select name="stream" id="stream" required>
+               <option value="all">All Streams</option>
+               <option value="engineering">Engineering</option>
+               <option value="mbbs">MBBS</option>
+               <option value="bpharma">BPharma</option>
+               <option value="mba">MBA</option>
+               <option value="bba">BBA</option>
+               <option value="bcom">BCom</option>
+           </select>
+
+           <select name="branch" id="branch" required>
+               <option value="all">All Branches</option>
+           </select>
+
+           <button type="submit">Search</button>
+
+       </form>
+   </div>
+</body>
+<script>
+
+    const branchData = {
+
+        engineering: [
+            "CSE",
+            "Information Technology",
+            "Electronics & Communication",
+            "Electrical Engineering",
+            "Mechanical Engineering",
+            "Civil Engineering",
+            "Chemical Engineering",
+            "Aerospace Engineering",
+            "AI & Data Science",
+            "Robotics"
+        ],
+
+        mbbs: [
+            "Anatomy",
+            "Physiology",
+            "Biochemistry",
+            "Pathology",
+            "Pharmacology",
+            "Microbiology"
+        ],
+
+        bpharma: [
+            "Pharmaceutics",
+            "Pharmacology",
+            "Pharmaceutical Chemistry",
+            "Pharmacognosy"
+        ],
+
+        mba: [
+            "Finance",
+            "Marketing",
+            "Human Resources",
+            "Operations",
+            "Business Analytics"
+        ],
+
+        bba: [
+            "Business Management",
+            "Entrepreneurship",
+            "International Business"
+        ],
+
+        bcom: [
+            "Accounting",
+            "Taxation",
+            "Banking & Finance",
+            "Economics"
+        ]
+
+    };
+
+    const streamSelect = document.getElementById("stream");
+    const branchSelect = document.getElementById("branch");
+
+    streamSelect.addEventListener("change", function(){
+
+        const stream = this.value;
+
+        branchSelect.innerHTML = `<option value="all">All Branches</option>`;
+
+        if(branchData[stream]){
+
+            branchData[stream].forEach(branch => {
+
+                const option = document.createElement("option");
+                option.value = branch.toLowerCase().replace(/\s/g,"_");
+                option.textContent = branch;
+
+                branchSelect.appendChild(option);
+
+            });
+
+        }
+
+    });
+
+</script>
+</html>

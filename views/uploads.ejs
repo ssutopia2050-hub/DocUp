@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/uploads.css">
+    <meta charset="UTF-8">
+    <title>Uploads</title>
+</head>
+<body>
+<div class="topbar">
+    <div class="logo-text-container">
+        DocUp
+    </div>
+    <div class="pg-links">
+        <a href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+        <p style="border:1px solid orangered;
+               padding:15px 25px;
+               border-radius:30px;
+               display:flex;
+               gap:10px;
+               align-items:center;
+               white-space:nowrap;">
+            <span style="color:orangered">DocScore :</span>
+            <span style="color:white"><%= data.Doc_score %></span>
+            <img style="height:20px;" src="/fire.png" alt="">
+        </p>
+        <a href="/uploads">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+            </svg>
+            <span style="border-bottom:1px solid rgba(255,255,255,0.47)">Uploads</span>
+        </a>
+        <a href="">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.14 12.94a7.43 7.43 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.28 7.28 0 00-1.63-.95l-.36-2.54A.5.5 0 0014.9 2h-3.8a.5.5 0 00-.49.41l-.36 2.54a7.28 7.28 0 00-1.63.95l-2.39-.96a.5.5 0 00-.6.22L3.71 8.48a.5.5 0 00.12.64l2.03 1.58a7.43 7.43 0 000 1.88L3.83 14.16a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.6.22l2.39-.96c.5.38 1.05.7 1.63.95l.36 2.54a.5.5 0 00.49.41h3.8a.5.5 0 00.49-.41l.36-2.54c.58-.25 1.13-.57 1.63-.95l2.39.96a.5.5 0 00.6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/>
+            </svg>
+            Settings
+        </a>
+    </div>
+</div>
+<div class="upload-wrapper">
+
+    <div class="upload-drop-area" id="drop-area">
+
+        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#007c68" viewBox="0 0 24 24">
+            <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+        </svg>
+
+        <p>Drag & Drop File Here</p>
+        <p>or</p>
+
+        <input type="file" id="file-input" hidden>
+
+        <button type="button" id="choose-btn">Choose File</button>
+
+    </div>
+
+    <!-- File name -->
+    <div id="file-preview"></div>
+
+    <!-- Metadata form -->
+    <div class="doc-form" id="doc-form">
+
+        <input type="text" placeholder="College Name" id="college" required>
+
+        <select id="year" required>
+            <option value="">Year</option>
+            <option>Year 1</option>
+            <option>Year 2</option>
+            <option>Year 3</option>
+            <option>Year 4</option>
+        </select>
+
+        <select id="semester" required>
+            <option value="">Semester</option>
+            <option>Sem 1</option>
+            <option>Sem 2</option>
+            <option>Sem 3</option>
+            <option>Sem 4</option>
+            <option>Sem 5</option>
+            <option>Sem 6</option>
+            <option>Sem 7</option>
+            <option>Sem 8</option>
+        </select>
+
+        <input type="text" placeholder="Branch" id="branch" required>
+
+        <input type="text" placeholder="Subject" id="subject" required>
+
+    </div>
+
+    <button class="upload-btn" id="upload-btn">Upload File</button>
+
+</div>
+</body>
+<script>
+
+    const dropArea = document.getElementById("drop-area");
+    const fileInput = document.getElementById("file-input");
+    const chooseBtn = document.getElementById("choose-btn");
+    const preview = document.getElementById("file-preview");
+    const form = document.getElementById("doc-form");
+    const uploadBtn = document.getElementById("upload-btn");
+
+    let selectedFile = null;
+
+    chooseBtn.onclick = () => fileInput.click();
+
+    fileInput.addEventListener("change", e=>{
+        if(!e.target.files[0]) return;
+        handleFile(e.target.files[0]);
+    });
+
+    dropArea.addEventListener("dragover", e=>{
+        e.preventDefault();
+    });
+
+    dropArea.addEventListener("drop", e=>{
+        e.preventDefault();
+        handleFile(e.dataTransfer.files[0]);
+    });
+
+    function handleFile(file){
+
+        selectedFile = file;
+
+        preview.textContent = file.name;
+
+        /* reset metadata fields when new file is chosen */
+
+        document.getElementById("college").value = "";
+        document.getElementById("year").value = "";
+        document.getElementById("semester").value = "";
+        document.getElementById("branch").value = "";
+        document.getElementById("subject").value = "";
+
+        form.style.display = "flex";
+        uploadBtn.style.display = "block";
+
+    }
+
+    uploadBtn.addEventListener("click", async ()=>{
+
+        const college = document.getElementById("college").value.trim();
+        const year = document.getElementById("year").value;
+        const semester = document.getElementById("semester").value;
+        const branch = document.getElementById("branch").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+
+        if(!selectedFile){
+            alert("Please select a file");
+            return;
+        }
+
+        if(!college || !year || !semester || !branch || !subject){
+            alert("Please fill all metadata fields");
+            return;
+        }
+
+        /* ---------- FILE RENAMING ---------- */
+
+        const extension = selectedFile.name.split(".").pop();
+        const timestamp = Date.now();
+
+        const newFileName =
+            `${college}_${branch}_${subject}_${semester}_${timestamp}.${extension}`;
+
+        const renamedFile = new File(
+            [selectedFile],
+            newFileName,
+            { type: selectedFile.type }
+        );
+
+        /* ---------- FORM DATA ---------- */
+
+        const formData = new FormData();
+
+        formData.append("file", renamedFile);
+        formData.append("college", college);
+        formData.append("year", year);
+        formData.append("semester", semester);
+        formData.append("branch", branch);
+        formData.append("subject", subject);
+
+        try{
+
+            const res = await fetch("/upload_docs",{
+                method:"POST",
+                body:formData
+            });
+
+            if(res.ok){
+                document.getElementById("college").value = "";
+                document.getElementById("year").value = "";
+                document.getElementById("semester").value = "";
+                document.getElementById("branch").value = "";
+                document.getElementById("subject").value = "";
+
+                selectedFile = null;
+                fileInput.value = "";
+                preview.textContent = "";
+
+                alert("Upload Complete");
+                form.style.display = "none";
+                uploadBtn.style.display = "none";
+
+
+            } else {
+                alert("Upload failed");
+            }
+
+        }catch(err){
+            alert("Network error");
+        }
+
+    });
+
+</script>
+</html>

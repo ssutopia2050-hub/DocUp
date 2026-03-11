@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/signup_style.css">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="box">
+    <h1>DocUp</h1>
+    <form method="post" action="/signin">
+        <input type="text" placeholder="Email Address" name="email" required>
+        <input type="text" placeholder="Enter Password" name="password" required minlength="6" maxlength="10">
+        <% if(err){ %>
+        <p style="color:#ffb100"><%= err.message %></p>
+        <% } %>
+        <button type="submit">Sign In</button>
+        <a href="/signup">Not a Member ? Sign Up</a>
+        <a href="/forgot_password">Forgot Password ? Retrieve Password </a>
+
+    </form>
+    <p style="color: rgba(255,255,255,0.15)">You are currently on version 1.0.0 of DocUp</p>
+</div>
+</body>
+</html>

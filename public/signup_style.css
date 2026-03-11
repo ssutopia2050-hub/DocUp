@@ -1,0 +1,89 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Saira', sans-serif;
+}
+body{
+    background-color: rgb(2, 11, 27);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height:fit-content;
+    width:40%;
+    /*border:1px solid white;*/
+    gap:3vh;
+    padding:5vh;
+}
+.box h1{
+    font-family: 'Saira', sans-serif;
+    font-size: 5rem;
+    color:white;
+}
+form{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap:2vh;
+    /*width:fit-content;*/
+}
+input{
+    height:50px;
+    width:350px;
+    /*border:none;*/
+    background-color:transparent;
+    color: #00a186;
+    border:1px solid rgba(255, 255, 255, 0.47);
+    padding:10px;
+    font-size: 1.2rem;
+}
+
+input:focus{
+    outline: none;
+}
+button{
+    width:250px;
+    height:50px;
+    border:2px solid rgba(255, 255, 255, 0.47);
+    background-color:transparent;
+    color:white;
+    padding:10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+button:hover{
+    background-color: rgba(240, 248, 255, 0.09);
+}
+button:active{
+    transform: scale(0.95);
+}
+a{
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.38);
+
+}
+a:hover{
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.55);
+}
+a:active{
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.38);
+}
+a:visited{
+    text-decoration: none;
+}
