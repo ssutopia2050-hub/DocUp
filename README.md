@@ -55,19 +55,6 @@ cd DocUp
 ```bash
 npm install
 ```
-3. ** .env files **
-- PORT=5000
-- MONGO_URI=your_mongodb_connection_string
-- SESSION_SECRET=your_secret_key
-- CLOUDINARY_CLOUD_NAME=your_cloud_name
-- CLOUDINARY_API_KEY=your_api_key
-- CLOUDINARY_API_SECRET=your_api_secret
-- EMAILJS_SERVICE_ID=your_emailjs_service_id
-- EMAILJS_VERIF_TEMPLATE_ID=your_email_verification_template_id
-- EMAILJS_TEMPLATE_ID=your_email_template_id
-- EMAILJS_PUBLIC_KEY=your_emailjs_public_key
-- EMAILJS_PRIVATE_KEY=your_emailjs_private_key
-
 4. **Run the server**
 ```bash
 npm run dev
