@@ -140,30 +140,56 @@ app.post('/signup', async (req, res) => {
 app.get('/signin',  (req, res) => {
     res.render('signin', {err:null});
 })
-app.post('/signin', async(req, res) => {
-    const{email , password} = req.body;
-    const exists = await user_profile.findOne({email});
-    if(!exists){
-        const err ={
-            "message": "You dont have an account with DocUp",
-        }
-        return res.render('signin', {err});
+// app.post('/signin', async(req, res) => {
+//     const{email , password} = req.body;
+//     const exists = await user_profile.findOne({email});
+//     if(!exists){
+//         const err ={
+//             "message": "You dont have an account with DocUp",
+//         }
+//         return res.render('signin', {err});
+//     }
+//     console.log(exists);
+//     if(password === exists.password){
+//         const err ={
+//             "message": "Sign in successfull",
+//         }
+//         req.session.email =email;
+//         res.redirect('/dashboard');
+//     }
+//     else {
+//         const err ={
+//             "message": "Invalid Credentials !!",
+//         }
+//          res.render('signin', {err});
+//     }
+// })
+app.post('/signin', async (req, res) => {
+    const { email, password } = req.body;
+
+    // console.log("typed email:", JSON.stringify(email));
+    // console.log("typed password:", JSON.stringify(password));
+
+    const exists = await user_profile.findOne({ email });
+    // console.log("db user:", exists);
+
+    if (!exists) {
+        return res.render('signin', {
+            err: { message: "You dont have an account with DocUp" }
+        });
     }
-    console.log(exists);
-    if(password === exists.password){
-        const err ={
-            "message": "Sign in successfull",
-        }
-        req.session.email =email;
-        res.redirect('/dashboard');
+
+    // console.log("db password:", JSON.stringify(exists.pin));
+
+    if (password === exists.password) {
+        req.session.email = email;
+        return res.redirect('/dashboard');
+    } else {
+        return res.render('signin', {
+            err: { message: "Invalid Credentials !!" }
+        });
     }
-    else {
-        const err ={
-            "message": "Invalid Credentials !!",
-        }
-         res.render('signin', {err});
-    }
-})
+});
 /******************************
     Email Verification
  ******************************/
@@ -355,17 +381,182 @@ app.get("/dashboard", async (req, res) => {
     if (!req.session.email) {
         return res.redirect("/signin");
     }
-    const data = await user_profile.findOne({email:req.session.email})
-    console.log(data);
-    res.render("dashboard", {
-        data
-    });
-})
-app.post("/dashboard", async (req, res) => {
-    const{search_parameter_text,year,stream,branch} = req.body;
-    console.log(req.body);
 
-})
+    try {
+        const data = await user_profile.findOne({ email: req.session.email });
+        const colleges = [];
+
+        fs.createReadStream("College_data.csv")
+            .pipe(csv())
+            .on("data", (row) => {
+                if (row["College_Name"]) {
+                    colleges.push(row["College_Name"].trim());
+                }
+            })
+            .on("end", async () => {
+                const uniqueColleges = [...new Set(colleges)].sort();
+
+                const clg = await college.find({});
+
+                res.render("dashboard", {
+                    data,
+                    colleges: uniqueColleges,
+                    results: [],
+                    college_specific_data: clg
+                });
+            })
+            .on("error", (err) => {
+                console.log(err);
+                res.status(500).send("Error reading college data");
+            });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server error");
+    }
+});
+app.post("/dashboard", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.redirect("/signin");
+        }
+
+        const { search_parameter_text, year, branch } = req.body;
+
+        const data = await user_profile.findOne({ email: req.session.email });
+        const clg = await college.find({});
+
+        let searchType = "";
+        let searchValue = "";
+
+        if (search_parameter_text.startsWith("/c")) {
+            searchType = "college";
+            searchValue = search_parameter_text.slice(2).trim();
+        } else if (search_parameter_text.startsWith("/s")) {
+            searchType = "subject";
+            searchValue = search_parameter_text.slice(2).trim();
+        } else {
+            searchType = "";
+            searchValue = search_parameter_text.trim();
+        }
+
+        const resultsMap = new Map();
+
+        function addResults(docs, scoreToAdd) {
+            docs.forEach(doc => {
+                const id = doc._id.toString();
+
+                if (!resultsMap.has(id)) {
+                    resultsMap.set(id, {
+                        ...doc.toObject(),
+                        _score: 0
+                    });
+                }
+
+                resultsMap.get(id)._score += scoreToAdd;
+            });
+        }
+
+        if (searchType === "college") {
+            const s1 = await Docs.find({
+                college: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
+            });
+            addResults(s1, 100);
+
+            const s2 = await Docs.find({
+                college: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s2, 70);
+
+            if (branch !== "all") {
+                const s3 = await Docs.find({ branch });
+                addResults(s3, 20);
+            }
+
+            if (year !== "all") {
+                const s4 = await Docs.find({ year });
+                addResults(s4, 15);
+            }
+        }
+
+        else if (searchType === "subject") {
+            const s1 = await Docs.find({
+                subject: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
+            });
+            addResults(s1, 100);
+
+            const s2 = await Docs.find({
+                subject: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s2, 75);
+
+            if (branch !== "all") {
+                const s3 = await Docs.find({ branch });
+                addResults(s3, 20);
+            }
+
+            if (year !== "all") {
+                const s4 = await Docs.find({ year });
+                addResults(s4, 15);
+            }
+        }
+
+        else {
+            const s1 = await Docs.find({
+                college: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
+            });
+            addResults(s1, 80);
+
+            const s2 = await Docs.find({
+                subject: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
+            });
+            addResults(s2, 80);
+
+            const s3 = await Docs.find({
+                branch: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s3, 60);
+
+            const s4 = await Docs.find({
+                uploaded_by: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s4, 40);
+
+            if (branch !== "all") {
+                const s5 = await Docs.find({ branch });
+                addResults(s5, 20);
+            }
+
+            if (year !== "all") {
+                const s6 = await Docs.find({ year });
+                addResults(s6, 15);
+            }
+        }
+
+        let results_after_search = Array.from(resultsMap.values());
+
+        results_after_search.sort((a, b) => b._score - a._score);
+
+        res.render("dashboard", {
+            data,
+            colleges: collegesList,
+            results: results_after_search,
+            college_specific_data: clg
+        });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server error");
+    }
+});
 /******************************
       Uploads
  ******************************/
@@ -399,16 +590,41 @@ app.get("/uploads", async (req, res) => {
 });
 app.post("/upload_docs", upload.single("file"), async (req, res) => {
     try {
-        // 1️⃣ Upload file to Cloudinary
-        const result = await cloudinary.uploader.upload(req.file.path);
+        if (!req.session.email) {
+            return res.status(401).json({ success: false, message: "Please sign in first" });
+        }
 
-        // 2️⃣ Get current user
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
+
         const user = await user_profile.findOne({ email: req.session.email });
         if (!user) {
             return res.status(401).json({ success: false, message: "User not found" });
         }
 
-        // 3️⃣ Create the document entry in Docs collection
+        const originalName = req.file.originalname;
+        const extension = originalName.split(".").pop().toLowerCase();
+        const baseName = originalName.replace(/\.[^/.]+$/, "");
+
+        const safeBaseName = baseName
+            .toLowerCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^a-z0-9_-]/g, "");
+
+        const publicId = `${Date.now()}_${safeBaseName}`;
+
+        let resourceType = "raw";
+        if (extension === "pdf") {
+            resourceType = "image";
+        }
+
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            resource_type: resourceType,
+            folder: "docs",
+            public_id: publicId
+        });
+
         const doc = await Docs.create({
             college: req.body.college,
             year: req.body.year,
@@ -419,27 +635,40 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             uploaded_by: user.email
         });
 
-        // 4️⃣ Update user profile: increment Doc_score & push to uploads array
         await user_profile.updateOne(
             { email: req.session.email },
             {
-                $inc: { Doc_score: 1 },      // increment Doc_score
+                $inc: { Doc_score: 1 },
                 $push: {
                     uploads: {
                         url: result.secure_url,
                         subject: req.body.subject,
                         college: req.body.college,
-                        uploadedAt: new Date()   // optional, schema already defaults
+                        uploadedAt: new Date()
                     }
                 }
             }
         );
 
-        // 5️⃣ Send success response
-        res.json({ success: true, docId: doc._id });
+        fs.unlink(req.file.path, (err) => {
+            if (err) {
+                console.log("Failed to delete temp file:", err);
+            }
+        });
+
+        res.json({
+            success: true,
+            docId: doc._id,
+            file_url: result.secure_url
+        });
 
     } catch (err) {
         console.error("Upload failed:", err);
+
+        if (req.file?.path) {
+            fs.unlink(req.file.path, () => {});
+        }
+
         res.status(500).json({ success: false, message: "Upload failed" });
     }
 });

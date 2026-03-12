@@ -3,6 +3,9 @@
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +54,35 @@
    <div class="search-param-container">
        <form action="/dashboard" method="POST" class="search-form">
 
-           <input type="text" placeholder="Enter College Name or Enter Subject Keyword . . ." name="search_parameter_text" required  spellcheck="false">
+           <div class="search-input-wrapper" style="position:relative; width:100%;">
+               <input
+                       type="text"
+                       placeholder="Start With /c for College Name or /s for Subject Name"
+                       name="search_parameter_text"
+                       id="search_parameter_text"
+                       required
+                       spellcheck="false"
+                       autocomplete="off"
+               >
+
+               <div
+                       id="college-suggestions"
+                       style="
+            display:none;
+            position:absolute;
+            top:110%;
+            left:0;
+            width:100%;
+            max-height:250px;
+            overflow-y:auto;
+            background:rgb(10,18,35);
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius:16px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.35);
+            z-index:1000;
+        "
+               ></div>
+           </div>
 
            <select name="year" required>
                <option value="all">All Years</option>
@@ -78,6 +109,83 @@
            <button type="submit">Search</button>
 
        </form>
+   </div>
+<!--   <div class="search-results-container">-->
+<!--       <div class="result-tab-container">-->
+<!--           <div class="result-tab">-->
+<!--               <div class="top-result-tab">-->
+<!--                   Thapar Institute Of Engineering and Technology-->
+<!--                   <div>-->
+
+<!--                   </div>-->
+<!--               </div>-->
+<!--               <div class="file-link-result-tab">-->
+<!--                   <a href="">illum praesentium quidem rem vero vitae voluptatibus.</a>-->
+<!--               </div>-->
+<!--           </div>-->
+<!--           <div class="college-logo">-->
+<!--               <img src="/images/Thapar_Institute_of_Engineering_and_Technology.png" alt="">-->
+<!--           </div>-->
+<!--       </div>-->
+<!--   </div>-->
+   <div class="search-results-container">
+
+       <%
+       const collegeLogoMap = {};
+       (college_specific_data || []).forEach(function(clg){
+       if(clg.college_name && clg.image){
+       collegeLogoMap[clg.college_name.trim().toLowerCase()] = clg.image;
+       }
+       });
+       %>
+
+       <% if(results && results.length > 0){ %>
+
+       <% results.forEach(function(doc){ %>
+
+       <%
+       const logoUrl = collegeLogoMap[(doc.college || "").trim().toLowerCase()] || "/images/default.png";
+       %>
+
+       <div class="result-tab-container">
+
+           <div class="result-tab">
+
+               <div class="top-result-tab">
+                   <%= doc.college %>
+                   <div style="font-size:13px; opacity:.7; margin-top:4px;">
+                       <%= doc.branch %> • <%= doc.year %> • <%= doc.subject %>
+                   </div>
+               </div>
+
+               <div class="file-link-result-tab">
+                   <a href="<%= doc.file_url %>" target="_blank">
+                       Click here to view the doc on your browser
+                   </a>
+               </div>
+
+           </div>
+
+           <div class="college-logo">
+               <img
+                       src="<%= (logoUrl && logoUrl.trim() !== '' && logoUrl !== 'null' && logoUrl !== 'undefined') ? logoUrl : '/images/default.png' %>"
+                       alt="college logo"
+                       onerror="this.onerror=null; this.src='/images/default.png';"
+               >
+           </div>
+
+       </div>
+
+       <% }) %>
+
+       <% } else { %>
+
+       <p style="color:white; opacity:.6; margin-top:40px;">
+
+       </p>
+
+       <% } %>
+
    </div>
 </body>
 <script>
@@ -157,6 +265,100 @@
 
             });
 
+        }
+
+    });
+
+
+    /* ================== NEW AUTOCOMPLETE LOGIC ================== */
+
+    const colleges = <%- JSON.stringify(colleges || []) %>;
+
+    const searchInput = document.getElementById("search_parameter_text");
+    const suggestionsBox = document.getElementById("college-suggestions");
+
+    function hideSuggestions(){
+        suggestionsBox.style.display = "none";
+        suggestionsBox.innerHTML = "";
+    }
+
+    function showSuggestions(matches){
+
+        suggestionsBox.innerHTML = "";
+
+        if(!matches.length){
+            hideSuggestions();
+            return;
+        }
+
+        matches.forEach(college => {
+
+            const item = document.createElement("div");
+            item.textContent = college;
+            item.style.padding = "12px 16px";
+            item.style.cursor = "pointer";
+            item.style.color = "white";
+            item.style.fontFamily = "'Saira', sans-serif";
+            item.style.borderBottom = "1px solid rgba(255,255,255,0.06)";
+
+            item.addEventListener("mouseenter", ()=>{
+                item.style.background = "rgba(255,255,255,0.08)";
+            });
+
+            item.addEventListener("mouseleave", ()=>{
+                item.style.background = "transparent";
+            });
+
+            item.addEventListener("click", ()=>{
+                searchInput.value = `/c ${college}`;
+                hideSuggestions();
+                searchInput.focus();
+            });
+
+            suggestionsBox.appendChild(item);
+
+        });
+
+        suggestionsBox.style.display = "block";
+
+    }
+
+    searchInput.addEventListener("input", function(){
+
+        const value = this.value.trim();
+
+        /* NO suggestions for subject search */
+        if(value.startsWith("/s")){
+            hideSuggestions();
+            return;
+        }
+
+        /* Suggestions ONLY for college search */
+        if(value.startsWith("/c")){
+
+            const query = value.slice(2).trim().toLowerCase();
+
+            if(!query){
+                showSuggestions(colleges.slice(0,8));
+                return;
+            }
+
+            const matches = colleges
+                .filter(c => c.toLowerCase().includes(query))
+                .slice(0,8);
+
+            showSuggestions(matches);
+            return;
+        }
+
+        hideSuggestions();
+
+    });
+
+    document.addEventListener("click", function(e){
+
+        if(!suggestionsBox.contains(e.target) && e.target !== searchInput){
+            hideSuggestions();
         }
 
     });
