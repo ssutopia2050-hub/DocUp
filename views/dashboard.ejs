@@ -54,10 +54,11 @@
    <div class="search-param-container">
        <form action="/dashboard" method="POST" class="search-form">
 
-           <div class="search-input-wrapper" style="position:relative; width:100%;">
+           <div class="search-input-wrapper">
+
                <input
                        type="text"
-                       placeholder="Start With /c for College Name or /s for Subject Name"
+                       placeholder="Ask DocUp...."
                        name="search_parameter_text"
                        id="search_parameter_text"
                        required
@@ -65,48 +66,49 @@
                        autocomplete="off"
                >
 
-               <div
-                       id="college-suggestions"
-                       style="
-            display:none;
-            position:absolute;
-            top:110%;
-            left:0;
-            width:100%;
-            max-height:250px;
-            overflow-y:auto;
-            background:rgb(10,18,35);
-            border:1px solid rgba(255,255,255,0.12);
-            border-radius:16px;
-            box-shadow:0 10px 30px rgba(0,0,0,0.35);
-            z-index:1000;
-        "
-               ></div>
+               <div id="college-suggestions" class="suggestions-box"></div>
+
+           </div>
+           <button type="submit" class="search-btn">Search</button>
+           <!-- FILTER DROPDOWN BUTTON -->
+           <div class="filter-wrapper">
+
+               <button type="button" id="filter-toggle" class="filter-btn">
+                   <svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <path d="M4 5L10 5M10 5C10 6.10457 10.8954 7 12 7C13.1046 7 14 6.10457 14 5M10 5C10 3.89543 10.8954 3 12 3C13.1046 3 14 3.89543 14 5M14 5L20 5M4 12L16 12M16 12C16 13.1046 16.8954 14 18 14C19.1046 14 20 13.1046 20 12C20 10.8954 19.1046 10 18 10C16.8954 10 16 10.8954 16 12ZM8 19L20 19M8 19C8 17.8954 7.10457 17 6 17C4.89543 17 4 17.8954 4 19C4 20.1046 4.89543 21 6 21C7.10457 21 8 20.1046 8 19Z" stroke="#FF4500FF" stroke-width="1.5" stroke-linecap="round"></path> </g></svg>
+               </button>
+
+               <div id="filter-dropdown" class="filter-dropdown">
+
+                   <label>Year</label>
+                   <select name="year">
+                       <option value="all">All Years</option>
+                       <option value="year1">Year 1</option>
+                       <option value="year2">Year 2</option>
+                       <option value="year3">Year 3</option>
+                       <option value="year4">Year 4</option>
+                   </select>
+
+                   <label>Stream</label>
+                   <select name="stream" id="stream">
+                       <option value="all">All Streams</option>
+                       <option value="engineering">Engineering</option>
+                       <option value="mbbs">MBBS</option>
+                       <option value="bpharma">BPharma</option>
+                       <option value="mba">MBA</option>
+                       <option value="bba">BBA</option>
+                       <option value="bcom">BCom</option>
+                   </select>
+
+                   <label>Branch</label>
+                   <select name="branch" id="branch">
+                       <option value="all">All Branches</option>
+                   </select>
+
+               </div>
+
            </div>
 
-           <select name="year" required>
-               <option value="all">All Years</option>
-               <option value="year1">Year 1</option>
-               <option value="year2">Year 2</option>
-               <option value="year3">Year 3</option>
-               <option value="year4">Year 4</option>
-           </select>
 
-           <select name="stream" id="stream" required>
-               <option value="all">All Streams</option>
-               <option value="engineering">Engineering</option>
-               <option value="mbbs">MBBS</option>
-               <option value="bpharma">BPharma</option>
-               <option value="mba">MBA</option>
-               <option value="bba">BBA</option>
-               <option value="bcom">BCom</option>
-           </select>
-
-           <select name="branch" id="branch" required>
-               <option value="all">All Branches</option>
-           </select>
-
-           <button type="submit">Search</button>
 
        </form>
    </div>
@@ -115,8 +117,16 @@
 <!--           <div class="result-tab">-->
 <!--               <div class="top-result-tab">-->
 <!--                   Thapar Institute Of Engineering and Technology-->
-<!--                   <div>-->
-
+<!--                   <div class="tags-container">-->
+<!--                        <div class="tags">-->
+<!--                            Lorem-->
+<!--                        </div>-->
+<!--                       <div class="tags">-->
+<!--                           Lorem-->
+<!--                       </div>-->
+<!--                       <div class="tags">-->
+<!--                           Lorem-->
+<!--                       </div>-->
 <!--                   </div>-->
 <!--               </div>-->
 <!--               <div class="file-link-result-tab">-->
@@ -132,29 +142,39 @@
 
        <%
        const collegeLogoMap = {};
-       (college_specific_data || []).forEach(function(clg){
-       if(clg.college_name && clg.image){
+       (college_specific_data || []).forEach(function(clg) {
+       if (clg.college_name && clg.image) {
        collegeLogoMap[clg.college_name.trim().toLowerCase()] = clg.image;
        }
        });
        %>
 
-       <% if(results && results.length > 0){ %>
+       <% if (results && results.length > 0) { %>
 
-       <% results.forEach(function(doc){ %>
+       <% results.forEach(function(doc) { %>
 
        <%
-       const logoUrl = collegeLogoMap[(doc.college || "").trim().toLowerCase()] || "/images/default.png";
+       const logoUrl =
+       collegeLogoMap[(doc.college || "").trim().toLowerCase()] ||
+       "/images/default.png";
        %>
 
        <div class="result-tab-container">
-
            <div class="result-tab">
 
                <div class="top-result-tab">
                    <%= doc.college %>
-                   <div style="font-size:13px; opacity:.7; margin-top:4px;">
-                       <%= doc.branch %> • <%= doc.year %> • <%= doc.subject %>
+
+                   <div class="tags-container">
+                       <div class="tags">
+                           <%= doc.branch %>
+                       </div>
+                       <div class="tags">
+                           <%= doc.year ? doc.year.charAt(0).toUpperCase() + doc.year.slice(1) : "" %>
+                       </div>
+                       <div class="tags">
+                           <%= doc.subject ? doc.subject.charAt(0).toUpperCase() + doc.subject.slice(1) : "" %>
+                       </div>
                    </div>
                </div>
 
@@ -173,23 +193,37 @@
                        onerror="this.onerror=null; this.src='/images/default.png';"
                >
            </div>
-
        </div>
 
-       <% }) %>
+       <% }); %>
 
        <% } else { %>
 
-       <p style="color:white; opacity:.6; margin-top:40px;">
-
+       <p style="color:rgba(255,255,255,0.18); opacity:.6; margin-top:40px;font-size: 2rem">
+           Enter /c for College Name or /s for Subject Name.......
        </p>
 
        <% } %>
 
    </div>
 </body>
+<script id="colleges-data" type="application/json">
+    <%- JSON.stringify(colleges || []) %>
+</script>
 <script>
+    const filterBtn = document.getElementById("filter-toggle");
+    const filterDropdown = document.getElementById("filter-dropdown");
 
+    filterBtn.addEventListener("click", () => {
+        filterDropdown.style.display =
+            filterDropdown.style.display === "flex" ? "none" : "flex";
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+            filterDropdown.style.display = "none";
+        }
+    });
     const branchData = {
 
         engineering: [
@@ -272,7 +306,9 @@
 
     /* ================== NEW AUTOCOMPLETE LOGIC ================== */
 
-    const colleges = <%- JSON.stringify(colleges || []) %>;
+    const colleges = JSON.parse(
+        document.getElementById("colleges-data").textContent
+    );
 
     const searchInput = document.getElementById("search_parameter_text");
     const suggestionsBox = document.getElementById("college-suggestions");
