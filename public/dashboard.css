@@ -3,6 +3,7 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Archivo Black', sans-serif;
+    user-select: none;
 }
 body{
     background-color: rgb(2, 11, 27);
@@ -176,7 +177,7 @@ a:active {
     flex-direction: column;
     /*align-items: center;*/
     justify-content: flex-start;
-    height:fit-content;
+    min-height:40vh;
     position:relative;
     margin-top:5%;
     padding: 2% 2% 2% 1%;
@@ -211,11 +212,11 @@ a:active {
 
 }
 .result-tab:hover{
-    transform:translateY(-2%);
+    /*transform:translateY(-2%);*/
+    /*-webkit-box-shadow:  5px 2px 13px -2px #FF4500FF;*/
+    /*box-shadow:  5px 2px 13px -2px #FF4500FF;*/
     -webkit-box-shadow: 3px -1px 50px -17px #FF4500FF;
     box-shadow: 3px -1px 50px -17px #FF4500FF;
-    /*-webkit-box-shadow: 3px -1px 50px -7px #FF4500FF;*/
-    /*box-shadow: 3px -1px 50px -7px #FF4500FF;*/
 }
 .college-logo{
     width:5%;
@@ -344,4 +345,132 @@ label{
 }
 #filter-toggle{
 
+}
+
+/* ===== ONLY NECESSARY ADDITIONS FOR COLLEGE SUGGESTION DROPDOWN ===== */
+
+.search-input-wrapper{
+    overflow: visible;
+}
+
+.search-input-wrapper input::placeholder{
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.suggestions-box{
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 100%;
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: none;
+    background: rgba(7, 13, 24, 0.96);
+    border: 1px solid rgba(255, 69, 0, 0.18);
+    border-radius: 18px;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.38);
+    z-index: 1200;
+}
+
+.suggestions-box::-webkit-scrollbar{
+    width: 8px;
+}
+
+.suggestions-box::-webkit-scrollbar-track{
+    background: transparent;
+}
+
+.suggestions-box::-webkit-scrollbar-thumb{
+    background: rgba(255, 69, 0, 0.35);
+    border-radius: 20px;
+}
+
+.suggestions-box div{
+    width: 100%;
+    font-family: 'Saira', sans-serif;
+    font-size: 1rem;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.suggestions-box div:first-child{
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+}
+
+.suggestions-box div:last-child{
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+}
+
+.search-param-container,
+.search-form,
+.search-input-wrapper,
+.filter-wrapper{
+    overflow: visible;
+}
+.footer{
+    width:100%;
+    flex:1;
+    height:10vh;
+    background-color:transparent;
+    border-top:1px solid rgba(255, 255, 255, 0.12);
+    display:flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+}
+.cl1{
+    width:20vw;
+    height:20vh;
+    /*border-bottom:1px solid orangered;*/
+    display:flex;
+    flex-direction: row;
+    gap:5%;
+}
+.cl2{
+    width:20vw;
+    height:20vh;
+    /*border:1px solid rgba(255, 69, 0, 0.18);*/
+}
+.cl3{
+    width:20vw;
+    height:fit-content;
+    /*border:1px solid rgba(255, 69, 0, 0.18);*/
+    padding:10px;
+    display:flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap:1vh;
+
+}
+.cl3 a{
+    font-family:sans-serif;
+    color: rgba(255, 255, 255, 0.38);
+}
+.cl3 a:hover{
+    text-decoration:underline;
+    color:white;
+
+}
+.social-link svg{
+    fill:red;
+    height:30px;
+    width:30px;
+    transition: 0.3s;
+}
+.social-link svg:hover{
+ transform: scale(1.2);
+}
+.social-link img{
+    width:30px;
+    height:30px;
+    transition: 0.3s;
+}
+.social-link img:hover{
+    transform: scale(1.2);
 }

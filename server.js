@@ -377,6 +377,9 @@ app.post("/resend_forgot_password", async (req, res) => {
 /******************************
       Dashboard
  ******************************/
+/******************************
+ Dashboard
+ ******************************/
 app.get("/dashboard", async (req, res) => {
     if (!req.session.email) {
         return res.redirect("/signin");
@@ -384,50 +387,40 @@ app.get("/dashboard", async (req, res) => {
 
     try {
         const data = await user_profile.findOne({ email: req.session.email });
-        const colleges = [];
+        const clg = await college.find({});
 
-        fs.createReadStream("College_data.csv")
-            .pipe(csv())
-            .on("data", (row) => {
-                if (row["College_Name"]) {
-                    colleges.push(row["College_Name"].trim());
-                }
-            })
-            .on("end", async () => {
-                const uniqueColleges = [...new Set(colleges)].sort();
-
-                const clg = await college.find({});
-
-                res.render("dashboard", {
-                    data,
-                    colleges: uniqueColleges,
-                    results: [],
-                    college_specific_data: clg
-                });
-            })
-            .on("error", (err) => {
-                console.log(err);
-                res.status(500).send("Error reading college data");
-            });
+        res.render("dashboard", {
+            data,
+            colleges: collegesList,
+            results: [],
+            college_specific_data: clg
+        });
 
     } catch (err) {
         console.log(err);
         res.status(500).send("Server error");
     }
 });
-app.post("/dashboard", async (req, res) => {
+app.post("/api/dashboard-search", async (req, res) => {
     try {
         if (!req.session.email) {
-            return res.redirect("/signin");
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
         }
 
         const { search_parameter_text, year, branch } = req.body;
 
-        const data = await user_profile.findOne({ email: req.session.email });
-        const clg = await college.find({});
-
         let searchType = "";
         let searchValue = "";
+
+        if (!search_parameter_text || !search_parameter_text.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Search text is required"
+            });
+        }
 
         if (search_parameter_text.startsWith("/c")) {
             searchType = "college";
@@ -542,21 +535,163 @@ app.post("/dashboard", async (req, res) => {
         }
 
         let results_after_search = Array.from(resultsMap.values());
-
         results_after_search.sort((a, b) => b._score - a._score);
 
-        res.render("dashboard", {
-            data,
-            colleges: collegesList,
-            results: results_after_search,
-            college_specific_data: clg
+        res.json({
+            success: true,
+            results: results_after_search
         });
 
     } catch (err) {
         console.log(err);
-        res.status(500).send("Server error");
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
 });
+// app.post("/dashboard", async (req, res) => {
+//     try {
+//         if (!req.session.email) {
+//             return res.redirect("/signin");
+//         }
+//
+//         const { search_parameter_text, year, branch } = req.body;
+//
+//         const data = await user_profile.findOne({ email: req.session.email });
+//         const clg = await college.find({});
+//
+//         let searchType = "";
+//         let searchValue = "";
+//
+//         if (search_parameter_text.startsWith("/c")) {
+//             searchType = "college";
+//             searchValue = search_parameter_text.slice(2).trim();
+//         } else if (search_parameter_text.startsWith("/s")) {
+//             searchType = "subject";
+//             searchValue = search_parameter_text.slice(2).trim();
+//         } else {
+//             searchType = "";
+//             searchValue = search_parameter_text.trim();
+//         }
+//
+//         const resultsMap = new Map();
+//
+//         function addResults(docs, scoreToAdd) {
+//             docs.forEach(doc => {
+//                 const id = doc._id.toString();
+//
+//                 if (!resultsMap.has(id)) {
+//                     resultsMap.set(id, {
+//                         ...doc.toObject(),
+//                         _score: 0
+//                     });
+//                 }
+//
+//                 resultsMap.get(id)._score += scoreToAdd;
+//             });
+//         }
+//
+//         if (searchType === "college") {
+//             const s1 = await Docs.find({
+//                 college: { $regex: searchValue, $options: "i" },
+//                 ...(year !== "all" ? { year } : {}),
+//                 ...(branch !== "all" ? { branch } : {})
+//             });
+//             addResults(s1, 100);
+//
+//             const s2 = await Docs.find({
+//                 college: { $regex: searchValue, $options: "i" }
+//             });
+//             addResults(s2, 70);
+//
+//             if (branch !== "all") {
+//                 const s3 = await Docs.find({ branch });
+//                 addResults(s3, 20);
+//             }
+//
+//             if (year !== "all") {
+//                 const s4 = await Docs.find({ year });
+//                 addResults(s4, 15);
+//             }
+//         }
+//
+//         else if (searchType === "subject") {
+//             const s1 = await Docs.find({
+//                 subject: { $regex: searchValue, $options: "i" },
+//                 ...(year !== "all" ? { year } : {}),
+//                 ...(branch !== "all" ? { branch } : {})
+//             });
+//             addResults(s1, 100);
+//
+//             const s2 = await Docs.find({
+//                 subject: { $regex: searchValue, $options: "i" }
+//             });
+//             addResults(s2, 75);
+//
+//             if (branch !== "all") {
+//                 const s3 = await Docs.find({ branch });
+//                 addResults(s3, 20);
+//             }
+//
+//             if (year !== "all") {
+//                 const s4 = await Docs.find({ year });
+//                 addResults(s4, 15);
+//             }
+//         }
+//
+//         else {
+//             const s1 = await Docs.find({
+//                 college: { $regex: searchValue, $options: "i" },
+//                 ...(year !== "all" ? { year } : {}),
+//                 ...(branch !== "all" ? { branch } : {})
+//             });
+//             addResults(s1, 80);
+//
+//             const s2 = await Docs.find({
+//                 subject: { $regex: searchValue, $options: "i" },
+//                 ...(year !== "all" ? { year } : {}),
+//                 ...(branch !== "all" ? { branch } : {})
+//             });
+//             addResults(s2, 80);
+//
+//             const s3 = await Docs.find({
+//                 branch: { $regex: searchValue, $options: "i" }
+//             });
+//             addResults(s3, 60);
+//
+//             const s4 = await Docs.find({
+//                 uploaded_by: { $regex: searchValue, $options: "i" }
+//             });
+//             addResults(s4, 40);
+//
+//             if (branch !== "all") {
+//                 const s5 = await Docs.find({ branch });
+//                 addResults(s5, 20);
+//             }
+//
+//             if (year !== "all") {
+//                 const s6 = await Docs.find({ year });
+//                 addResults(s6, 15);
+//             }
+//         }
+//
+//         let results_after_search = Array.from(resultsMap.values());
+//
+//         results_after_search.sort((a, b) => b._score - a._score);
+//
+//         res.render("dashboard", {
+//             data,
+//             colleges: collegesList,
+//             results: results_after_search,
+//             college_specific_data: clg
+//         });
+//
+//     } catch (err) {
+//         console.log(err);
+//         res.status(500).send("Server error");
+//     }
+// });
 /******************************
       Uploads
  ******************************/
@@ -671,4 +806,34 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         res.status(500).json({ success: false, message: "Upload failed" });
     }
+});
+/******************************
+      Profile
+ ******************************/
+app.get("/profile", async (req, res) => {
+   res.render("profile")
+})
+/******************************
+    Privacy Policy
+ ******************************/
+app.get("/privacy_policy", async (req, res) => {
+res.render("privacy_policy");
+})
+/******************************
+ Logout
+ ******************************/
+app.get("/logout", (req, res) => {
+
+    req.session.destroy((err) => {
+
+        if (err) {
+            console.log("Logout Error:", err);
+            return res.redirect("/dashboard");
+        }
+
+        res.clearCookie("connect.sid");   // VERY IMPORTANT
+        res.redirect("/signin");           // or homepage
+
+    });
+
 });
