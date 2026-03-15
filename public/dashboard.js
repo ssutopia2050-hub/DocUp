@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const suggestionsBox = document.getElementById("college-suggestions");
     const searchForm = document.querySelector(".search-form");
     const resultsContainer = document.getElementById("search-results-container");
+    const yearSelect = document.querySelector('select[name="year"]');
 
     const colleges = JSON.parse(
         document.getElementById("colleges-data").textContent
@@ -76,13 +77,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function getCollegeLogoMap(data) {
         const map = {};
-
         (data || []).forEach(clg => {
             if (clg.college_name && clg.image) {
                 map[clg.college_name.trim().toLowerCase()] = clg.image;
             }
         });
-
         return map;
     }
 
@@ -146,6 +145,74 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function showLoading() {
+        resultsContainer.innerHTML = `
+            <p style="color:white; opacity:.7; margin-top:40px; font-size:1.4rem;">
+                Searching...
+            </p>
+        `;
+    }
+
+    function saveDashboardState() {
+        const state = {
+            resultsHTML: resultsContainer.innerHTML,
+            searchValue: searchInput.value,
+            selectedYear: yearSelect.value,
+            selectedStream: streamSelect.value,
+            selectedBranch: branchSelect.value
+        };
+
+        sessionStorage.setItem("dashboardState", JSON.stringify(state));
+    }
+
+    function restoreDashboardState() {
+        const rawState = sessionStorage.getItem("dashboardState");
+        if (!rawState) return;
+
+        try {
+            const state = JSON.parse(rawState);
+
+            if (typeof state.searchValue === "string") {
+                searchInput.value = state.searchValue;
+            }
+
+            if (typeof state.selectedYear === "string") {
+                yearSelect.value = state.selectedYear;
+            }
+
+            if (typeof state.selectedStream === "string") {
+                streamSelect.value = state.selectedStream;
+                populateBranches(state.selectedStream);
+            }
+
+            if (typeof state.selectedBranch === "string") {
+                branchSelect.value = state.selectedBranch;
+            }
+
+            if (state.resultsHTML) {
+                resultsContainer.innerHTML = state.resultsHTML;
+            }
+        } catch (err) {
+            console.log("Failed to restore dashboard state:", err);
+        }
+    }
+
+    async function refreshDocScore() {
+        try {
+            const response = await fetch("/api/docscore");
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                const scoreEl = document.getElementById("docscore-value");
+                if (scoreEl) {
+                    scoreEl.textContent = result.Doc_score;
+                }
+            }
+        } catch (err) {
+            console.log("Failed to refresh DocScore:", err);
+        }
+    }
+
     function renderResults(results) {
         const collegeLogoMap = getCollegeLogoMap(collegeSpecificData);
         resultsContainer.innerHTML = "";
@@ -156,6 +223,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     No results found
                 </p>
             `;
+            saveDashboardState();
             return;
         }
 
@@ -179,7 +247,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
 
                     <div class="file-link-result-tab">
-                        <a href="${doc.file_url}" target="_blank">
+                        <a href="/view/${doc._id}" class="view-doc-link">
                             Click here to view the doc on your browser
                         </a>
                     </div>
@@ -196,15 +264,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             resultsContainer.appendChild(card);
         });
+
+        saveDashboardState();
     }
 
-    function showLoading() {
-        resultsContainer.innerHTML = `
-            <p style="color:white; opacity:.7; margin-top:40px; font-size:1.4rem;">
-                Searching...
-            </p>
-        `;
-    }
+    restoreDashboardState();
+    refreshDocScore();
 
     filterBtn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -261,6 +326,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    resultsContainer.addEventListener("click", function (e) {
+        const link = e.target.closest(".view-doc-link");
+        if (!link) return;
+        saveDashboardState();
+    });
+
     searchForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
@@ -272,48 +343,52 @@ document.addEventListener("DOMContentLoaded", function () {
             stream: formData.get("stream"),
             branch: formData.get("branch")
         };
-        if(formData.get("search_parameter_text") === "/c" || formData.get("search_parameter_text") === "/s") {
+
+        if (
+            formData.get("search_parameter_text") === "/c" ||
+            formData.get("search_parameter_text") === "/s"
+        ) {
             resultsContainer.innerText = "Enter a search parameter to get Results";
-            resultsContainer.style.color="grey";
-            resultsContainer.style.fontFamily = "Saira ,sans-serif";
-
+            resultsContainer.style.color = "grey";
+            resultsContainer.style.fontFamily = "Saira, sans-serif";
+            saveDashboardState();
+            return;
         }
-        else{
-            try {
-                hideSuggestions();
-                showLoading();
 
-                const response = await fetch("/api/dashboard-search", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+        try {
+            hideSuggestions();
+            showLoading();
 
-                const result = await response.json();
+            const response = await fetch("/api/dashboard-search", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
 
-                if (!response.ok || !result.success) {
-                    resultsContainer.innerHTML = `
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                resultsContainer.innerHTML = `
                     <p style="color:red; margin-top:40px; font-size:1.2rem;">
                         Failed to fetch results
                     </p>
                 `;
-                    return;
-                }
+                saveDashboardState();
+                return;
+            }
 
-                renderResults(result.results);
+            renderResults(result.results);
 
-            } catch (err) {
-                console.log(err);
-                resultsContainer.innerHTML = `
+        } catch (err) {
+            console.log(err);
+            resultsContainer.innerHTML = `
                 <p style="color:red; margin-top:40px; font-size:1.2rem;">
                     Something went wrong
                 </p>
             `;
-            }
+            saveDashboardState();
         }
-
-
     });
-})
+});

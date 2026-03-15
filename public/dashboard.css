@@ -6,7 +6,8 @@
     user-select: none;
 }
 body{
-    background-color: rgb(2, 11, 27);
+    /*background-color: rgb(2, 11, 27);*/
+    background-color: #001219;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -23,6 +24,13 @@ body{
     /*padding-top: 5vh;*/
     padding-left:2%;
     padding-right:3%;
+    position:sticky;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    /*background-color: rgba(255, 255, 255, 0.02);*/
+    background-color: rgba(0, 18, 25, 0.45);
+    top:0;
+    z-index: 1000;
 }
 .logo-text-container{
    font-size:3.5rem;
@@ -212,11 +220,8 @@ a:active {
 
 }
 .result-tab:hover{
-    /*transform:translateY(-2%);*/
-    /*-webkit-box-shadow:  5px 2px 13px -2px #FF4500FF;*/
-    /*box-shadow:  5px 2px 13px -2px #FF4500FF;*/
-    -webkit-box-shadow: 3px -1px 50px -17px #FF4500FF;
-    box-shadow: 3px -1px 50px -17px #FF4500FF;
+     border:1px solid rgba(255, 69, 0, 0.65);
+
 }
 .college-logo{
     width:5%;
@@ -473,4 +478,45 @@ label{
 }
 .social-link img:hover{
     transform: scale(1.2);
+}
+/* ===== Upload Loader ===== */
+
+.upload-loader-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 11, 27, 0.72);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.upload-loader-overlay.active{
+    display: flex;
+}
+
+.upload-loader-box{
+    min-width: 280px;
+    padding: 28px 32px;
+    border: 1px solid rgba(255, 69, 0, 0.48);
+    /*border-radius: 22px;*/
+    background: rgba(255, 255, 255, 0.04);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+.upload-loader-box p{
+    color: white;
+    font-family: 'Saira', sans-serif;
+    font-size: 1.1rem;
+    text-align: center;
+}
+.overlay-anchor-tags:hover{
+    text-decoration: underline;
 }

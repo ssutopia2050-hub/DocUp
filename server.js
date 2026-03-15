@@ -388,12 +388,15 @@ app.get("/dashboard", async (req, res) => {
     try {
         const data = await user_profile.findOne({ email: req.session.email });
         const clg = await college.find({});
-
+        const msg ={
+            err:null
+        }
         res.render("dashboard", {
             data,
             colleges: collegesList,
             results: [],
-            college_specific_data: clg
+            college_specific_data: clg,
+            msg
         });
 
     } catch (err) {
@@ -836,4 +839,122 @@ app.get("/logout", (req, res) => {
 
     });
 
+});
+/******************************
+   Pdf_viewer
+ ******a************************/
+// app.get("/view/:id", async (req, res) => {
+//     const document = await Docs.findById(req.params.id).lean();
+//     const college_data_fetching = await college.findOne({college_name:document.college}).lean();
+//     if (!document) return res.status(404).render("404");
+//     res.render("docview",{doc:document , college_data:college_data_fetching});
+// })
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+app.get("/view/:id", async (req, res) => {
+    try {
+
+        const document = await Docs.findById(req.params.id).lean();
+
+        if (!document) {
+            return res.status(404).render("404");
+        }
+
+        const user_data = await user_profile.findOne({ email: req.session.email });
+
+        if (!user_data) {
+            return res.redirect("/login");
+        }
+
+        if (user_data.Doc_score <= 0) {
+            const msg = { err: "Insufficient DocScore" };
+            const clg = await college.find({});
+
+            return res.render("dashboard", {
+                data: user_data,
+                colleges: collegesList,
+                results: [],
+                college_specific_data: clg,
+                msg
+            });
+        }
+
+        // ⭐ Decrease DocScore by 1
+        await user_profile.findOneAndUpdate(
+            { email: req.session.email },
+            { $inc: { Doc_score: -1 } }
+        );
+
+        const collegeName = (document.college || "").trim();
+        const safeCollegeName = escapeRegex(collegeName);
+
+        let collegeData = await college.findOne({
+            college_name: { $regex: `^${safeCollegeName}$`, $options: "i" }
+        }).lean();
+
+        if (!collegeData) {
+            collegeData = await college.findOne({
+                college_name: { $regex: safeCollegeName, $options: "i" }
+            }).lean();
+        }
+
+        res.render("docview", {
+            doc: document,
+            college_data: collegeData || {}
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
+
+app.get("/save/:id", async (req, res) => {
+    try {
+        const userMail = req.session.email;
+        const docId = req.params.id;
+
+        if (!userMail) {
+            return res.redirect("/login");
+        }
+
+        await user_profile.findOneAndUpdate(
+            { email: userMail },
+            {
+                $addToSet: {
+                    saved_documents: docId
+                }
+            }
+        );
+
+        res.redirect("/view/" + docId);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
+app.get("/api/docscore", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({ success: false, message: "Not logged in" });
+        }
+
+        const user = await user_profile.findOne(
+            { email: req.session.email },
+            { Doc_score: 1, _id: 0 }
+        );
+
+        return res.json({
+            success: true,
+            Doc_score: user ? user.Doc_score : 0
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
 });

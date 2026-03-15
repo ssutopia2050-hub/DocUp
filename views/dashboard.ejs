@@ -36,7 +36,7 @@
                white-space:nowrap;
                cursor:crosshair;">
             <span style="color:orangered">DocScore :</span>
-            <span style="color:white"><%= data.Doc_score %></span>
+            <span id="docscore-value" style="color:white"><%= data.Doc_score %></span>
             <img style="height:20px;" src="/fire.png" alt="">
         </p>
 
@@ -119,6 +119,13 @@
 <!--        Enter /c for College Name or /s for Subject Name.......-->
 <!--    </p>-->
 </div>
+<div id="upload-loader" class="upload-loader-overlay">
+    <div class="upload-loader-box">
+        <p style="color:orangered;font-size: 1.5rem">Insufficient DocScore</p>
+        <a class="overlay-anchor-tags" style="color:#457b9d;font-family:Saira, sans-serif" href="/pricing">Buy DocScores or</a>
+        <a class="overlay-anchor-tags" style="color:#457b9d;font-family:Saira, sans-serif" href="/uploads">Upload a Valid Document</a>
+    </div>
+</div>
 <div class="footer">
     <div class="cl1">
 
@@ -163,6 +170,27 @@
 </script>
 
 <script>
+    const msg = <%- JSON.stringify(msg || null) %>;
+    const homeBtn  = document.querySelector(".logo-text-container");
+    homeBtn.addEventListener("click", () => {
+        window.location.href="/dashboard";
+    })
+    if (msg && msg.err) {
+        const overlay = document.getElementById("upload-loader");
+        if (overlay) {
+            overlay.style.display = "flex";
+        }
+    }
+    const overlay = document.getElementById("upload-loader");
+    const box = document.querySelector(".upload-loader-box");
 
+    overlay.addEventListener("click", function (e) {
+
+        // if clicked element is NOT inside the box → close overlay
+        if (!box.contains(e.target)) {
+            overlay.style.display = "none";
+        }
+
+    });
 </script>
 </html>

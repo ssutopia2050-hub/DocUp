@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DocUp</title>
+    <link rel="stylesheet" href="/docview.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<div class="topbar">
+    <div class="logo-text-container">DocUp</div>
+
+    <div class="pg-links">
+        <a style="display: flex;justify-content: center;align-items:center " href="/dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+        </svg>
+            <span style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;">FindDocs</span></a>
+        <a href="/profile">Profile</a>
+    </div>
+</div>
+
+<main class="viewer-page">
+    <section class="doc-hero-card">
+        <div class="doc-left">
+            <div class="college-logo hero-logo">
+                <img
+                        src="<%= college_data && college_data.image ? college_data.image : '/images/default.png' %>"
+                        alt="college logo"
+                        onerror="this.onerror=null; this.src='/images/default.png';"
+                >
+            </div>
+
+            <div class="doc-meta">
+                <h1><%= doc.title %></h1>
+                <div class="doc-tags">
+                    <span class="doc-tag"><%= doc.subject %></span>
+                    <span class="doc-tag"><%= doc.branch %></span>
+                    <span class="doc-tag"><%= doc.year %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="doc-actions">
+            <a href="/dashboard" class="ghost-btn">Back</a>
+            <a href="/save/<%= doc._id %>" class="ghost-btn"><svg width="25px" height="25px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.00024000000000000003"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 6L7.5 5.25H16.5L17.25 6V19.3162L12 16.2051L6.75 19.3162V6ZM8.25 6.75V16.6838L12 14.4615L15.75 16.6838V6.75H8.25Z" fill="#FF4500FF"></path> </g></svg></a>
+        </div>
+    </section>
+
+    <section class="viewer-layout">
+        <div class="pdf-panel">
+            <div class="viewer-toolbar">
+                <div class="toolbar-left">
+                    <button type="button" class="tool-btn" id="zoom-out">−</button>
+                    <button type="button" class="tool-btn" id="zoom-in">+</button>
+                    <button type="button" class="tool-btn" id="fit-width">Fit Width</button>
+                </div>
+
+                <div class="toolbar-right">
+                    <span id="page-status">Loading PDF...</span>
+                </div>
+            </div>
+
+            <div class="pdf-scroll-area">
+                <div id="pdf-container"></div>
+            </div>
+        </div>
+
+        <aside class="side-panel">
+            <div class="side-card">
+                <h2>Discussion</h2>
+                <p class="muted-text">Comments Section Update Coming Soon.</p>
+            </div>
+
+            <div class="side-card">
+                <h2>Document Info</h2>
+                <div class="info-list">
+                    <p><span>College:</span> <%= doc.college %></p>
+                    <p><span>Subject:</span> <%= doc.subject %></p>
+                    <p><span>Semester:</span> <%= doc.semester %></p>
+                    <p><span>Branch:</span> <%= doc.branch %></p>
+                </div>
+            </div>
+        </aside>
+    </section>
+</main>
+
+<footer class="footer">
+    <div class="cl1"></div>
+    <div class="cl2"></div>
+    <div class="cl3">
+        <a href="/dashbaord">Dashboard</a>
+        <a href="/privacy_policy">Terms and Conditions</a>
+    </div>
+</footer>
+
+<script>
+    const pdfUrl = "<%= doc.file_url %>";
+</script>
+<script src="/docview.js"></script>
+</body>
+</html>

@@ -160,7 +160,10 @@ cursor:crosshair;">
     const form = document.getElementById("doc-form");
     const uploadBtn = document.getElementById("upload-btn");
     const uploadLoader = document.getElementById("upload-loader");
-
+    const homeBtn  = document.querySelector(".logo-text-container");
+    homeBtn.addEventListener("click", () => {
+        window.location.href="/dashboard";
+    })
     let selectedFile = null;
 
     function showLoader() {
@@ -201,6 +204,13 @@ cursor:crosshair;">
 
         form.style.display = "flex";
         uploadBtn.style.display = "block";
+
+        setTimeout(() => {
+            preview.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 100);
     }
 
     uploadBtn.addEventListener("click", async () => {
@@ -266,8 +276,6 @@ cursor:crosshair;">
                 hideLoader();
                 alert("Upload Complete");
                 uploadBtn.disabled = false;
-
-                // alert("Upload Complete");
             } else {
                 hideLoader();
                 uploadBtn.disabled = false;

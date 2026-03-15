@@ -17,11 +17,17 @@ const user_profile = new mongoose.Schema({
         required:true,
         trim:true,
     },
+    saved_documents: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Docs"
+        }
+    ],
     Doc_score:{
         type:Number,
         required:true,
         trim:true,
-        default:0
+        default:5
     },
     uploads: [
         {
@@ -31,6 +37,7 @@ const user_profile = new mongoose.Schema({
             uploadedAt: { type: Date, default: Date.now }
         }
     ]
+
 });
 
 export default mongoose.model("user_profile", user_profile);
