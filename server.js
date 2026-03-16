@@ -779,6 +779,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
                 $inc: { Doc_score: 1 },
                 $push: {
                     uploads: {
+                        doc_id: doc._id,
                         url: result.secure_url,
                         subject: req.body.subject,
                         college: req.body.college,
@@ -813,15 +814,37 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 /******************************
       Profile
  ******************************/
+
+// app.get("/profile", async (req, res) => {
+//     const data = await user_profile.findOne({email:req.session.email});
+//     res.render("profile",{data})
+// });
 app.get("/profile", async (req, res) => {
-   res.render("profile")
-})
+    try {
+        const email = req.session.email;
+
+        if (!email) {
+            return res.redirect("/signin");
+        }
+
+        const user = await user_profile.findOne({ email }).populate("saved_documents");
+
+        if (!user) {
+            return res.redirect("/signin");
+        }
+
+        res.render("profile", { user });
+    } catch (error) {
+        console.log("Profile Page Error:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
 /******************************
     Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
-res.render("privacy_policy");
-})
+        res.render("privacy_policy");
+});
 /******************************
  Logout
  ******************************/

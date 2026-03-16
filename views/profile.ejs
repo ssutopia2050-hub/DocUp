@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/profile.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | DocUp</title>
+</head>
+<body>
+
+<%
+const maxDocScore = 100;
+const safeDocScore = Math.max(0, Math.min(user.Doc_score || 0, maxDocScore));
+const progressDeg = (safeDocScore / maxDocScore) * 360;
+
+let ringColor1 = "#ff6a00";
+let ringColor2 = "#ff9b45";
+let scoreStatus = "Healthy";
+
+if (safeDocScore <= 3) {
+ringColor1 = "#ff3b30";
+ringColor2 = "#ff6b6b";
+scoreStatus = "Low";
+} else if (safeDocScore <= 6) {
+ringColor1 = "#ff9500";
+ringColor2 = "#ffb74d";
+scoreStatus = "Medium";
+} else {
+ringColor1 = "#00c853";
+ringColor2 = "#69f0ae";
+scoreStatus = "Healthy";
+}
+
+const savedCount = user.saved_documents ? user.saved_documents.length : 0;
+const uploadCount = user.uploads ? user.uploads.length : 0;
+%>
+
+<div class="topbar">
+    <div class="logo-text-container">
+        DocUp
+    </div>
+
+    <div class="pg-links">
+        <a href="/profile">
+            <span class="active-link">Profile</span>
+        </a>
+        <a href="/dashboard">
+            <span>FindDocs</span>
+        </a>
+    </div>
+</div>
+
+<div class="profile-page">
+
+    <div class="left-section">
+
+        <div class="profile-container glass-card">
+            <div class="profile-header">
+                <div class="avatar">
+                    <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+                </div>
+
+                <div class="profile-main-info">
+                    <h1><%= user.name %></h1>
+                    <p class="email-text"><%= user.email %></p>
+
+                    <div class="badge-row">
+                        <span class="profile-badge orange-badge"><%= user.subscription %></span>
+                        <span class="profile-badge neutral-badge">DocUp Member</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <span class="info-label">Full Name</span>
+                    <span class="info-value"><%= user.name %></span>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-value"><%= user.email %></span>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Subscription</span>
+                    <span class="info-value"><%= user.subscription %></span>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Doc Score</span>
+                    <span class="info-value"><%= safeDocScore %> / <%= maxDocScore %></span>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Saved Documents</span>
+                    <span class="info-value"><%= savedCount %></span>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-label">Total Uploads</span>
+                    <span class="info-value"><%= uploadCount %></span>
+                </div>
+            </div>
+
+            <div class="action-row">
+                <a href="/dashboard" class="action-btn primary-btn">Explore Documents</a>
+                <a href="/uploads" class="action-btn secondary-btn">Go to Uploads</a>
+                <a href="/logout" class="action-btn secondary-btn">Logout</a>
+            </div>
+        </div>
+
+        <div class="recent-uploads-card glass-card">
+            <div class="section-header">
+                <h2>Recent Uploads</h2>
+                <span class="mini-tag"><%= uploadCount %> Uploads</span>
+            </div>
+
+            <% if (user.uploads && user.uploads.length > 0) { %>
+            <div class="uploads-list">
+                <% user.uploads.slice().reverse().slice(0, 5).forEach(upload => { %>
+                <div class="upload-item">
+                    <div class="upload-left">
+                        <div class="upload-icon">↑</div>
+
+                        <div class="upload-details">
+                            <p class="upload-subject"><%= upload.subject || "Untitled Subject" %></p>
+                            <p class="upload-meta">
+                                <%= upload.college || "Unknown College" %>
+                                <% if (upload.uploadedAt) { %>
+                                • <%= new Date(upload.uploadedAt).toLocaleDateString() %>
+                                <% } %>
+                            </p>
+                        </div>
+                    </div>
+
+                    <% if (upload.doc_id) { %>
+                    <a href="/view/<%= upload.doc_id %>" class="open-upload-btn">Open</a>
+                    <% } else { %>
+                    <span class="disabled-upload-btn">Unavailable</span>
+                    <% } %>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No uploads yet.</p>
+                <a href="/uploads" class="empty-btn">Upload First File</a>
+            </div>
+            <% } %>
+        </div>
+
+        <div class="saved-docs-card glass-card">
+            <div class="section-header">
+                <h2>Saved Documents</h2>
+                <span class="mini-tag"><%= savedCount %> Saved</span>
+            </div>
+
+            <% if (user.saved_documents && user.saved_documents.length > 0) { %>
+            <div class="saved-docs-list">
+                <% user.saved_documents.slice(0, 5).forEach(doc => { %>
+                <div class="saved-doc-item">
+                    <div class="saved-doc-left">
+                        <div class="saved-doc-icon">★</div>
+                        <div class="saved-doc-info">
+                            <p class="saved-doc-title"><%= doc.title || doc.subject || "Saved Document" %></p>
+                            <p class="saved-doc-meta"><%= doc.college || "Unknown College" %></p>
+                        </div>
+                    </div>
+
+                    <% if (doc._id) { %>
+                    <a href="/view/<%= doc._id %>" class="view-doc-btn">View</a>
+                    <% } %>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No saved documents yet.</p>
+                <a href="/dashboard" class="empty-btn">Find Documents</a>
+            </div>
+            <% } %>
+        </div>
+
+    </div>
+
+    <div class="right-section">
+
+        <div class="doc-score-display-container glass-card">
+            <div class="score-top">
+                <p class="small-heading">Your Doc Score</p>
+                <h2><%= safeDocScore %>/<%= maxDocScore %></h2>
+            </div>
+
+            <div
+                    class="score-ring"
+                    style="background: conic-gradient(<%= ringColor1 %> 0deg, <%= ringColor2 %> <%= progressDeg %>deg, rgba(255,255,255,0.08) <%= progressDeg %>deg 360deg);"
+            >
+                <div class="score-ring-inner">
+                    <span><%= safeDocScore %></span>
+                </div>
+            </div>
+
+            <div class="score-status-wrap">
+                <span class="score-status-label">Status</span>
+                <span class="score-status-value"><%= scoreStatus %></span>
+            </div>
+
+            <p class="score-desc">
+                Each time you open a protected document, 1 DocScore is used. Recharge to continue accessing more files without interruption.
+            </p>
+
+            <div class="score-action-row">
+                <a href="/pricing" class="recharge-btn">Recharge DocScore</a>
+            </div>
+        </div>
+
+        <div class="stats-card glass-card">
+            <h2>Quick Stats</h2>
+
+            <div class="stat-box">
+                <div>
+                    <p class="stat-title">Saved Docs</p>
+                    <span class="stat-subtext">Your bookmarked documents</span>
+                </div>
+                <h3><%= savedCount %></h3>
+            </div>
+
+            <div class="stat-box">
+                <div>
+                    <p class="stat-title">Uploads</p>
+                    <span class="stat-subtext">Your contributions on DocUp</span>
+                </div>
+                <h3><%= uploadCount %></h3>
+            </div>
+
+            <div class="stat-box">
+                <div>
+                    <p class="stat-title">Subscription</p>
+                    <span class="stat-subtext">Current account plan</span>
+                </div>
+                <h3 class="plan-text"><%= user.subscription %></h3>
+            </div>
+        </div>
+
+        <div class="membership-card glass-card">
+            <h2>Membership</h2>
+            <p class="membership-desc">
+                Your current plan controls your access level on DocUp. Premium plans can later unlock higher limits, faster access, and DocScore benefits.
+            </p>
+
+            <div class="membership-plan-box">
+                <span>Current Plan</span>
+                <strong><%= user.subscription %></strong>
+            </div>
+
+            <a href="/pricing" class="upgrade-btn">Upgrade Plan</a>
+        </div>
+
+        <div class="tips-card glass-card">
+            <h2>Profile Tips</h2>
+
+            <div class="tips-list">
+                <div class="tip-item">Upload organized notes regularly</div>
+                <div class="tip-item">Save useful study resources</div>
+                <div class="tip-item">Recharge before DocScore reaches zero</div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
