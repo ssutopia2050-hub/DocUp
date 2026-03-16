@@ -114,4 +114,8 @@ Any violation may result in **legal action** to the fullest extent of the law.
 - Permission to use or modify this project must be obtained **in writing from the project owner**.  
 - The DocUp team reserves the right to **take legal action** against any individual or entity violating these terms.  
 - This project is intended for **educational and internal use only**, unless a formal license is granted.
+- ⚠️ This project is NOT open source.
+  Code copying, redistribution or commercial usage without permission is strictly prohibited.
 - [This company DocUp is a registered trademark under the Government of India: click to view Patent File Diary](https://github.com/ssutopia2050-hub/DocUp/blob/0ac558183a5ddec520deff3e9b3a80c24e7ca538/Copyright%20Office.pdf)
+- [LICENSE](https://github.com/ssutopia2050-hub/DocUp/blob/5dd6a4e9fc24bb1ec5031a8e153a6fdeeca1591d/LICENSE)
+
