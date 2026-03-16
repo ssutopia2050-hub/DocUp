@@ -114,3 +114,4 @@ Any violation may result in **legal action** to the fullest extent of the law.
 - Permission to use or modify this project must be obtained **in writing from the project owner**.  
 - The DocUp team reserves the right to **take legal action** against any individual or entity violating these terms.  
 - This project is intended for **educational and internal use only**, unless a formal license is granted.
+- This company DocUp is a registered trademark under the Government of India  : ((URL))
