@@ -42,51 +42,8 @@ DocUp is a web application that allows students to **upload, share, and access s
 
 ---
 
-## Installation
 
-1. **Clone the repository**
-
-```bash
-git clone https://github.com/yourusername/DocUp.git
-cd DocUp
-## Installation
-````
-2. **Install dependencies**
-
-```bash
-npm install
-```
-4. **Run the server**
-```bash
-npm run dev
-```
-
-5. **Project Structure**
-   
-- DocUp/
-- ├── config/
-- │   └── db.js               # MongoDB connection
-- ├── models/
-- │   ├── users.js            # User schema
-- │   ├── Docs.js             # Docs schema
-- │   └── college.js          # College schema
-- ├── public/                 # Static assets
-- ├── views/                  # EJS templates
-- ├── uploads/                # Temporary file storage for multer
-- ├── .env                    # Environment variables
-- ├── server.js               # Main Express server
-- ├── package.json
-- └── README.md
-
-6.**Notes**
-
-- Make sure your Cloudinary account allows file uploads within your plan’s limits (10 MB for free plan).
-  
-- MongoDB session store is required to persist req.session data across server restarts.
-  
-- Use Render or Vercel for deployment. On free plans, MongoDB-backed sessions ensure your OTPs and login sessions persist.
-
-7.**Contributing**
+## Contributing
 
 - Fork the repository
 
