@@ -828,18 +828,18 @@ Helper routes
 const RECHARGE_PLANS = {
     starter: {
         label: "Starter Recharge",
-        amount: 1,
+        amount: 19,
         docscore: 10
     },
     standard: {
         label: "Standard Recharge",
-        amount: 1,
-        docscore: 35
+        amount: 49,
+        docscore: 30,
     },
     pro: {
         label: "Unlimited Study Pack",
-        amount: 1,
-        docscore: 80
+        amount: 99,
+        docscore: 100
     }
 };
 
