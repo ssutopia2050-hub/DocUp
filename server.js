@@ -816,3 +816,13 @@ app.get("/api/docscore", async (req, res) => {
 app.get("/pricing", async (req, res) => {
     res.render("pricing");
 })
+app.post("/buy-recharge", async (req, res) => {
+    const { plan, amount, docscore } = req.body;
+
+    console.log("Selected Plan:", plan);
+    console.log("Amount:", amount);
+    console.log("DocScore:", docscore);
+
+    // later connect payment gateway here
+    res.send(`You selected ${plan} worth ₹${amount} for +${docscore} DocScore`);
+});

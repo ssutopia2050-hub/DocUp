@@ -12,6 +12,7 @@
   "private": true,
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
+    "axios": "^1.13.6",
     "cloudinary": "^1.41.3",
     "connect-mongo": "^6.0.0",
     "csv-parser": "^3.2.0",
@@ -26,6 +27,8 @@
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^3.1.14",
+    "paytm-pg-node-sdk": "^1.0.6",
+    "paytmchecksum": "^1.5.1",
     "sharp": "^0.34.5"
   }
 }
