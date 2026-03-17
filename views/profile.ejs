@@ -217,6 +217,58 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
             </div>
             <% } %>
         </div>
+        <div class="payment-history-card glass-card">
+            <div class="section-header">
+                <h2>Payment History</h2>
+                <span class="mini-tag"><%= user.payment_history ? user.payment_history.length : 0 %> Payments</span>
+            </div>
+
+            <% if (user.payment_history && user.payment_history.length > 0) { %>
+            <div class="payment-history-list">
+                <% user.payment_history.slice(0, 5).forEach(payment => { %>
+                <div class="payment-item">
+                    <div class="payment-left">
+                        <div class="payment-icon">₹</div>
+
+                        <div class="payment-details">
+                            <p class="payment-plan"><%= payment.plan || "Recharge" %></p>
+                            <p class="payment-meta">
+                                +<%= payment.docscore_added || 0 %> DocScore
+                                • ₹<%= payment.amount || 0 %>
+                                <% if (payment.date) { %>
+                                • <%= new Date(payment.date).toLocaleDateString() %>
+                                <% } %>
+                            </p>
+
+                            <% if (payment.order_id || payment.payment_id) { %>
+                            <p class="payment-id">
+                                <% if (payment.order_id) { %>
+                                Order: <%= payment.order_id %>
+                                <% } %>
+                                <% if (payment.order_id && payment.payment_id) { %>
+                                •
+                                <% } %>
+                                <% if (payment.payment_id) { %>
+                                Payment: <%= payment.payment_id %>
+                                <% } %>
+                            </p>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="payment-status <%= (payment.status || '').toLowerCase() %>">
+                        <%= payment.status || "SUCCESS" %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No payments yet.</p>
+                <a href="/pricing" class="empty-btn">Recharge Now</a>
+            </div>
+            <% } %>
+        </div>
 
     </div>
 

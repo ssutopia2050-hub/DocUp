@@ -254,50 +254,41 @@ a:active {
 }
 
 .footer{
-    width:100%;
-    flex:1;
-    height:10vh;
-    background-color:transparent;
-    border-top:1px solid rgba(255, 255, 255, 0.12);
-    display:flex;
-    flex-direction: row;
-    justify-content: space-around;
+    margin-top: auto;
+    width: 100%;
+    min-height: 90px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
 }
-.cl1{
-    width:20vw;
-    height:20vh;
-    /*border-bottom:1px solid orangered;*/
-    display:flex;
-    flex-direction: row;
-    gap:5%;
-}
-.cl2{
-    width:20vw;
-    height:20vh;
-    /*border:1px solid rgba(255, 69, 0, 0.18);*/
-}
-.cl3{
-    width:20vw;
-    height:fit-content;
-    /*border:1px solid rgba(255, 69, 0, 0.18);*/
-    padding:10px;
-    display:flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-    gap:1vh;
 
+.footer-left{
+    font-size: 2rem;
+    color: white;
 }
-.cl3 a{
-    font-family:sans-serif;
-    color: rgba(255, 255, 255, 0.38);
-}
-.cl3 a:hover{
-    text-decoration:underline;
-    color:white;
 
+.footer-right{
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
 }
+
+.footer-right a{
+    color: rgba(255,255,255,0.62);
+    font-family: "Saira", sans-serif;
+    text-decoration: none;
+}
+
+.footer-right a:hover{
+    color: white;
+}
+
+.footer-right a:hover{
+    color: white;
+}
+
 .social-link svg{
     fill:red;
     height:30px;

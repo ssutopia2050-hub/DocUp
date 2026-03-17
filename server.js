@@ -671,10 +671,11 @@ app.get("/profile", async (req, res) => {
             return res.redirect("/signin");
         }
 
-        res.render("profile", {
-            user,
-            paymentSuccess: req.query.payment === "success"
-        });
+        if (user.payment_history && user.payment_history.length > 0) {
+            user.payment_history.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        res.render("profile", { user });
     } catch (error) {
         console.log("Profile Page Error:", error);
         res.status(500).send("Internal Server Error");
@@ -997,6 +998,7 @@ app.post("/payment/verify", async (req, res) => {
                 { email: existingOrder.user_email },
                 {
                     $inc: { Doc_score: existingOrder.docscore_to_add },
+                    $set: { subscription: "Paid Tier" },
                     $push: {
                         payment_history: {
                             order_id: existingOrder.order_id,
@@ -1034,4 +1036,10 @@ app.post("/payment/verify", async (req, res) => {
             message: "Server error during payment verification"
         });
     }
+});
+/****************************
+     contact us
+ ****************************/
+app.get("/contact",(req,res)=>{
+    res.render("contact");
 });

@@ -418,81 +418,41 @@ label{
     overflow: visible;
 }
 .footer{
-    width:100%;
-    flex:1;
-    height:10vh;
-    background-color:transparent;
-    border-top:1px solid rgba(255, 255, 255, 0.12);
-    display:flex;
-    flex-direction: row;
-    justify-content: space-around;
+    margin-top: auto;
+    width: 100%;
+    min-height: 90px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
     align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
 }
-.cl1{
-    width:20vw;
-    height:20vh;
-    /*border-bottom:1px solid orangered;*/
-    display:flex;
-    flex-direction: row;
-    gap:5%;
-}
-.cl2{
-    width:20vw;
-    height:fit-content;
-    /*border:1px solid rgba(255, 69, 0, 0.18);*/
-    padding:10px;
-    display:flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-    gap:1vh;
-}
-.cl3{
-    width:20vw;
-    height:fit-content;
-    /*border:1px solid rgba(255, 69, 0, 0.18);*/
-    padding:10px;
-    display:flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: flex-end;
-    gap:1vh;
 
+.footer-left{
+    font-size: 2rem;
+    color: white;
 }
-.cl2 a{
-    font-family:sans-serif;
-    color: rgba(255, 255, 255, 0.38);
-}
-.cl2 a:hover{
-    text-decoration:underline;
-    color:white;
-}
-.cl3 a{
-    font-family:sans-serif;
-    color: rgba(255, 255, 255, 0.38);
-}
-.cl3 a:hover{
-    text-decoration:underline;
-    color:white;
 
+.footer-right{
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
 }
-.social-link svg{
-    fill:red;
-    height:30px;
-    width:30px;
-    transition: 0.3s;
+
+.footer-right a{
+    color: rgba(255,255,255,0.62);
+    font-family: "Saira", sans-serif;
+    text-decoration: none;
 }
-.social-link svg:hover{
- transform: scale(1.2);
+
+.footer-right a:hover{
+    color: white;
 }
-.social-link img{
-    width:30px;
-    height:30px;
-    transition: 0.3s;
+
+.footer-right a:hover{
+    color: white;
 }
-.social-link img:hover{
-    transform: scale(1.2);
-}
+
 /* ===== Upload Loader ===== */
 
 .upload-loader-overlay{
@@ -533,4 +493,135 @@ label{
 }
 .overlay-anchor-tags:hover{
     text-decoration: underline;
+}
+/* ===== CONTACT PAGE ===== */
+
+.contact-page{
+    width:100%;
+    padding:5% 6%;
+    display:flex;
+    gap:3%;
+    align-items:flex-start;
+}
+
+.contact-left{
+    width:40%;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.contact-left h1{
+    font-size:2.6rem;
+    font-family:'Raleway',sans-serif;
+}
+
+.contact-desc{
+    font-family:'Saira',sans-serif;
+    color:rgba(255,255,255,0.7);
+    line-height:1.7;
+}
+
+.contact-info-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:18px;
+    border-radius:16px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.08);
+}
+
+.contact-label{
+    font-size:0.8rem;
+    color:rgba(255,255,255,0.5);
+    font-family:'Saira',sans-serif;
+}
+
+.contact-value{
+    font-size:1rem;
+    color:#ff9d59;
+    font-family:'Raleway',sans-serif;
+}
+
+.contact-right{
+    width:57%;
+    padding:40px;
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.contact-right h2{
+    font-family:'Raleway',sans-serif;
+    font-size:1.6rem;
+}
+
+.contact-form{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.contact-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+}
+
+.contact-field label{
+    font-size:0.85rem;
+    font-family:'Saira',sans-serif;
+    color:rgba(255,255,255,0.6);
+}
+
+.contact-field input,
+.contact-field textarea{
+    padding:14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.04);
+    color:white;
+    font-family:'Saira',sans-serif;
+    outline:none;
+}
+
+.contact-field textarea{
+    resize:none;
+}
+
+.contact-btn{
+    margin-top:10px;
+    padding:15px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,#ff5e00,#ff8c00);
+    color:white;
+    font-family:'Saira',sans-serif;
+    cursor:pointer;
+    font-size:1rem;
+    transition:.25s;
+}
+
+.contact-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 25px rgba(255,94,0,0.25);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(max-width:1000px){
+
+    .contact-page{
+        flex-direction:column;
+        gap:25px;
+    }
+
+    .contact-left,
+    .contact-right{
+        width:100%;
+        padding:28px;
+    }
+
 }

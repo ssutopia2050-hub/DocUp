@@ -643,7 +643,108 @@ a:active{
     font-family: "Saira", sans-serif;
     font-size: 0.92rem;
 }
+.payment-history-card{
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
+.payment-history-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.payment-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.payment-left{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.payment-icon{
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255, 94, 0, 0.14);
+    color: #ffb17a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.payment-details{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.payment-plan{
+    color: white;
+    font-size: 1rem;
+    font-family: "Raleway", sans-serif;
+    word-break: break-word;
+}
+
+.payment-meta{
+    color: rgba(255,255,255,0.62);
+    font-size: 0.84rem;
+    font-family: "Saira", sans-serif;
+    word-break: break-word;
+}
+
+.payment-id{
+    color: rgba(255,255,255,0.42);
+    font-size: 0.78rem;
+    font-family: "Saira", sans-serif;
+    word-break: break-word;
+}
+
+.payment-status{
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-family: "Saira", sans-serif;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    text-transform: capitalize;
+}
+
+.payment-status.success{
+    background: rgba(0, 200, 83, 0.12);
+    border-color: rgba(0, 200, 83, 0.24);
+    color: #7dffb0;
+}
+
+.payment-status.failed{
+    background: rgba(255, 59, 48, 0.12);
+    border-color: rgba(255, 59, 48, 0.24);
+    color: #ff9d97;
+}
+
+.payment-status.pending{
+    background: rgba(255, 149, 0, 0.12);
+    border-color: rgba(255, 149, 0, 0.24);
+    color: #ffc46b;
+}
 @media (max-width: 1150px){
     .profile-page{
         flex-direction: column;
@@ -769,5 +870,20 @@ a:active{
     .membership-plan-box{
         flex-direction: column;
         align-items: flex-start;
+    }
+    .payment-item{
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .payment-left{
+        width: 100%;
+    }
+
+    .payment-status{
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        display: inline-flex;
     }
 }
