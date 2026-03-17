@@ -27,7 +27,7 @@ body{
     align-items: center;
     justify-content: space-between;
     padding-left: 2%;
-    padding-right: 3%;
+    padding-right: 2%;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -48,7 +48,7 @@ body{
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    padding-right: 3%;
+    /*padding-right: 3%;*/
     gap: 40px;
 }
 
@@ -57,7 +57,7 @@ body{
     align-items: center;
     justify-content: center;
     width: fit-content;
-    font-family: "Saira", sans-serif;
+    font-family: "Archivo Black", sans-serif;
     font-size: 1rem;
 }
 

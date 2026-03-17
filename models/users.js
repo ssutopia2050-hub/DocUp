@@ -55,7 +55,12 @@ const user_profile = new mongoose.Schema({
         required: true,
         default: "Free Tier"
     },
-
+    user_type:{
+        type:String,
+        required:true,
+        default:"DocUp Member",
+        enum:["DocUp Member","DocUp Admin","DocUp Developer"]
+    },
     payment_history: [
         {
             amount: {

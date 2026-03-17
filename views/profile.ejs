@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -8,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/profile.css">
     <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile | DocUp</title>
 </head>
@@ -22,11 +24,11 @@ let ringColor1 = "#ff6a00";
 let ringColor2 = "#ff9b45";
 let scoreStatus = "Healthy";
 
-if (safeDocScore <= 3) {
+if (safeDocScore <= 25) {
 ringColor1 = "#ff3b30";
 ringColor2 = "#ff6b6b";
 scoreStatus = "Low";
-} else if (safeDocScore <= 6) {
+} else if (safeDocScore <= 60) {
 ringColor1 = "#ff9500";
 ringColor2 = "#ffb74d";
 scoreStatus = "Medium";
@@ -46,11 +48,38 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
     </div>
 
     <div class="pg-links">
-        <a href="/profile">
-            <span class="active-link">Profile</span>
-        </a>
         <a href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
             <span>FindDocs</span>
+        </a>
+
+        <p style="border:1px solid orangered;
+               padding:15px 25px;
+               border-radius:30px;
+               display:flex;
+               gap:10px;
+               align-items:center;
+               white-space:nowrap;
+               cursor:crosshair;">
+            <span style="color:orangered">DocScore :</span>
+            <span id="docscore-value" style="color:white"><%= user.Doc_score %></span>
+            <img style="height:20px;" src="/fire.png" alt="">
+        </p>
+
+        <a href="/uploads">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+            </svg>
+            Uploads
+        </a>
+
+        <a style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;" href="/profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.14 12.94a7.43 7.43 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.28 7.28 0 00-1.63-.95l-.36-2.54A.5.5 0 0014.9 2h-3.8a.5.5 0 00-.49.41l-.36 2.54a7.28 7.28 0 00-1.63.95l-2.39-.96a.5.5 0 00-.6.22L3.71 8.48a.5.5 0 00.12.64l2.03 1.58a7.43 7.43 0 000 1.88L3.83 14.16a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.6.22l2.39-.96c.5.38 1.05.7 1.63.95l.36 2.54a.5.5 0 00.49.41h3.8a.5.5 0 00.49-.41l.36-2.54c.58-.25 1.13-.57 1.63-.95l2.39.96a.5.5 0 00.6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/>
+            </svg>
+            Profile
         </a>
     </div>
 </div>
@@ -71,7 +100,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
 
                     <div class="badge-row">
                         <span class="profile-badge orange-badge"><%= user.subscription %></span>
-                        <span class="profile-badge neutral-badge">DocUp Member</span>
+                        <span class="profile-badge neutral-badge"><%= user.user_type %></span>
                     </div>
                 </div>
             </div>
@@ -113,7 +142,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
             <div class="action-row">
                 <a href="/dashboard" class="action-btn primary-btn">Explore Documents</a>
                 <a href="/uploads" class="action-btn secondary-btn">Go to Uploads</a>
-                <a href="/logout" class="action-btn secondary-btn">Logout</a>
+                <a style="border-color:rgba(255,0,0,0.32)" href="/logout" class="action-btn secondary-btn">Logout</a>
             </div>
         </div>
 

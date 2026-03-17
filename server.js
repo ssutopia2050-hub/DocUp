@@ -140,30 +140,6 @@ app.post('/signup', async (req, res) => {
 app.get('/signin',  (req, res) => {
     res.render('signin', {err:null});
 })
-// app.post('/signin', async(req, res) => {
-//     const{email , password} = req.body;
-//     const exists = await user_profile.findOne({email});
-//     if(!exists){
-//         const err ={
-//             "message": "You dont have an account with DocUp",
-//         }
-//         return res.render('signin', {err});
-//     }
-//     console.log(exists);
-//     if(password === exists.password){
-//         const err ={
-//             "message": "Sign in successfull",
-//         }
-//         req.session.email =email;
-//         res.redirect('/dashboard');
-//     }
-//     else {
-//         const err ={
-//             "message": "Invalid Credentials !!",
-//         }
-//          res.render('signin', {err});
-//     }
-// })
 app.post('/signin', async (req, res) => {
     const { email, password } = req.body;
 
@@ -375,9 +351,6 @@ app.post("/resend_forgot_password", async (req, res) => {
     });
 });
 /******************************
-      Dashboard
- ******************************/
-/******************************
  Dashboard
  ******************************/
 app.get("/dashboard", async (req, res) => {
@@ -553,148 +526,6 @@ app.post("/api/dashboard-search", async (req, res) => {
         });
     }
 });
-// app.post("/dashboard", async (req, res) => {
-//     try {
-//         if (!req.session.email) {
-//             return res.redirect("/signin");
-//         }
-//
-//         const { search_parameter_text, year, branch } = req.body;
-//
-//         const data = await user_profile.findOne({ email: req.session.email });
-//         const clg = await college.find({});
-//
-//         let searchType = "";
-//         let searchValue = "";
-//
-//         if (search_parameter_text.startsWith("/c")) {
-//             searchType = "college";
-//             searchValue = search_parameter_text.slice(2).trim();
-//         } else if (search_parameter_text.startsWith("/s")) {
-//             searchType = "subject";
-//             searchValue = search_parameter_text.slice(2).trim();
-//         } else {
-//             searchType = "";
-//             searchValue = search_parameter_text.trim();
-//         }
-//
-//         const resultsMap = new Map();
-//
-//         function addResults(docs, scoreToAdd) {
-//             docs.forEach(doc => {
-//                 const id = doc._id.toString();
-//
-//                 if (!resultsMap.has(id)) {
-//                     resultsMap.set(id, {
-//                         ...doc.toObject(),
-//                         _score: 0
-//                     });
-//                 }
-//
-//                 resultsMap.get(id)._score += scoreToAdd;
-//             });
-//         }
-//
-//         if (searchType === "college") {
-//             const s1 = await Docs.find({
-//                 college: { $regex: searchValue, $options: "i" },
-//                 ...(year !== "all" ? { year } : {}),
-//                 ...(branch !== "all" ? { branch } : {})
-//             });
-//             addResults(s1, 100);
-//
-//             const s2 = await Docs.find({
-//                 college: { $regex: searchValue, $options: "i" }
-//             });
-//             addResults(s2, 70);
-//
-//             if (branch !== "all") {
-//                 const s3 = await Docs.find({ branch });
-//                 addResults(s3, 20);
-//             }
-//
-//             if (year !== "all") {
-//                 const s4 = await Docs.find({ year });
-//                 addResults(s4, 15);
-//             }
-//         }
-//
-//         else if (searchType === "subject") {
-//             const s1 = await Docs.find({
-//                 subject: { $regex: searchValue, $options: "i" },
-//                 ...(year !== "all" ? { year } : {}),
-//                 ...(branch !== "all" ? { branch } : {})
-//             });
-//             addResults(s1, 100);
-//
-//             const s2 = await Docs.find({
-//                 subject: { $regex: searchValue, $options: "i" }
-//             });
-//             addResults(s2, 75);
-//
-//             if (branch !== "all") {
-//                 const s3 = await Docs.find({ branch });
-//                 addResults(s3, 20);
-//             }
-//
-//             if (year !== "all") {
-//                 const s4 = await Docs.find({ year });
-//                 addResults(s4, 15);
-//             }
-//         }
-//
-//         else {
-//             const s1 = await Docs.find({
-//                 college: { $regex: searchValue, $options: "i" },
-//                 ...(year !== "all" ? { year } : {}),
-//                 ...(branch !== "all" ? { branch } : {})
-//             });
-//             addResults(s1, 80);
-//
-//             const s2 = await Docs.find({
-//                 subject: { $regex: searchValue, $options: "i" },
-//                 ...(year !== "all" ? { year } : {}),
-//                 ...(branch !== "all" ? { branch } : {})
-//             });
-//             addResults(s2, 80);
-//
-//             const s3 = await Docs.find({
-//                 branch: { $regex: searchValue, $options: "i" }
-//             });
-//             addResults(s3, 60);
-//
-//             const s4 = await Docs.find({
-//                 uploaded_by: { $regex: searchValue, $options: "i" }
-//             });
-//             addResults(s4, 40);
-//
-//             if (branch !== "all") {
-//                 const s5 = await Docs.find({ branch });
-//                 addResults(s5, 20);
-//             }
-//
-//             if (year !== "all") {
-//                 const s6 = await Docs.find({ year });
-//                 addResults(s6, 15);
-//             }
-//         }
-//
-//         let results_after_search = Array.from(resultsMap.values());
-//
-//         results_after_search.sort((a, b) => b._score - a._score);
-//
-//         res.render("dashboard", {
-//             data,
-//             colleges: collegesList,
-//             results: results_after_search,
-//             college_specific_data: clg
-//         });
-//
-//     } catch (err) {
-//         console.log(err);
-//         res.status(500).send("Server error");
-//     }
-// });
 /******************************
       Uploads
  ******************************/
@@ -843,7 +674,7 @@ app.get("/profile", async (req, res) => {
     Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
-        res.render("privacy_policy");
+        res.render("privacy_policy");//TODO:make privacy_policy page
 });
 /******************************
  Logout
@@ -981,3 +812,7 @@ app.get("/api/docscore", async (req, res) => {
         });
     }
 });
+
+app.get("/pricing", async (req, res) => {
+    res.render("pricing");
+})
