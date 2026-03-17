@@ -13,6 +13,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 import connectDB from "./config/db.js";
 import session from "express-session";
+import crypto from "crypto";
+import Razorpay from "razorpay";
+import paymentOrder from "./models/paymentOrder.js";
 dotenv.config();
 const upload = multer({dest:"uploads/"});
 /******************************
@@ -43,6 +46,10 @@ cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
+});
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 let collegesList = [];
 
@@ -664,7 +671,10 @@ app.get("/profile", async (req, res) => {
             return res.redirect("/signin");
         }
 
-        res.render("profile", { user });
+        res.render("profile", {
+            user,
+            paymentSuccess: req.query.payment === "success"
+        });
     } catch (error) {
         console.log("Profile Page Error:", error);
         res.status(500).send("Internal Server Error");
@@ -719,7 +729,7 @@ app.get("/view/:id", async (req, res) => {
         const user_data = await user_profile.findOne({ email: req.session.email });
 
         if (!user_data) {
-            return res.redirect("/login");
+            return res.redirect("/signin");
         }
 
         if (user_data.Doc_score <= 0) {
@@ -771,7 +781,7 @@ app.get("/save/:id", async (req, res) => {
         const docId = req.params.id;
 
         if (!userMail) {
-            return res.redirect("/login");
+            return res.redirect("/signin");
         }
 
         await user_profile.findOneAndUpdate(
@@ -812,17 +822,216 @@ app.get("/api/docscore", async (req, res) => {
         });
     }
 });
+/****************************
+Helper routes
+ ****************************/
+const RECHARGE_PLANS = {
+    starter: {
+        label: "Starter Recharge",
+        amount: 1,
+        docscore: 10
+    },
+    standard: {
+        label: "Standard Recharge",
+        amount: 1,
+        docscore: 35
+    },
+    pro: {
+        label: "Unlimited Study Pack",
+        amount: 1,
+        docscore: 80
+    }
+};
 
+/****************************
+ Pricing
+ ****************************/
 app.get("/pricing", async (req, res) => {
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
+
     res.render("pricing");
-})
+});
 app.post("/buy-recharge", async (req, res) => {
-    const { plan, amount, docscore } = req.body;
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
+        }
 
-    console.log("Selected Plan:", plan);
-    console.log("Amount:", amount);
-    console.log("DocScore:", docscore);
+        const { plan } = req.body;
+        const selectedPlan = RECHARGE_PLANS[plan];
 
-    // later connect payment gateway here
-    res.send(`You selected ${plan} worth ₹${amount} for +${docscore} DocScore`);
+        if (!selectedPlan) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid recharge plan"
+            });
+        }
+
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+        const existingPendingOrder = await paymentOrder.findOne({
+            user_email: req.session.email,
+            plan_key: plan,
+            status: "PENDING",
+            createdAt: { $gte: fiveMinutesAgo }
+        }).sort({ createdAt: -1 });
+
+        if (existingPendingOrder) {
+            return res.json({
+                success: true,
+                orderId: existingPendingOrder.order_id,
+                amount: existingPendingOrder.amount * 100,
+                currency: "INR",
+                key: process.env.RAZORPAY_KEY_ID,
+                userEmail: req.session.email
+            });
+        }
+
+        const receipt = `docup_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
+
+        const razorpayOrder = await razorpay.orders.create({
+            amount: selectedPlan.amount * 100,
+            currency: "INR",
+            receipt,
+            notes: {
+                user_email: req.session.email,
+                plan_key: plan
+            }
+        });
+
+        await paymentOrder.create({
+            user_email: req.session.email,
+            order_id: razorpayOrder.id,
+            plan_key: plan,
+            plan_label: selectedPlan.label,
+            amount: selectedPlan.amount,
+            docscore_to_add: selectedPlan.docscore,
+            status: "PENDING"
+        });
+
+        return res.json({
+            success: true,
+            orderId: razorpayOrder.id,
+            amount: razorpayOrder.amount,
+            currency: razorpayOrder.currency,
+            key: process.env.RAZORPAY_KEY_ID,
+            userEmail: req.session.email
+        });
+    } catch (err) {
+        console.error("Razorpay order creation error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Could not start payment"
+        });
+    }
+});
+app.post("/payment/verify", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
+        }
+
+        const {
+            razorpay_order_id,
+            razorpay_payment_id,
+            razorpay_signature
+        } = req.body;
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing payment details"
+            });
+        }
+
+        const existingOrder = await paymentOrder.findOne({
+            order_id: razorpay_order_id
+        });
+
+        if (!existingOrder) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        if (existingOrder.user_email !== req.session.email) {
+            return res.status(403).json({
+                success: false,
+                message: "Order does not belong to this user"
+            });
+        }
+
+        const generatedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest("hex");
+
+        if (generatedSignature !== razorpay_signature) {
+            await paymentOrder.findOneAndUpdate(
+                { order_id: razorpay_order_id },
+                {
+                    status: "FAILED",
+                    gateway_response: req.body,
+                    txn_id: razorpay_payment_id,
+                    payment_mode: "RAZORPAY"
+                }
+            );
+
+            return res.status(400).json({
+                success: false,
+                message: "Payment verification failed"
+            });
+        }
+
+        if (existingOrder.status !== "SUCCESS") {
+            await user_profile.findOneAndUpdate(
+                { email: existingOrder.user_email },
+                {
+                    $inc: { Doc_score: existingOrder.docscore_to_add },
+                    $push: {
+                        payment_history: {
+                            order_id: existingOrder.order_id,
+                            payment_id: razorpay_payment_id,
+                            amount: existingOrder.amount,
+                            plan: existingOrder.plan_label,
+                            docscore_added: existingOrder.docscore_to_add,
+                            status: "SUCCESS",
+                            date: new Date()
+                        }
+                    }
+                }
+            );
+
+            await paymentOrder.findOneAndUpdate(
+                { order_id: razorpay_order_id },
+                {
+                    status: "SUCCESS",
+                    txn_id: razorpay_payment_id,
+                    payment_mode: "RAZORPAY",
+                    gateway_response: req.body
+                }
+            );
+        }
+
+        return res.json({
+            success: true,
+            redirectUrl: "/profile?payment=success"
+        });
+
+    } catch (err) {
+        console.error("Razorpay verify error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error during payment verification"
+        });
+    }
 });

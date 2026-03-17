@@ -55,14 +55,24 @@ const user_profile = new mongoose.Schema({
         required: true,
         default: "Free Tier"
     },
-    user_type:{
-        type:String,
-        required:true,
-        default:"DocUp Member",
-        enum:["DocUp Member","DocUp Admin","DocUp Developer"]
+
+    user_type: {
+        type: String,
+        required: true,
+        default: "DocUp Member",
+        enum: ["DocUp Member", "DocUp Admin", "DocUp Developer"]
     },
+
     payment_history: [
         {
+            order_id: {
+                type: String,
+                default: ""
+            },
+            payment_id: {
+                type: String,
+                default: ""
+            },
             amount: {
                 type: Number,
                 default: 0
@@ -71,13 +81,14 @@ const user_profile = new mongoose.Schema({
                 type: String,
                 default: ""
             },
-            payment_id: {
-                type: String,
-                default: ""
+            docscore_added: {
+                type: Number,
+                default: 0
             },
             status: {
                 type: String,
-                default: ""
+                enum: ["SUCCESS", "FAILED", "PENDING"],
+                default: "SUCCESS"
             },
             date: {
                 type: Date,

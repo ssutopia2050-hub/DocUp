@@ -41,7 +41,7 @@
         <h2>Starter Recharge</h2>
         <div class="price-row">
             <span class="currency">₹</span>
-            <span class="price">29</span>
+            <span class="price">1</span>
         </div>
         <p class="docscore-count">+10 DocScore</p>
 
@@ -51,12 +51,9 @@
             <div class="feature">Perfect for casual users</div>
         </div>
 
-        <form action="/buy-recharge" method="POST">
-            <input type="hidden" name="plan" value="Starter Recharge">
-            <input type="hidden" name="amount" value="29">
-            <input type="hidden" name="docscore" value="10">
-            <button type="submit" class="buy-btn">Recharge Now</button>
-        </form>
+        <button type="button" class="buy-btn recharge-btn" data-plan="starter">
+            Recharge Now
+        </button>
     </div>
 
     <div class="pricing-card popular">
@@ -65,7 +62,7 @@
         <h2>Standard Recharge</h2>
         <div class="price-row">
             <span class="currency">₹</span>
-            <span class="price">79</span>
+            <span class="price">1</span>
         </div>
         <p class="docscore-count">+35 DocScore</p>
 
@@ -75,12 +72,9 @@
             <div class="feature">Balanced price and access</div>
         </div>
 
-        <form action="/buy-recharge" method="POST">
-            <input type="hidden" name="plan" value="Standard Recharge">
-            <input type="hidden" name="amount" value="79">
-            <input type="hidden" name="docscore" value="35">
-            <button type="submit" class="buy-btn featured-btn">Recharge Now</button>
-        </form>
+        <button type="button" class="buy-btn featured-btn recharge-btn" data-plan="standard">
+            Recharge Now
+        </button>
     </div>
 
     <div class="pricing-card premium">
@@ -88,7 +82,7 @@
         <h2>Unlimited Study Pack</h2>
         <div class="price-row">
             <span class="currency">₹</span>
-            <span class="price">149</span>
+            <span class="price">1</span>
         </div>
         <p class="docscore-count">+80 DocScore</p>
 
@@ -98,12 +92,9 @@
             <div class="feature">Longer uninterrupted access</div>
         </div>
 
-        <form action="/buy-recharge" method="POST">
-            <input type="hidden" name="plan" value="Unlimited Study Pack">
-            <input type="hidden" name="amount" value="149">
-            <input type="hidden" name="docscore" value="80">
-            <button type="submit" class="buy-btn">Recharge Now</button>
-        </form>
+        <button type="button" class="buy-btn recharge-btn" data-plan="pro">
+            Recharge Now
+        </button>
     </div>
 </section>
 
@@ -117,7 +108,7 @@
         <div class="comparison-points">
             <div class="comparison-point">Fast access to more study resources</div>
             <div class="comparison-point">Flexible plans for every kind of student</div>
-            <div class="comparison-point">Easy future integration with payment gateway</div>
+            <div class="comparison-point">Secure payment flow</div>
         </div>
     </div>
 </section>
@@ -133,12 +124,12 @@
 
         <div class="faq-card">
             <h3>Does recharge expire?</h3>
-            <p>You can decide that in backend logic, but usually it should remain in the user account until used.</p>
+            <p>Recharge stays in your account unless you build expiry logic later.</p>
         </div>
 
         <div class="faq-card">
-            <h3>Can I add Paytm later?</h3>
-            <p>Yes. This page is already structured so the forms can later connect to your payment flow.</p>
+            <h3>When is score added?</h3>
+            <p>Only after payment is verified successfully.</p>
         </div>
     </div>
 </section>
@@ -151,6 +142,105 @@
         <a href="/pricing">Recharge</a>
     </div>
 </div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const buttons = document.querySelectorAll(".recharge-btn");
+
+    buttons.forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const originalText = btn.innerText;
+
+            try {
+                btn.disabled = true;
+                btn.innerText = "Please wait...";
+
+                const plan = btn.dataset.plan;
+
+                const response = await fetch("/buy-recharge", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ plan })
+                });
+
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert(data.message || "Could not start payment");
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    return;
+                }
+
+                const options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: "DocUp",
+                    description: "DocScore Recharge",
+                    order_id: data.orderId,
+                    prefill: {
+                        email: data.userEmail
+                    },
+                    theme: {
+                        color: "#ff5e00"
+                    },
+                    handler: async function (paymentResponse) {
+                        try {
+                            const verifyRes = await fetch("/payment/verify", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(paymentResponse)
+                            });
+
+                            const verifyData = await verifyRes.json();
+
+                            if (verifyData.success) {
+                                window.location.href = verifyData.redirectUrl;
+                            } else {
+                                btn.disabled = false;
+                                btn.innerText = originalText;
+                                alert(verifyData.message || "Payment verification failed");
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                            alert("Payment verification failed");
+                        }
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+
+                rzp.on("payment.failed", function () {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    alert("Payment failed. Please try again.");
+                });
+
+                rzp.open();
+
+            } catch (err) {
+                console.error(err);
+                alert("Something went wrong");
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        });
+    });
+</script>
 
 </body>
 </html>
