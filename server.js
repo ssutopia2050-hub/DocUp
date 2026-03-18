@@ -879,7 +879,8 @@ app.get("/view/:id", async (req, res) => {
 
         res.render("docview", {
             doc: document,
-            college_data: collegeData || {}
+            college_data: collegeData || {},
+            user: user_data
         });
 
     } catch (err) {

@@ -60,7 +60,7 @@ const user_profile = new mongoose.Schema({
         type: String,
         required: true,
         default: "DocUp Member",
-        enum: ["DocUp Member", "DocUp Admin", "DocUp Developer"]
+        enum: ["DocUp Member", "DocUp Admin", "DocUp Developer","Verified Uploader"]
     },
 
     payment_history: [

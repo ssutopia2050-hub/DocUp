@@ -365,3 +365,79 @@ a:active{
         padding:14px;
     }
 }
+.pdf-scroll-area{
+    position: relative;
+    overflow: auto;
+}
+
+#pdf-container{
+    position: relative;
+    z-index: 1;
+}
+
+.watermark-layer{
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.watermark-mark{
+    position: absolute;
+    font-family: 'Saira', sans-serif;
+    font-size: 0.95rem;
+    color: rgb(255, 69, 0);
+    transform: rotate(-24deg);
+    white-space: nowrap;
+    letter-spacing: 0.6px;
+    user-select: none;
+    -webkit-user-select: none;
+    text-transform: none;
+    text-shadow: 0 0 1px rgba(0,0,0,0.15);
+}
+
+.wm-1{
+    top: 8%;
+    left: 6%;
+}
+
+.wm-2{
+    top: 30%;
+    right: 8%;
+}
+
+.wm-3{
+    bottom: 18%;
+    left: 10%;
+}
+
+.wm-4{
+    bottom: 8%;
+    right: 10%;
+}
+.scroll-top-card{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.scroll-top-btn{
+    width:100%;
+    border:1px solid rgba(255,69,0,0.35);
+    background:linear-gradient(135deg, rgba(255,69,0,0.15), rgba(255,69,0,0.05));
+    color:orangered;
+    padding:14px 18px;
+    border-radius:16px;
+    font-family:'Saira', sans-serif;
+    font-size:1rem;
+    cursor:pointer;
+    transition:0.25s;
+    opacity:0;
+    pointer-events:none;
+}
+
+.scroll-top-btn:hover{
+    background:rgba(255,69,0,0.18);
+    transform:translateY(-2px);
+}

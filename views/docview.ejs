@@ -63,11 +63,25 @@
                 </div>
             </div>
 
-            <div class="pdf-scroll-area">
+            <div class="pdf-scroll-area" id="pdf-scroll-area">
+                <div class="watermark-layer" id="watermark-layer">
+                    <div class="watermark-mark wm-1">
+                        <%= user && user.email ? user.email : "DocUp User" %> • DocUp • <span class="wm-time"></span>
+                    </div>
+                    <div class="watermark-mark wm-2">
+                        <%= user && user.email ? user.email : "DocUp User" %> • Protected Document • <span class="wm-time"></span>
+                    </div>
+                    <div class="watermark-mark wm-3">
+                        <%= user && user.email ? user.email : "DocUp User" %> • Do Not Redistribute • <span class="wm-time"></span>
+                    </div>
+                    <div class="watermark-mark wm-4">
+                        <%= user && user.email ? user.email : "DocUp User" %> • DocUp Secure View • <span class="wm-time"></span>
+                    </div>
+                </div>
+
                 <div id="pdf-container"></div>
             </div>
         </div>
-
         <aside class="side-panel">
             <div class="side-card">
                 <h2>Discussion</h2>
@@ -84,13 +98,74 @@
                     <p><span>Chapter:</span> <%= doc.chapter %></p>
                 </div>
             </div>
+            <div class="side-card scroll-top-card">
+                <button id="scrollTopBtn" class="scroll-top-btn">
+                    ↑ Back To Top
+                </button>
+            </div>
         </aside>
     </section>
 </main>
 <script>
+    const scrollBtn = document.getElementById("scrollTopBtn");
+
+    window.addEventListener("scroll", () => {
+
+        if (window.scrollY > 400) {
+            scrollBtn.style.opacity = "1";
+            scrollBtn.style.pointerEvents = "auto";
+        } else {
+            scrollBtn.style.opacity = "0";
+            scrollBtn.style.pointerEvents = "none";
+        }
+
+    });
+
+    scrollBtn.addEventListener("click", () => {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+
+    });
     const pdfUrl = "<%= doc.file_url %>";
     document.addEventListener("contextmenu", function(e){
         e.preventDefault();
+        alert("Printing and saving are disabled on DocUp.");
+    });
+    document.addEventListener("keydown", function(e) {
+
+        // Save page
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
+        // Print
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
+        // View source
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
+        // DevTools (Ctrl+Shift+I / Cmd+Option+I)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "i") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
+        // F12
+        if (e.key === "F12") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
     });
 </script>
 <script src="/docview.js"></script>
