@@ -905,7 +905,12 @@ app.get("/save/:id", async (req, res) => {
                 }
             }
         );
-
+        await user_profile.updateOne(
+            { email: req.session.email },
+            {
+                $inc: {Doc_score: 1},
+            }
+        );
         res.redirect("/view/" + docId);
     } catch (err) {
         console.error(err);
