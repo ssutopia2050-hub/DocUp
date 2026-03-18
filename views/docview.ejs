@@ -81,23 +81,17 @@
                     <p><span>Subject:</span> <%= doc.subject %></p>
                     <p><span>Semester:</span> <%= doc.semester %></p>
                     <p><span>Branch:</span> <%= doc.branch %></p>
+                    <p><span>Branch:</span> <%= doc.chapter %></p>
                 </div>
             </div>
         </aside>
     </section>
 </main>
-
-<footer class="footer">
-    <div class="cl1"></div>
-    <div class="cl2"></div>
-    <div class="cl3">
-        <a href="/dashbaord">Dashboard</a>
-        <a href="/privacy_policy">Terms and Conditions</a>
-    </div>
-</footer>
-
 <script>
     const pdfUrl = "<%= doc.file_url %>";
+    document.addEventListener("contextmenu", function(e){
+        e.preventDefault();
+    });
 </script>
 <script src="/docview.js"></script>
 </body>

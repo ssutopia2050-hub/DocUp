@@ -243,6 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="tags">${escapeHTML(doc.branch || "")}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
+                            <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
                         </div>
                     </div>
 
@@ -294,7 +295,7 @@ document.addEventListener("DOMContentLoaded", function () {
     searchInput.addEventListener("input", function () {
         const value = this.value.trim();
 
-        if (value.startsWith("/s")) {
+        if (value.startsWith("/s") || value.startsWith("/ch")) {
             hideSuggestions();
             return;
         }
@@ -344,9 +345,12 @@ document.addEventListener("DOMContentLoaded", function () {
             branch: formData.get("branch")
         };
 
+        const rawSearch = (formData.get("search_parameter_text") || "").trim();
+
         if (
-            formData.get("search_parameter_text") === "/c" ||
-            formData.get("search_parameter_text") === "/s"
+            rawSearch === "/c" || rawSearch === "/c " ||
+            rawSearch === "/s" || rawSearch === "/s " ||
+            rawSearch === "/ch" || rawSearch === "/ch "
         ) {
             resultsContainer.innerText = "Enter a search parameter to get Results";
             resultsContainer.style.color = "grey";

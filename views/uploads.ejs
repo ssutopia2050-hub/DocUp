@@ -108,6 +108,8 @@ cursor:crosshair;">
 
         <input type="text" placeholder="Subject" id="subject" required>
 
+        <input type="text" placeholder="Chapter Name" id="chapter" required>
+
     </div>
 
     <button class="upload-btn" id="upload-btn">Upload File</button>
@@ -120,13 +122,17 @@ cursor:crosshair;">
     </div>
 </div>
 <div class="footer">
-    <div class="footer-left">DocUp</div>
+    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+        DocUp
+        <p style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)"> v1.0.2</p>
+    </div>
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
+        <a href="/uploads">Uploads</a>
         <a href="/profile">Profile</a>
+        <a href="/contact">ContactUs</a>
         <a href="/privacy_policy">Privacy Policy</a>
-        <a href="/contact">Contact Us</a>
-        <a href="/terms">Terms</a>
+        <a href="/logout">Logout</a>
     </div>
 </div>
 </body>
@@ -179,6 +185,7 @@ cursor:crosshair;">
         document.getElementById("semester").value = "";
         document.getElementById("branch").value = "";
         document.getElementById("subject").value = "";
+        document.getElementById("chapter").value = "";
 
         form.style.display = "flex";
         uploadBtn.style.display = "block";
@@ -197,13 +204,14 @@ cursor:crosshair;">
         const semester = document.getElementById("semester").value;
         const branch = document.getElementById("branch").value.trim();
         const subject = document.getElementById("subject").value.trim();
+        const chapter = document.getElementById("chapter").value.trim();
 
         if (!selectedFile) {
             alert("Please select a file");
             return;
         }
 
-        if (!college || !year || !semester || !branch || !subject) {
+        if (!college || !year || !semester || !branch || !subject || !chapter) {
             alert("Please fill all metadata fields");
             return;
         }
@@ -215,7 +223,7 @@ cursor:crosshair;">
         const timestamp = Date.now();
 
         const newFileName =
-            `${college}_${branch}_${subject}_${semester}_${timestamp}.${extension}`;
+            `${college}_${branch}_${subject}_${chapter}_${semester}_${timestamp}.${extension}`;
 
         const renamedFile = new File(
             [selectedFile],
@@ -230,6 +238,7 @@ cursor:crosshair;">
         formData.append("semester", semester);
         formData.append("branch", branch);
         formData.append("subject", subject);
+        formData.append("chapter", chapter);
 
         try {
             const res = await fetch("/upload_docs", {

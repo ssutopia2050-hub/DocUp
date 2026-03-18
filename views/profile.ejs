@@ -160,7 +160,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                         <div class="upload-icon">↑</div>
 
                         <div class="upload-details">
-                            <p class="upload-subject"><%= upload.subject || "Untitled Subject" %></p>
+                            <p class="upload-subject"><%= upload.chapter || upload.subject %></p>
                             <p class="upload-meta">
                                 <%= upload.college || "Unknown College" %>
                                 <% if (upload.uploadedAt) { %>
@@ -199,7 +199,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                     <div class="saved-doc-left">
                         <div class="saved-doc-icon">★</div>
                         <div class="saved-doc-info">
-                            <p class="saved-doc-title"><%= doc.title || doc.subject || "Saved Document" %></p>
+                            <p class="saved-doc-title"><%= doc.chapter || doc.subject || "Saved Document" %></p>
                             <p class="saved-doc-meta"><%= doc.college || "Unknown College" %></p>
                         </div>
                     </div>

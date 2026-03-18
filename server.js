@@ -405,15 +405,27 @@ app.post("/api/dashboard-search", async (req, res) => {
             });
         }
 
-        if (search_parameter_text.startsWith("/c")) {
+        const trimmedSearch = search_parameter_text.trim();
+
+        if (trimmedSearch.startsWith("/ch")) {
+            searchType = "chapter";
+            searchValue = trimmedSearch.slice(3).trim();
+        } else if (trimmedSearch.startsWith("/c")) {
             searchType = "college";
-            searchValue = search_parameter_text.slice(2).trim();
-        } else if (search_parameter_text.startsWith("/s")) {
+            searchValue = trimmedSearch.slice(2).trim();
+        } else if (trimmedSearch.startsWith("/s")) {
             searchType = "subject";
-            searchValue = search_parameter_text.slice(2).trim();
+            searchValue = trimmedSearch.slice(2).trim();
         } else {
             searchType = "";
-            searchValue = search_parameter_text.trim();
+            searchValue = trimmedSearch;
+        }
+
+        if (!searchValue) {
+            return res.status(400).json({
+                success: false,
+                message: "Enter a valid search value"
+            });
         }
 
         const resultsMap = new Map();
@@ -481,6 +493,35 @@ app.post("/api/dashboard-search", async (req, res) => {
             }
         }
 
+        else if (searchType === "chapter") {
+            const s1 = await Docs.find({
+                chapter: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
+            });
+            addResults(s1, 110);
+
+            const s2 = await Docs.find({
+                chapter: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s2, 85);
+
+            const s3 = await Docs.find({
+                subject: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s3, 25);
+
+            if (branch !== "all") {
+                const s4 = await Docs.find({ branch });
+                addResults(s4, 20);
+            }
+
+            if (year !== "all") {
+                const s5 = await Docs.find({ year });
+                addResults(s5, 15);
+            }
+        }
+
         else {
             const s1 = await Docs.find({
                 college: { $regex: searchValue, $options: "i" },
@@ -497,23 +538,30 @@ app.post("/api/dashboard-search", async (req, res) => {
             addResults(s2, 80);
 
             const s3 = await Docs.find({
-                branch: { $regex: searchValue, $options: "i" }
+                chapter: { $regex: searchValue, $options: "i" },
+                ...(year !== "all" ? { year } : {}),
+                ...(branch !== "all" ? { branch } : {})
             });
-            addResults(s3, 60);
+            addResults(s3, 95);
 
             const s4 = await Docs.find({
+                branch: { $regex: searchValue, $options: "i" }
+            });
+            addResults(s4, 60);
+
+            const s5 = await Docs.find({
                 uploaded_by: { $regex: searchValue, $options: "i" }
             });
-            addResults(s4, 40);
+            addResults(s5, 40);
 
             if (branch !== "all") {
-                const s5 = await Docs.find({ branch });
-                addResults(s5, 20);
+                const s6 = await Docs.find({ branch });
+                addResults(s6, 20);
             }
 
             if (year !== "all") {
-                const s6 = await Docs.find({ year });
-                addResults(s6, 15);
+                const s7 = await Docs.find({ year });
+                addResults(s7, 15);
             }
         }
 
@@ -537,7 +585,9 @@ app.post("/api/dashboard-search", async (req, res) => {
       Uploads
  ******************************/
 app.get("/uploads", async (req, res) => {
-
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
     const data = await user_profile.findOne({ email: req.session.email });
 
     const colleges = [];
@@ -607,6 +657,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             semester: req.body.semester,
             branch: req.body.branch,
             subject: req.body.subject,
+            chapter: req.body.chapter,
             file_url: result.secure_url,
             uploaded_by: user.email
         });
@@ -1043,3 +1094,9 @@ app.post("/payment/verify", async (req, res) => {
 app.get("/contact",(req,res)=>{
     res.render("contact");
 });
+/****************************
+ Version Report
+ ****************************/
+app.get("/version_report",(req,res)=>{
+res.render("version_report");
+})

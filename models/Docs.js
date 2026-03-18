@@ -31,6 +31,12 @@ const Docs = new mongoose.Schema({
     uploaded_by:{
         type:String,
         trim:true,
+        required:true,
+    },
+    chapter:{
+        type:String,
+        trim:true,
+        required:true,
     }
 });
 
