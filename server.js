@@ -8,7 +8,8 @@ import multer from "multer";
 import fs from "fs";
 import csv from "csv-parser";
 import MongoStore from "connect-mongo";
-import { v2 as cloudinary } from "cloudinary";
+import { createClient } from "@supabase/supabase-js";
+import path from "path";
 const app = express();
 const port = process.env.PORT || 5000;
 import connectDB from "./config/db.js";
@@ -42,17 +43,22 @@ app.use(
         }
     })
 );
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
-});
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 let collegesList = [];
-
+function sanitizeFilePart(value = "") {
+    return String(value)
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_-]/g, "");
+}
 fs.createReadStream("College_data.csv")
     .pipe(csv())
     .on("data", (row)=>{
@@ -617,48 +623,100 @@ app.get("/uploads", async (req, res) => {
 app.post("/upload_docs", upload.single("file"), async (req, res) => {
     try {
         if (!req.session.email) {
-            return res.status(401).json({ success: false, message: "Please sign in first" });
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
         }
 
         if (!req.file) {
-            return res.status(400).json({ success: false, message: "No file uploaded" });
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded"
+            });
         }
 
         const user = await user_profile.findOne({ email: req.session.email });
+
         if (!user) {
-            return res.status(401).json({ success: false, message: "User not found" });
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
         }
 
-        const originalName = req.file.originalname;
-        const extension = originalName.split(".").pop().toLowerCase();
-        const baseName = originalName.replace(/\.[^/.]+$/, "");
+        const {
+            college,
+            year,
+            semester,
+            branch,
+            subject,
+            chapter
+        } = req.body;
 
-        const safeBaseName = baseName
-            .toLowerCase()
-            .replace(/\s+/g, "_")
-            .replace(/[^a-z0-9_-]/g, "");
-
-        const publicId = `${Date.now()}_${safeBaseName}`;
-
-        let resourceType = "raw";
-        if (extension === "pdf") {
-            resourceType = "image";
+        if (!college || !year || !semester || !branch || !subject || !chapter) {
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+            return res.status(400).json({
+                success: false,
+                message: "Please fill all metadata fields"
+            });
         }
 
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            resource_type: resourceType,
-            folder: "docs",
-            public_id: publicId
-        });
+        const originalName = req.file.originalname || "file";
+        const extension = path.extname(originalName).replace(".", "").toLowerCase();
+        const baseName = path.basename(originalName, path.extname(originalName));
+
+        const safeBaseName = sanitizeFilePart(baseName);
+        const safeCollege = sanitizeFilePart(college);
+        const safeBranch = sanitizeFilePart(branch);
+        const safeSubject = sanitizeFilePart(subject);
+        const safeChapter = sanitizeFilePart(chapter);
+        const timestamp = Date.now();
+
+        const fileName = `${safeBaseName || "doc"}_${timestamp}.${extension}`;
+        const storagePath = `docs/${safeCollege}/${safeBranch}/${safeSubject}/${safeChapter}/${fileName}`;
+
+        const fileBuffer = fs.readFileSync(req.file.path);
+
+        const { error: uploadError } = await supabase.storage
+            .from(process.env.SUPABASE_BUCKET)
+            .upload(storagePath, fileBuffer, {
+                contentType: req.file.mimetype,
+                upsert: false
+            });
+
+        if (uploadError) {
+            console.error("Supabase upload error:", uploadError);
+
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+
+            return res.status(500).json({
+                success: false,
+                message: "Upload failed"
+            });
+        }
+
+        const { data: publicUrlData } = supabase.storage
+            .from(process.env.SUPABASE_BUCKET)
+            .getPublicUrl(storagePath);
+
+        const fileUrl = publicUrlData?.publicUrl;
 
         const doc = await Docs.create({
-            college: req.body.college,
-            year: req.body.year,
-            semester: req.body.semester,
-            branch: req.body.branch,
-            subject: req.body.subject,
-            chapter: req.body.chapter,
-            file_url: result.secure_url,
+            college,
+            year,
+            semester,
+            branch,
+            subject,
+            chapter,
+            file_url: fileUrl,
             uploaded_by: user.email
         });
 
@@ -669,35 +727,38 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
                 $push: {
                     uploads: {
                         doc_id: doc._id,
-                        url: result.secure_url,
-                        subject: req.body.subject,
-                        college: req.body.college,
+                        url: fileUrl,
+                        subject,
+                        college,
                         uploadedAt: new Date()
                     }
                 }
             }
         );
 
-        fs.unlink(req.file.path, (err) => {
-            if (err) {
-                console.log("Failed to delete temp file:", err);
-            }
-        });
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
 
-        res.json({
+        return res.json({
             success: true,
             docId: doc._id,
-            file_url: result.secure_url
+            file_url: fileUrl
         });
 
     } catch (err) {
         console.error("Upload failed:", err);
 
-        if (req.file?.path) {
-            fs.unlink(req.file.path, () => {});
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+            try {
+                fs.unlinkSync(req.file.path);
+            } catch {}
         }
 
-        res.status(500).json({ success: false, message: "Upload failed" });
+        return res.status(500).json({
+            success: false,
+            message: "Upload failed"
+        });
     }
 });
 /******************************
