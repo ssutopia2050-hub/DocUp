@@ -137,7 +137,10 @@
 </section>
 
 <div class="footer">
-    <div class="footer-left">DocUp</div>
+    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+        DocUp
+        <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22);text-decoration: none">v<%= process.env.VERSION %></a>
+    </div>
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
         <a href="/profile">Profile</a>
