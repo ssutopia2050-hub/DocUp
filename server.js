@@ -888,7 +888,6 @@ app.get("/view/:id", async (req, res) => {
         res.status(500).send("Server Error");
     }
 });
-
 app.get("/save/:id", async (req, res) => {
     try {
         const userMail = req.session.email;
@@ -939,6 +938,101 @@ app.get("/api/docscore", async (req, res) => {
             success: false,
             message: "Server error"
         });
+    }
+});
+app.get("/update_likes/:id", async (req, res) => {
+    try {
+        const userEmail = req.session.email;
+
+        if (!userEmail) {
+            return res.redirect("/login");
+        }
+
+        const doc = await Docs.findById(req.params.id);
+
+        if (!doc) {
+            return res.status(404).render("404");
+        }
+
+        if (!doc.liked_by) doc.liked_by = [];
+        if (!doc.disliked_by) doc.disliked_by = [];
+        if (typeof doc.likes !== "number") doc.likes = 0;
+        if (typeof doc.dislikes !== "number") doc.dislikes = 0;
+
+        const alreadyLiked = doc.liked_by.some(entry => entry.email === userEmail);
+        const alreadyDisliked = doc.disliked_by.some(entry => entry.email === userEmail);
+
+        if (alreadyLiked) {
+            return res.redirect("/view/" + req.params.id);
+        }
+
+        if (alreadyDisliked) {
+            doc.disliked_by = doc.disliked_by.filter(entry => entry.email !== userEmail);
+            doc.dislikes = Math.max(0, doc.dislikes - 1);
+        }
+
+        doc.likes += 1;
+        doc.liked_by.push({ email: userEmail });
+
+        await doc.save();
+
+        await user_profile.updateOne(
+            { email: userEmail },
+            { $inc: { Doc_score: 1 } }
+        );
+
+        return res.redirect("/view/" + req.params.id);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send("Server Error");
+    }
+});
+
+app.get("/update_dislikes/:id", async (req, res) => {
+    try {
+        const userEmail = req.session.email;
+
+        if (!userEmail) {
+            return res.redirect("/login");
+        }
+
+        const doc = await Docs.findById(req.params.id);
+
+        if (!doc) {
+            return res.status(404).render("404");
+        }
+
+        if (!doc.liked_by) doc.liked_by = [];
+        if (!doc.disliked_by) doc.disliked_by = [];
+        if (typeof doc.likes !== "number") doc.likes = 0;
+        if (typeof doc.dislikes !== "number") doc.dislikes = 0;
+
+        const alreadyLiked = doc.liked_by.some(entry => entry.email === userEmail);
+        const alreadyDisliked = doc.disliked_by.some(entry => entry.email === userEmail);
+
+        if (alreadyDisliked) {
+            return res.redirect("/view/" + req.params.id);
+        }
+
+        if (alreadyLiked) {
+            doc.liked_by = doc.liked_by.filter(entry => entry.email !== userEmail);
+            doc.likes = Math.max(0, doc.likes - 1);
+        }
+
+        doc.dislikes += 1;
+        doc.disliked_by.push({ email: userEmail });
+
+        await doc.save();
+
+        await user_profile.updateOne(
+            { email: userEmail },
+            { $inc: { Doc_score: 1 } }
+        );
+
+        return res.redirect("/view/" + req.params.id);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).send("Server Error");
     }
 });
 /****************************

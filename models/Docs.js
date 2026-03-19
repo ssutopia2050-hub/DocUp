@@ -37,7 +37,47 @@ const Docs = new mongoose.Schema({
         type:String,
         trim:true,
         required:true,
-    }
+    },
+    comment_section:[
+        {
+            comment:{
+                type:String,
+                required:true,
+            },
+            uploaded_by_email:{
+                type:String,
+            }
+
+        }
+    ],
+    likes:{
+        type:Number,
+        required:true,
+        default:0
+    },
+    liked_by: [
+        {
+            email: {
+                type: String,
+                required: true,
+                trim: true
+            }
+        }
+    ],
+    dislikes:{
+        type:Number,
+        required:true,
+        default:0
+    },
+    disliked_by: [
+        {
+            email: {
+                type: String,
+                required: true,
+                trim: true
+            }
+        }
+    ],
 });
 
 export default mongoose.model("Docs", Docs);
