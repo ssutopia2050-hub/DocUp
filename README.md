@@ -1,6 +1,6 @@
 # DocUp - College Notes Sharing Platform 
 - Version 1.1.2
-- [DocUp Website](www.docup.in)
+- [DocUp Website](https://www.docup.in/)
 
 DocUp is a web application that allows students to **upload, share, and access study materials** such as lecture notes, PDFs, and resources for different colleges, streams, branches, and subjects. The platform includes user authentication, document uploads, and a points system (`Doc_score`) to reward users for contributions.
 
