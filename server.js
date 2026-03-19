@@ -43,6 +43,18 @@ app.use(
         }
     })
 );
+app.use((req, res, next) => {
+    if (req.headers.host === "docup.in") {
+        return res.redirect(301, "https://www.docup.in" + req.url);
+    }
+    next();
+});
+app.get("/health", (req, res) => {
+    res.status(200).send("OK");
+});
+app.use(express.static("public", {
+    maxAge: "7d"
+}));
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -75,6 +87,22 @@ fs.createReadStream("College_data.csv")
  ******************************/
 app.listen(port, () => {
     console.log(`Server running on url: http://localhost:${port}/`);
+});
+app.get("/sitemap.xml", (req, res) => {
+    res.header("Content-Type", "application/xml");
+    res.send(`
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url>
+                <loc>https://www.docup.in/</loc>
+            </url>
+            <url>
+                <loc>https://www.docup.in/dashboard</loc>
+            </url>
+            <url>
+                <loc>https://www.docup.in/search</loc>
+            </url>
+        </urlset>
+    `);
 });
 /******************************
            Database
