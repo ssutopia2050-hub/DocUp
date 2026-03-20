@@ -46,10 +46,10 @@
         <div class="doc-actions">
             <a href="/dashboard" class="ghost-btn">Back</a>
             <div >
-                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%;" href="/update_likes/<%= doc._id %>" class="ghost-btn"><p><%= doc.likes %></p><svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5zM5.5 10A1.5 1.5 0 0 0 4 11.5v7a1.5 1.5 0 0 0 3 0v-7A1.5 1.5 0 0 0 5.5 10z" fill="#FF4500FF"></path></g></svg></a>
+                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%;" href="/update_likes/<%= doc._id %>" class="ghost-btn"><p style="color: orangered"><%= doc.likes %></p><svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5zM5.5 10A1.5 1.5 0 0 0 4 11.5v7a1.5 1.5 0 0 0 3 0v-7A1.5 1.5 0 0 0 5.5 10z" fill="#FF4500FF"></path></g></svg></a>
             </div>
             <div>
-                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%" href="/update_dislikes/<%= doc._id %>" class="ghost-btn"><svg width="20px" height="20px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#FF4500FF" stroke="#FF4500FF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dislike [#FF4500FF]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-139.000000, -760.000000)" fill="#FF4500FF"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M101.900089,600 L99.8000892,600 L99.8000892,611.987622 L101.900089,611.987622 C103.060339,611.987622 104.000088,611.093545 104.000088,609.989685 L104.000088,601.997937 C104.000088,600.894077 103.060339,600 101.900089,600 M87.6977917,600 L97.7000896,600 L97.7000896,611.987622 L95.89514,618.176232 C95.6819901,619.491874 94.2455904,620.374962 92.7902907,619.842512 C91.9198408,619.52484 91.400091,618.66273 91.400091,617.774647 L91.400091,612.986591 C91.400091,612.43516 90.9296911,611.987622 90.3500912,611.987622 L85.8728921,611.987622 C84.0259425,611.987622 82.6598928,610.35331 83.0746427,608.641078 L84.8995423,602.117813 C85.1998423,600.878093 86.360092,600 87.6977917,600" id="dislike-[#FF4500FF]"> </path> </g> </g> </g> </g></svg><p><%= doc.dislikes %></p></a>
+                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%" href="/update_dislikes/<%= doc._id %>" class="ghost-btn"><svg width="20px" height="20px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#FF4500FF" stroke="#FF4500FF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dislike [#FF4500FF]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-139.000000, -760.000000)" fill="#FF4500FF"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M101.900089,600 L99.8000892,600 L99.8000892,611.987622 L101.900089,611.987622 C103.060339,611.987622 104.000088,611.093545 104.000088,609.989685 L104.000088,601.997937 C104.000088,600.894077 103.060339,600 101.900089,600 M87.6977917,600 L97.7000896,600 L97.7000896,611.987622 L95.89514,618.176232 C95.6819901,619.491874 94.2455904,620.374962 92.7902907,619.842512 C91.9198408,619.52484 91.400091,618.66273 91.400091,617.774647 L91.400091,612.986591 C91.400091,612.43516 90.9296911,611.987622 90.3500912,611.987622 L85.8728921,611.987622 C84.0259425,611.987622 82.6598928,610.35331 83.0746427,608.641078 L84.8995423,602.117813 C85.1998423,600.878093 86.360092,600 87.6977917,600" id="dislike-[#FF4500FF]"> </path> </g> </g> </g> </g></svg><p style="color: orangered"><%= doc.dislikes %></p></a>
             </div>
             <a href="/save/<%= doc._id %>" class="ghost-btn"><svg width="25px" height="25px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.00024000000000000003"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 6L7.5 5.25H16.5L17.25 6V19.3162L12 16.2051L6.75 19.3162V6ZM8.25 6.75V16.6838L12 14.4615L15.75 16.6838V6.75H8.25Z" fill="#FF4500FF"></path> </g></svg></a>
         </div>
@@ -90,11 +90,6 @@
         </div>
         <aside class="side-panel">
             <div class="side-card">
-                <h2>Discussion</h2>
-                <p class="muted-text">Comments Section Update Coming Soon.</p>
-            </div>
-
-            <div class="side-card">
                 <h2>Document Info</h2>
                 <div class="info-list">
                     <p><span>College:</span> <%= doc.college %></p>
@@ -104,6 +99,45 @@
                     <p><span>Chapter:</span> <%= doc.chapter %></p>
                 </div>
             </div>
+            <div class="side-card">
+                <h2 style="color:white" class="discussion-panel-title">Discussion</h2>
+
+                <div class="discussion-panel">
+                    <div class="comment-input-panel">
+                        <input class="comment-input-container" type="text" placeholder="Form a discussion...">
+                        <svg class="comment-send-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF">
+                            <g id="SVGRepo_iconCarrier">
+                                <path d="M10.3009 13.6949L20.102 3.89742M10.5795 14.1355L12.8019 18.5804C13.339 19.6545 13.6075 20.1916 13.9458 20.3356C14.2394 20.4606 14.575 20.4379 14.8492 20.2747C15.1651 20.0866 15.3591 19.5183 15.7472 18.3818L19.9463 6.08434C20.2845 5.09409 20.4535 4.59896 20.3378 4.27142C20.2371 3.98648 20.013 3.76234 19.7281 3.66167C19.4005 3.54595 18.9054 3.71502 17.9151 4.05315L5.61763 8.2523C4.48114 8.64037 3.91289 8.83441 3.72478 9.15032C3.56153 9.42447 3.53891 9.76007 3.66389 10.0536C3.80791 10.3919 4.34498 10.6605 5.41912 11.1975L9.86397 13.42C10.041 13.5085 10.1295 13.5527 10.2061 13.6118C10.2742 13.6643 10.3352 13.7253 10.3876 13.7933C10.4468 13.87 10.491 13.9585 10.5795 14.1355Z"
+                                      stroke="#FF4500FF"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"></path>
+                            </g>
+                        </svg>
+                    </div>
+
+                    <div class="comments-container-panel">
+                        <% if (doc.comment_section && doc.comment_section.length > 0) { %>
+                        <% doc.comment_section.forEach((item) => { %>
+                        <div class="comment">
+                            <div class="comment-sender-email">
+                                <%= item.uploaded_by_email %>
+                            </div>
+                            <div class="comment-text">
+                                <%= item.comment %>
+                            </div>
+                        </div>
+                        <% }) %>
+                        <% } else { %>
+                        <div class="comment">
+                            <div class="comment-text">No comments yet. Be the first to comment.</div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+
+
             <div class="side-card scroll-top-card">
                 <button id="scrollTopBtn" class="scroll-top-btn">
                     ↑ Back To Top
@@ -112,6 +146,10 @@
         </aside>
     </section>
 </main>
+<script>
+    const DOC_ID = "<%= doc._id %>";
+</script>
+<script src="/comments.js"></script>
 <script>
     const scrollBtn = document.getElementById("scrollTopBtn");
 

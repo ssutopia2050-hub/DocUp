@@ -848,12 +848,6 @@ app.get("/logout", (req, res) => {
 /******************************
    Pdf_viewer
  ******a************************/
-// app.get("/view/:id", async (req, res) => {
-//     const document = await Docs.findById(req.params.id).lean();
-//     const college_data_fetching = await college.findOne({college_name:document.college}).lean();
-//     if (!document) return res.status(404).render("404");
-//     res.render("docview",{doc:document , college_data:college_data_fetching});
-// })
 function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -886,7 +880,6 @@ app.get("/view/:id", async (req, res) => {
             });
         }
 
-        // ⭐ Decrease DocScore by 1
         await user_profile.findOneAndUpdate(
             { email: req.session.email },
             { $inc: { Doc_score: -1 } }
@@ -903,6 +896,10 @@ app.get("/view/:id", async (req, res) => {
             collegeData = await college.findOne({
                 college_name: { $regex: safeCollegeName, $options: "i" }
             }).lean();
+        }
+
+        if (!document.comment_section) {
+            document.comment_section = [];
         }
 
         res.render("docview", {
@@ -1061,6 +1058,63 @@ app.get("/update_dislikes/:id", async (req, res) => {
     } catch (err) {
         console.error(err);
         return res.status(500).send("Server Error");
+    }
+});
+app.post("/add_comment/:id", async (req, res) => {
+    try {
+        const docId = req.params.id;
+        const userEmail = req.session.email;
+        const { comment } = req.body;
+
+        if (!userEmail) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
+        }
+
+        if (!comment || !comment.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Comment cannot be empty"
+            });
+        }
+
+        const updatedDoc = await Docs.findByIdAndUpdate(
+            docId,
+            {
+                $push: {
+                    comment_section: {
+                        $each: [
+                            {
+                                comment: comment.trim(),
+                                uploaded_by_email: userEmail
+                            }
+                        ],
+                        $position: 0
+                    }
+                }
+            },
+            { new: true }
+        );
+
+        if (!updatedDoc) {
+            return res.status(404).json({
+                success: false,
+                message: "Document not found"
+            });
+        }
+
+        res.json({
+            success: true
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
 });
 /****************************

@@ -441,3 +441,113 @@ a:active{
     background:rgba(255,69,0,0.18);
     transform:translateY(-2px);
 }
+.discussion-panel{
+    width:100%;
+    height:32vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border-radius:16px;
+    background:rgba(0,0,0,0.18);
+}
+
+/* input stays fixed */
+.comment-input-panel{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px;
+    border-bottom:1px solid rgba(255,69,0,0.25);
+    background:rgba(0,0,0,0.25);
+    backdrop-filter:blur(10px);
+}
+
+.comment-input-panel input{
+    flex:1;
+    background:transparent;
+    border:1px solid rgba(255,69,0,0.35);
+    outline:none;
+    color:white;
+    height:42px;
+    border-radius:14px;
+    padding:0 14px;
+    font-family:'Saira', sans-serif;
+    transition:0.25s;
+}
+
+.comment-input-panel input:focus{
+    border-color:orangered;
+    box-shadow:0 0 0 2px rgba(255,69,0,0.15);
+}
+
+.comment-input-panel svg{
+    height:42px;
+    width:42px;
+    border:1px solid rgba(255,69,0,0.35);
+    border-radius:12px;
+    padding:8px;
+    cursor:pointer;
+    transition:0.25s;
+}
+
+.comment-input-panel svg:hover{
+    background:rgba(255,69,0,0.15);
+}
+
+/* scrollable comments */
+.comments-container-panel{
+    flex:1;
+    overflow-y:auto;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+/* premium comment card */
+.comment{
+    height:fit-content;
+    width:100%;
+    border:1px solid rgba(255,69,0,0.28);
+    border-radius:14px;
+    padding:12px 14px;
+    background:rgba(255,255,255,0.02);
+    font-family:'Saira', sans-serif;
+    transition:0.25s;
+}
+
+.comment:hover{
+    border-color:orangered;
+    background:rgba(255,69,0,0.05);
+}
+
+/* custom scrollbar */
+.comments-container-panel::-webkit-scrollbar{
+    width:6px;
+}
+
+.comments-container-panel::-webkit-scrollbar-track{
+    background:transparent;
+}
+
+.comments-container-panel::-webkit-scrollbar-thumb{
+    background:rgba(255,69,0,0.4);
+    border-radius:10px;
+}
+
+.comments-container-panel::-webkit-scrollbar-thumb:hover{
+    background:orangered;
+}
+.comment-sender-email{
+    color:orangered;
+    font-size:0.8rem;
+    font-family:'Saira', sans-serif;
+    border:1px solid rgba(255,69,0,0.35);
+    padding:5px 10px;
+    width:fit-content;
+    border-radius:20px;
+}
+.comment-text{
+    font-family:'Saira', sans-serif;
+    font-size:1rem;
+}
