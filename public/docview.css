@@ -163,7 +163,7 @@ a:active{
     min-height:75vh;
     border:1px solid rgba(255,69,0,0.18);
     border-radius:24px;
-    overflow:hidden;
+    overflow: visible;
     background:rgba(255,255,255,0.02);
     /*box-shadow:3px -1px 50px -28px #FF4500;*/
     display:flex;
@@ -183,7 +183,8 @@ a:active{
     -webkit-backdrop-filter:blur(18px);
     position:sticky;
     top:0;
-    z-index:5;
+    z-index:1000000;
+    /*position: sticky;*/
 }
 
 .toolbar-left,
