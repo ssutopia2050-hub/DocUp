@@ -70,7 +70,17 @@
                     spellcheck="false"
                     autocomplete="off"
             >
-
+            <span id="clear-search" style="
+position:absolute;
+right:15px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:18px;
+color:rgba(255,255,255,0.4);
+display:none;
+user-select:none;
+">✕</span>
             <div id="college-suggestions" class="suggestions-box"></div>
         </div>
 
@@ -173,6 +183,18 @@
             overlay.style.display = "none";
         }
 
+    });
+    const searchInput = document.getElementById("search_parameter_text");
+    const clearBtn = document.getElementById("clear-search");
+
+    searchInput.addEventListener("input", () => {
+        clearBtn.style.display = searchInput.value.length ? "block" : "none";
+    });
+
+    clearBtn.addEventListener("click", () => {
+        searchInput.value = "";
+        clearBtn.style.display = "none";
+        searchInput.focus();
     });
 </script>
 </html>

@@ -674,3 +674,10 @@ label{
     }
 
 }
+.search-input-wrapper{
+    position:relative;
+}
+
+#clear-search:hover{
+    color:orangered;
+}

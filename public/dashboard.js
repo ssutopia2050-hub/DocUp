@@ -227,7 +227,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        results.forEach(doc => {
+        results.slice(0,5).forEach(doc => {
             const logoUrl =
                 collegeLogoMap[(doc.college || "").trim().toLowerCase()] ||
                 "/images/default.png";
