@@ -194,7 +194,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
 
             <% if (user.saved_documents && user.saved_documents.length > 0) { %>
             <div class="saved-docs-list">
-                <% user.saved_documents.slice(0, 5).forEach(doc => { %>
+                <% user.saved_documents.forEach(doc => { %>
                 <div class="saved-doc-item">
                     <div class="saved-doc-left">
                         <div class="saved-doc-icon">★</div>

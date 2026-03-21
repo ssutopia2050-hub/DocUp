@@ -301,6 +301,14 @@ a:active{
     flex-direction: column;
     gap: 14px;
 }
+.uploads-list{
+    max-height:30vh;
+    overflow-y: scroll;
+}
+.saved-docs-list{
+    max-height:30vh;
+    overflow-y: scroll;
+}
 
 .upload-item,
 .saved-doc-item{
@@ -654,6 +662,8 @@ a:active{
     display: flex;
     flex-direction: column;
     gap: 14px;
+    max-height:30vh;
+    overflow-y: scroll;
 }
 
 .payment-item{
