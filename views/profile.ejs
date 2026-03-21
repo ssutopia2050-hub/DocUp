@@ -154,7 +154,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
 
             <% if (user.uploads && user.uploads.length > 0) { %>
             <div class="uploads-list">
-                <% user.uploads.slice().reverse().slice(0, 5).forEach(upload => { %>
+                <% user.uploads.slice().reverse().forEach(upload => { %>
                 <div class="upload-item">
                     <div class="upload-left">
                         <div class="upload-icon">↑</div>
