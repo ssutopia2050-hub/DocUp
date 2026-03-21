@@ -199,7 +199,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                     <div class="saved-doc-left">
                         <div class="saved-doc-icon">★</div>
                         <div class="saved-doc-info">
-                            <p class="saved-doc-title"><%= doc.chapter || doc.subject || "Saved Document" %></p>
+                            <p class="saved-doc-title"><%= doc.chapter+" , "+doc.subject || doc.subject || "Saved Document" %></p>
                             <p class="saved-doc-meta"><%= doc.college || "Unknown College" %></p>
                         </div>
                     </div>

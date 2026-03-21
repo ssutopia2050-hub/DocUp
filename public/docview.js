@@ -74,7 +74,6 @@ async function renderAllPages() {
         }
     }
 }
-
 async function loadPdf() {
     try {
         pageStatus.textContent = "Loading PDF...";
