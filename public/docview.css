@@ -297,6 +297,12 @@ a:active{
     color:orangered;
     font-family:'Saira', sans-serif;
 }
+.info-list a{
+    color:rgba(255,255,255,0.76);
+}
+.info-list a:hover{
+    color: rgb(255, 255, 255);
+}
 
 .footer{
     width:100%;

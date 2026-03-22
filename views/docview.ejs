@@ -78,7 +78,11 @@
             <div class="side-card">
                 <h2>Document Info</h2>
                 <div class="info-list">
-                    <p><span>College:</span> <%= doc.college %></p>
+                    <p><span>College:</span>
+                        <a style="font-family: Saira, sans-serif" href="/college/<%= encodeURIComponent(doc.college) %>">
+                            <%= doc.college %>
+                        </a>
+                    </p>
                     <p><span>Subject:</span> <%= doc.subject %></p>
                     <p><span>Semester:</span> <%= doc.semester %></p>
                     <p><span>Branch:</span> <%= doc.branch %></p>
