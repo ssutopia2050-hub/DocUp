@@ -63,7 +63,7 @@
         <div class="search-input-wrapper">
             <input
                     type="text"
-                    placeholder="Use /c for College, /s for Subject, /ch for Chapter..."
+                    placeholder="Search Docs . . ."
                     name="search_parameter_text"
                     id="search_parameter_text"
                     required
@@ -125,10 +125,37 @@ user-select:none;
     </form>
 </div>
 
-<div class="search-results-container" id="search-results-container">
-<!--    <p style="color:rgba(255,255,255,0.18); opacity:.6; margin-top:40px;font-size: 2rem">-->
-<!--        Enter /c for College Name or /s for Subject Name.......-->
-<!--    </p>-->
+<<div class="search-results-container" id="search-results-container">
+    <div class="empty-results-state" id="empty-results-state">
+        <div class="empty-results-glow"></div>
+
+        <p class="empty-results-label">Find smarter with DocUp</p>
+        <h2>Search notes, PYQs, docs and semester material</h2>
+        <p class="empty-results-subtext">
+            Use smart tags to search faster and get cleaner results.
+        </p>
+
+        <div class="search-shortcuts">
+            <div class="shortcut-chip"><span style="font-family: Saira, sans-serif;color:orangered">/c</span> College Name</div>
+            <div class="shortcut-chip"><span style="font-family: Saira, sans-serif;color:orangered">/s</span> Subject Name</div>
+            <div class="shortcut-chip"><span style="font-family: Saira, sans-serif;color:orangered">/ch</span> Chapter Name</div>
+        </div>
+
+        <div class="empty-preview-grid">
+            <div class="preview-card">
+                <span class="preview-card-top">College</span>
+                <p>University of Petroleum and Energy Studies</p>
+            </div>
+            <div class="preview-card">
+                <span class="preview-card-top">Subject</span>
+                <p>Advanced Engineering Mathematics</p>
+            </div>
+            <div class="preview-card">
+                <span class="preview-card-top">Chapter</span>
+                <p>Cloud Computing</p>
+            </div>
+        </div>
+    </div>
 </div>
 <div id="upload-loader" class="upload-loader-overlay">
     <div class="upload-loader-box">
