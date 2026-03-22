@@ -238,7 +238,9 @@ document.addEventListener("DOMContentLoaded", function () {
             card.innerHTML = `
                 <div class="result-tab">
                     <div class="top-result-tab">
-                        ${escapeHTML(doc.college || "")}
+                    <a href="/college/${doc.college}">
+                          ${escapeHTML(doc.college || "")}
+                    </a>
                         <div class="tags-container">
                             <div class="tags">${escapeHTML(doc.branch || "")}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>

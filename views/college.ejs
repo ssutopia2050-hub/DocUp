@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= collegeInfo.name %> | DocUp</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/college.css">
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="logo-text-container">
+        DocUp
+    </div>
+
+    <div class="pg-links">
+        <a href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
+            <span style="font-family: 'Archivo Black', sans-serif;">FindDocs</span>
+        </a>
+
+        <p style="border:1px solid orangered;
+               padding:15px 25px;
+               border-radius:30px;
+               display:flex;
+               gap:10px;
+               align-items:center;
+               white-space:nowrap;
+               cursor:crosshair;">
+            <span style="color:orangered;font-family: 'Archivo Black', sans-serif;">DocScore :</span>
+            <span id="docscore-value" style="color:white;font-family: 'Archivo Black', sans-serif;"><%= user.Doc_score %></span>
+            <img style="height:20px;" src="/fire.png" alt="">
+        </p>
+
+        <a href="/uploads">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+            </svg>
+            Uploads
+        </a>
+
+        <a style="padding-bottom: 2px;" href="/profile">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.14 12.94a7.43 7.43 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.28 7.28 0 00-1.63-.95l-.36-2.54A.5.5 0 0014.9 2h-3.8a.5.5 0 00-.49.41l-.36 2.54a7.28 7.28 0 00-1.63.95l-2.39-.96a.5.5 0 00-.6.22L3.71 8.48a.5.5 0 00.12.64l2.03 1.58a7.43 7.43 0 000 1.88L3.83 14.16a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.6.22l2.39-.96c.5.38 1.05.7 1.63.95l.36 2.54a.5.5 0 00.49.41h3.8a.5.5 0 00.49-.41l.36-2.54c.58-.25 1.13-.57 1.63-.95l2.39.96a.5.5 0 00.6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/>
+            </svg>
+            Profile
+        </a>
+    </div>
+</div>
+
+
+<div class="college-container">
+
+    <!-- HERO -->
+    <div class="college-hero">
+
+        <div class="college-logo-box">
+            <img src="<%= collegeInfo.image %>" />
+        </div>
+
+        <div class="college-info">
+            <p class="college-label">College Page</p>
+            <h1><%= collegeInfo.name %></h1>
+
+            <div class="stats-row">
+                <div class="stat">
+                    <span><%= totalDocs %></span>
+                    Documents
+                </div>
+
+                <div class="stat">
+                    <span>4</span>
+                    Years
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <div class="college-controls">
+        <div class="college-search-box">
+            <input
+                    type="text"
+                    id="college-search"
+                    placeholder="Search by subject, chapter, or branch"
+            >
+        </div>
+
+        <div class="college-filter-box">
+            <select id="branch-filter">
+                <option value="all">All Branches</option>
+                <% if (allBranches && allBranches.length > 0) { %>
+                <% allBranches.forEach(branch => { %>
+                <option value="<%= branch %>"><%= branch %></option>
+                <% }) %>
+                <% } %>
+            </select>
+        </div>
+
+        <div class="college-sort-box">
+            <select id="sort-docs">
+                <option value="default">Sort By</option>
+                <option value="likes">Most Liked</option>
+                <option value="comments">Most Commented</option>
+                <option value="newest">Newest</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- YEARS -->
+    <% Object.keys(groupedDocs).forEach(year => { %>
+
+    <div class="year-block">
+
+        <div class="year-title">
+            Year <%= year %>
+        </div>
+
+        <% Object.keys(groupedDocs[year]).forEach(sem => { %>
+
+        <% if(groupedDocs[year][sem].length > 0){ %>
+
+        <div class="semester-title">
+            Semester <%= sem %>
+        </div>
+
+        <div class="docs-grid">
+
+            <% groupedDocs[year][sem].forEach(doc => { %>
+
+            <a
+                    href="/view/<%= doc._id %>"
+                    class="doc-card"
+                    data-subject="<%= (doc.subject || '').toLowerCase() %>"
+                    data-chapter="<%= (doc.chapter || '').toLowerCase() %>"
+                    data-branch="<%= (doc.branch || '').toLowerCase() %>"
+                    data-likes="<%= doc.likes || 0 %>"
+                    data-comments="<%= doc.comment_section ? doc.comment_section.length : 0 %>"
+                    data-id="<%= doc._id %>"
+            >
+
+                <div class="doc-top">
+                    <div class="doc-icon">PDF</div>
+
+                    <div class="doc-meta">
+                        <div class="doc-subject">
+                            <%= doc.subject || "Untitled Subject" %>
+                        </div>
+
+                        <div class="doc-chapter">
+                            Chapter: <%= doc.chapter %>
+                        </div>
+
+                        <div class="doc-branch">
+                            <%= doc.branch || "General" %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="doc-bottom">
+
+                    <div class="doc-tags">
+                         <%= doc.semester %>
+                    </div>
+
+                    <div style="display: flex;flex-direction: row;gap:10px" class="doc-stats">
+                        <div style="display:flex;justify-content:center;align-items:center;flex-direction: row">
+                            <svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5zM5.5 10A1.5 1.5 0 0 0 4 11.5v7a1.5 1.5 0 0 0 3 0v-7A1.5 1.5 0 0 0 5.5 10z" fill="#FF4500FF"></path></g></svg> <%= doc.likes %>
+                        </div>
+                        <div style="display:flex;justify-content:center;align-items:center;flex-direction: row">
+                            <svg width="15px" height="15px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#FF4500FF" stroke="#FF4500FF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dislike [#FF4500FF]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-139.000000, -760.000000)" fill="#FF4500FF"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M101.900089,600 L99.8000892,600 L99.8000892,611.987622 L101.900089,611.987622 C103.060339,611.987622 104.000088,611.093545 104.000088,609.989685 L104.000088,601.997937 C104.000088,600.894077 103.060339,600 101.900089,600 M87.6977917,600 L97.7000896,600 L97.7000896,611.987622 L95.89514,618.176232 C95.6819901,619.491874 94.2455904,620.374962 92.7902907,619.842512 C91.9198408,619.52484 91.400091,618.66273 91.400091,617.774647 L91.400091,612.986591 C91.400091,612.43516 90.9296911,611.987622 90.3500912,611.987622 L85.8728921,611.987622 C84.0259425,611.987622 82.6598928,610.35331 83.0746427,608.641078 L84.8995423,602.117813 C85.1998423,600.878093 86.360092,600 87.6977917,600" id="dislike-[#FF4500FF]"> </path> </g> </g> </g> </g></svg> <%= doc.dislikes %>
+                        </div>
+                    </div>
+
+                </div>
+
+            </a>
+
+            <% }) %>
+
+        </div>
+
+        <% } %>
+
+        <% }) %>
+
+    </div>
+
+    <% }) %>
+
+</div>
+<div class="footer">
+    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+        DocUp
+        <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></a>
+    </div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">ContactUs</a>
+        <a href="/privacy_policy">Privacy Policy</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const searchInput = document.getElementById("college-search");
+        const branchFilter = document.getElementById("branch-filter");
+        const sortSelect = document.getElementById("sort-docs");
+
+        const semesterGrids = document.querySelectorAll(".docs-grid");
+
+        function applyControls() {
+            const searchValue = (searchInput.value || "").trim().toLowerCase();
+            const branchValue = (branchFilter.value || "all").trim().toLowerCase();
+            const sortValue = sortSelect.value;
+
+            semesterGrids.forEach(grid => {
+                const cards = Array.from(grid.querySelectorAll(".doc-card"));
+
+                cards.forEach(card => {
+                    const subject = card.dataset.subject || "";
+                    const chapter = card.dataset.chapter || "";
+                    const branch = card.dataset.branch || "";
+
+                    const matchesSearch =
+                        !searchValue ||
+                        subject.includes(searchValue) ||
+                        chapter.includes(searchValue) ||
+                        branch.includes(searchValue);
+
+                    const matchesBranch =
+                        branchValue === "all" || branch === branchValue.toLowerCase();
+
+                    card.style.display = (matchesSearch && matchesBranch) ? "flex" : "none";
+                });
+
+                let visibleCards = cards.filter(card => card.style.display !== "none");
+
+                if (sortValue === "likes") {
+                    visibleCards.sort((a, b) => {
+                        return Number(b.dataset.likes || 0) - Number(a.dataset.likes || 0);
+                    });
+                } else if (sortValue === "comments") {
+                    visibleCards.sort((a, b) => {
+                        return Number(b.dataset.comments || 0) - Number(a.dataset.comments || 0);
+                    });
+                } else if (sortValue === "newest") {
+                    visibleCards.sort((a, b) => {
+                        return String(b.dataset.id || "").localeCompare(String(a.dataset.id || ""));
+                    });
+                }
+
+                visibleCards.forEach(card => grid.appendChild(card));
+
+                const semesterTitle = grid.previousElementSibling;
+                const yearBlock = grid.closest(".year-block");
+
+                if (semesterTitle && semesterTitle.classList.contains("semester-title")) {
+                    semesterTitle.style.display = visibleCards.length > 0 ? "block" : "none";
+                }
+
+                grid.style.display = visibleCards.length > 0 ? "flex" : "none";
+
+                if (yearBlock) {
+                    const hasVisibleCards = Array.from(yearBlock.querySelectorAll(".doc-card"))
+                        .some(card => card.style.display !== "none");
+
+                    yearBlock.style.display = hasVisibleCards ? "block" : "none";
+                }
+            });
+        }
+
+        searchInput.addEventListener("input", applyControls);
+        branchFilter.addEventListener("change", applyControls);
+        sortSelect.addEventListener("change", applyControls);
+    });
+</script>
+</html>

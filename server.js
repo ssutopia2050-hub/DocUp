@@ -615,6 +615,98 @@ app.post("/api/dashboard-search", async (req, res) => {
         });
     }
 });
+app.get("/college/:collegeName", async (req, res) => {
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName).trim();
+
+        const docs = await Docs.find({
+            college: collegeName
+        }).lean();
+
+        const allCollegeRows = await college.find({}).lean();
+
+        function normalizeText(str) {
+            return String(str || "")
+                .toLowerCase()
+                .trim()
+                .replace(/,/g, "")
+                .replace(/\s+/g, " ");
+        }
+
+        function normalizeCompact(str) {
+            return normalizeText(str).replace(/\s/g, "");
+        }
+
+        const requestedName = normalizeText(collegeName);
+        const requestedCompact = normalizeCompact(collegeName);
+
+        const collegeData =
+            allCollegeRows.find(c => normalizeText(c.college_name) === requestedName) ||
+            allCollegeRows.find(c => normalizeCompact(c.college_name) === requestedCompact) ||
+            null;
+
+        function normalize(value) {
+            return String(value || "").trim().toLowerCase();
+        }
+
+        function matchYear(value, yearNumber) {
+            const v = normalize(value);
+            return v === `year${yearNumber}` || v === `year ${yearNumber}` || v === String(yearNumber);
+        }
+
+        function matchSemester(value, semNumber) {
+            const v = normalize(value);
+            return v === `sem ${semNumber}` ||
+                v === `sem${semNumber}` ||
+                v === `semester ${semNumber}` ||
+                v === String(semNumber);
+        }
+
+        const groupedDocs = {
+            "1": {
+                "1": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 1)),
+                "2": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 2))
+            },
+            "2": {
+                "3": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 3)),
+                "4": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 4))
+            },
+            "3": {
+                "5": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 5)),
+                "6": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 6))
+            },
+            "4": {
+                "7": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 7)),
+                "8": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 8))
+            }
+        };
+
+        console.log("requested college:", collegeName);
+        console.log("matched college row:", collegeData);
+        console.log("docs found:", docs.length);
+        const user_data = await user_profile.findOne({email:req.session.email});
+        const allBranches = [...new Set(
+            docs
+                .map(doc => (doc.branch || "").trim())
+                .filter(Boolean)
+        )].sort();
+
+        res.render("college", {
+            collegeInfo: {
+                name: collegeName,
+                image: collegeData?.image || "/images/default.png"
+            },
+            totalDocs: docs.length,
+            groupedDocs,
+            allBranches,
+            user:user_data
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).send("Something went wrong");
+    }
+});
 /******************************
       Uploads
  ******************************/

@@ -257,6 +257,15 @@ a:active {
     gap:16px;
     background: linear-gradient(180deg, rgba(255,69,0,0.06), rgba(255,69,0,0.015));
 }
+.top-result-tab a{
+    color: rgb(255, 69, 0);
+    font-family:'Saira', sans-serif;
+    font-size:1.18rem;
+
+}
+.top-result-tab a:hover{
+   text-decoration: underline;
+}
 .file-link-result-tab{
     padding:16px 20px 8px 20px;
     font-family:'Raleway',sans-serif;
