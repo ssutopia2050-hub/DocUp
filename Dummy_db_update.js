@@ -1,33 +1,42 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Docs from "./models/Docs.js";
+import Docs from "./models/Docs.js"; // adjust path if needed
 
 dotenv.config();
 
-await mongoose.connect(process.env.MONGO_URI);
+async function run() {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("MongoDB connected");
 
-await Docs.updateMany(
-    { likes: { $exists: false } },
-    { $set: { likes: 0 } }
-);
+        const before = await Docs.find({
+            college: "University of Petroleum and Energy Studies"
+        });
 
-await Docs.updateMany(
-    { dislikes: { $exists: false } },
-    { $set: { dislikes: 0 } }
-);
+        console.log("Matched before update:", before.length);
 
-await Docs.updateMany(
-    { comment_section: { $exists: false } },
-    { $set: { comment_section: [] } }
-);
-await Docs.updateMany(
-    { liked_by: { $exists: false } },
-    { $set: { liked_by: [] } }
-);
-await Docs.updateMany(
-    { disliked_by: { $exists: false } },
-    { $set: { disliked_by: [] } }
-);
+        const result = await Docs.updateMany(
+            { college: "University of Petroleum and Energy Studies" },
+            {
+                $set: {
+                    college: "University of Petroleum and Energy Studies,UPES"
+                }
+            }
+        );
 
-console.log("Old docs updated successfully");
-await mongoose.disconnect();
+        console.log("matchedCount:", result.matchedCount);
+        console.log("modifiedCount:", result.modifiedCount);
+
+        const after = await Docs.find({
+            college: "University of Petroleum and Energy Studies,UPES"
+        });
+
+        console.log("Matched after update:", after.length);
+
+        await mongoose.disconnect();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+run();

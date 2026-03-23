@@ -130,10 +130,42 @@ app.get("/signup", (req, res) => {
 app.post('/signup', async (req, res) => {
     const { name, email, password } = req.body;
 
-    const exists = await user_profile.findOne({ email });
+    const normalizedEmail = (email || "").trim().toLowerCase();
+
+    const allowedDomains = new Set([
+        "gmail.com",
+        "outlook.com",
+        "hotmail.com",
+        "live.com",
+        "yahoo.com",
+        "icloud.com",
+        "me.com",
+        "mac.com",
+        "proton.me",
+        "protonmail.com",
+        "aol.com"
+    ]);
+
+    const emailParts = normalizedEmail.split("@");
+
+    if (emailParts.length !== 2) {
+        return res.render("signup", {
+            err: { message: "Please enter a valid email address." }
+        });
+    }
+
+    const domain = emailParts[1];
+
+    if (!allowedDomains.has(domain)) {
+        return res.render("signup", {
+            err: { message: "Please sign up using a supported email provider like Gmail, Outlook, Yahoo, or iCloud." }
+        });
+    }
+
+    const exists = await user_profile.findOne({ email: normalizedEmail });
 
     if (exists) {
-        return res.render('signup', {
+        return res.render("signup", {
             err: { message: "An account with your email already exists !!" }
         });
     }
@@ -142,7 +174,7 @@ app.post('/signup', async (req, res) => {
 
     req.session.pendingUser = {
         name,
-        email,
+        email: normalizedEmail,
         password,
         otp,
         expires: Date.now() + 10 * 60 * 1000,
@@ -154,7 +186,7 @@ app.post('/signup', async (req, res) => {
             process.env.EMAILJS_SERVICE_ID,
             process.env.EMAILJS_VERIF_TEMPLATE_ID,
             {
-                email,
+                email: normalizedEmail,
                 otp,
                 name
             },
@@ -164,8 +196,7 @@ app.post('/signup', async (req, res) => {
             }
         );
 
-        console.log(`OTP sent to ${email}: ${otp}`);
-
+        console.log(`OTP sent to ${normalizedEmail}: ${otp}`);
     } catch (err) {
         console.error("Email sending failed:", err);
         return res.render("signup", {
@@ -733,7 +764,7 @@ app.get("/uploads", async (req, res) => {
             const uniqueColleges = [...new Set(colleges)].sort();
 
             res.render("uploads", {
-                data,
+                data: data,
                 colleges: uniqueColleges
             });
 

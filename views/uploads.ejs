@@ -75,14 +75,16 @@ cursor:crosshair;">
     <!-- Metadata form -->
     <div class="doc-form" id="doc-form">
 
-        <select id="college" required>
-            <option value="">Select College</option>
-
-            <% colleges.forEach(college => { %>
-            <option value="<%= college %>"><%= college %></option>
-            <% }) %>
-
-        </select>
+        <div class="college-autocomplete">
+            <input
+                    type="text"
+                    id="college"
+                    placeholder="Type college name"
+                    autocomplete="off"
+                    required
+            >
+            <div id="college-suggestions" class="college-suggestions"></div>
+        </div>
 
         <select id="year" required>
             <option value="">Year</option>
@@ -137,6 +139,8 @@ cursor:crosshair;">
 </div>
 </body>
 <script>
+    const colleges = <%- JSON.stringify(colleges) %>;
+
     const dropArea = document.getElementById("drop-area");
     const fileInput = document.getElementById("file-input");
     const chooseBtn = document.getElementById("choose-btn");
@@ -144,11 +148,17 @@ cursor:crosshair;">
     const form = document.getElementById("doc-form");
     const uploadBtn = document.getElementById("upload-btn");
     const uploadLoader = document.getElementById("upload-loader");
-    const homeBtn  = document.querySelector(".logo-text-container");
-    homeBtn.addEventListener("click", () => {
-        window.location.href="/dashboard";
-    })
+    const homeBtn = document.querySelector(".logo-text-container");
+
+    const collegeInput = document.getElementById("college");
+    const suggestionsBox = document.getElementById("college-suggestions");
+
     let selectedFile = null;
+    let activeSuggestionIndex = -1;
+
+    homeBtn.addEventListener("click", () => {
+        window.location.href = "/dashboard";
+    });
 
     function showLoader() {
         uploadLoader.classList.add("active");
@@ -158,34 +168,218 @@ cursor:crosshair;">
         uploadLoader.classList.remove("active");
     }
 
+    function normalizeText(text) {
+        return String(text || "")
+            .toLowerCase()
+            .replace(/\s+/g, " ")
+            .trim();
+    }
+
+    function escapeHTML(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function scoreCollegeMatch(input, collegeName) {
+        const q = normalizeText(input);
+        const c = normalizeText(collegeName);
+
+        if (!q) return 0;
+        if (c === q) return 1000;
+        if (c.startsWith(q)) return 900;
+        if (c.includes(q)) return 700;
+
+        const inputWords = q.split(" ");
+        let score = 0;
+
+        inputWords.forEach(word => {
+            if (!word) return;
+            if (c.startsWith(word)) score += 120;
+            else if (c.includes(word)) score += 70;
+        });
+
+        return score;
+    }
+
+    function getMatchingColleges(query) {
+        const cleanedQuery = normalizeText(query);
+
+        if (!cleanedQuery) {
+            return colleges.slice(0, 8);
+        }
+
+        return colleges
+            .map(college => ({
+                name: college,
+                score: scoreCollegeMatch(cleanedQuery, college)
+            }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.name.localeCompare(b.name);
+            })
+            .slice(0, 8)
+            .map(item => item.name);
+    }
+
+    function closeSuggestions() {
+        suggestionsBox.innerHTML = "";
+        suggestionsBox.style.display = "none";
+        activeSuggestionIndex = -1;
+    }
+
+    function selectCollege(collegeName) {
+        collegeInput.value = collegeName;
+        collegeInput.dataset.selected = "true";
+        collegeInput.classList.remove("college-invalid");
+        closeSuggestions();
+    }
+
+    function renderSuggestions(matches) {
+        suggestionsBox.innerHTML = "";
+        activeSuggestionIndex = -1;
+
+        if (!matches.length) {
+            suggestionsBox.style.display = "none";
+            return;
+        }
+
+        matches.forEach((college, index) => {
+            const item = document.createElement("div");
+            item.className = "college-suggestion-item";
+            item.innerHTML = escapeHTML(college);
+
+            item.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                selectCollege(college);
+            });
+
+            suggestionsBox.appendChild(item);
+        });
+
+        suggestionsBox.style.display = "block";
+    }
+
+    function updateActiveSuggestion(items) {
+        items.forEach(item => item.classList.remove("active"));
+
+        if (activeSuggestionIndex >= 0 && items[activeSuggestionIndex]) {
+            items[activeSuggestionIndex].classList.add("active");
+            items[activeSuggestionIndex].scrollIntoView({
+                block: "nearest"
+            });
+        }
+    }
+
+    function isValidCollege(value) {
+        const normalizedValue = normalizeText(value);
+        return colleges.some(college => normalizeText(college) === normalizedValue);
+    }
+
+    function getCanonicalCollege(value) {
+        const normalizedValue = normalizeText(value);
+        return colleges.find(college => normalizeText(college) === normalizedValue) || "";
+    }
+
     chooseBtn.onclick = () => fileInput.click();
 
-    fileInput.addEventListener("change", e => {
+    fileInput.addEventListener("change", (e) => {
         if (!e.target.files[0]) return;
         handleFile(e.target.files[0]);
     });
 
-    dropArea.addEventListener("dragover", e => {
+    dropArea.addEventListener("dragover", (e) => {
         e.preventDefault();
     });
 
-    dropArea.addEventListener("drop", e => {
+    dropArea.addEventListener("drop", (e) => {
         e.preventDefault();
         if (!e.dataTransfer.files[0]) return;
         handleFile(e.dataTransfer.files[0]);
     });
 
+    collegeInput.addEventListener("input", () => {
+        collegeInput.dataset.selected = "false";
+        collegeInput.classList.remove("college-invalid");
+
+        const query = collegeInput.value;
+        const matches = getMatchingColleges(query);
+        renderSuggestions(matches);
+    });
+
+    collegeInput.addEventListener("focus", () => {
+        const matches = getMatchingColleges(collegeInput.value);
+        renderSuggestions(matches);
+    });
+
+    collegeInput.addEventListener("keydown", (e) => {
+        const items = suggestionsBox.querySelectorAll(".college-suggestion-item");
+
+        if (e.key === "ArrowDown") {
+            if (suggestionsBox.style.display === "none") {
+                const matches = getMatchingColleges(collegeInput.value);
+                renderSuggestions(matches);
+            }
+
+            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
+            if (!refreshedItems.length) return;
+
+            e.preventDefault();
+            activeSuggestionIndex = (activeSuggestionIndex + 1) % refreshedItems.length;
+            updateActiveSuggestion(refreshedItems);
+        } else if (e.key === "ArrowUp") {
+            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
+            if (!refreshedItems.length) return;
+
+            e.preventDefault();
+            activeSuggestionIndex =
+                (activeSuggestionIndex - 1 + refreshedItems.length) % refreshedItems.length;
+            updateActiveSuggestion(refreshedItems);
+        } else if (e.key === "Enter") {
+            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
+
+            if (suggestionsBox.style.display !== "none" && activeSuggestionIndex >= 0 && refreshedItems[activeSuggestionIndex]) {
+                e.preventDefault();
+                selectCollege(refreshedItems[activeSuggestionIndex].textContent);
+            } else if (!isValidCollege(collegeInput.value)) {
+                e.preventDefault();
+            }
+        } else if (e.key === "Escape") {
+            closeSuggestions();
+        }
+    });
+
+    collegeInput.addEventListener("blur", () => {
+        setTimeout(() => {
+            if (!isValidCollege(collegeInput.value)) {
+                collegeInput.dataset.selected = "false";
+            }
+            closeSuggestions();
+        }, 120);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".college-autocomplete")) {
+            closeSuggestions();
+        }
+    });
+
     function handleFile(file) {
         selectedFile = file;
-
         preview.textContent = file.name;
 
-        document.getElementById("college").value = "";
+        collegeInput.value = "";
+        collegeInput.dataset.selected = "false";
+        collegeInput.classList.remove("college-invalid");
+
         document.getElementById("year").value = "";
         document.getElementById("semester").value = "";
         document.getElementById("branch").value = "";
         document.getElementById("subject").value = "";
         document.getElementById("chapter").value = "";
+
+        closeSuggestions();
 
         form.style.display = "flex";
         uploadBtn.style.display = "block";
@@ -197,9 +391,11 @@ cursor:crosshair;">
             });
         }, 100);
     }
-
+//TODO:Moderator
     uploadBtn.addEventListener("click", async () => {
-        const college = document.getElementById("college").value.trim();
+
+
+        const collegeRaw = collegeInput.value.trim();
         const year = document.getElementById("year").value;
         const semester = document.getElementById("semester").value;
         const branch = document.getElementById("branch").value.trim();
@@ -210,11 +406,19 @@ cursor:crosshair;">
             alert("Please select a file");
             return;
         }
+        if (!collegeRaw || !isValidCollege(collegeRaw)) {
+            collegeInput.classList.add("college-invalid");
+            collegeInput.focus();
+            alert("Please select a valid college from the suggestions");
+            return;
+        }
 
-        if (!college || !year || !semester || !branch || !subject || !chapter) {
+        if (!year || !semester || !branch || !subject || !chapter) {
             alert("Please fill all metadata fields");
             return;
         }
+
+        const college = getCanonicalCollege(collegeRaw);
 
         uploadBtn.disabled = true;
         showLoader();
@@ -247,22 +451,28 @@ cursor:crosshair;">
             });
 
             if (res.ok) {
-                document.getElementById("college").value = "";
+                collegeInput.value = "";
+                collegeInput.dataset.selected = "false";
+                collegeInput.classList.remove("college-invalid");
+
                 document.getElementById("year").value = "";
                 document.getElementById("semester").value = "";
                 document.getElementById("branch").value = "";
                 document.getElementById("subject").value = "";
+                document.getElementById("chapter").value = "";
 
                 selectedFile = null;
                 fileInput.value = "";
                 preview.textContent = "";
 
+                closeSuggestions();
+
                 form.style.display = "none";
                 uploadBtn.style.display = "none";
 
                 hideLoader();
-                alert("Upload Complete");
                 uploadBtn.disabled = false;
+                alert("Upload Complete");
             } else {
                 hideLoader();
                 uploadBtn.disabled = false;
