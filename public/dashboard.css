@@ -80,10 +80,9 @@ a:active {
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    /*border:1px solid white;*/
     height:fit-content;
     position:relative;
-    margin-top:5%;
+    margin-top:3.2%;
     padding-right:2%;
 }
 .search-param-container form{
@@ -186,8 +185,8 @@ a:active {
     justify-content: flex-start;
     min-height:40vh;
     position:relative;
-    margin-top:5%;
-    padding: 2% 2% 2% 1%;
+    margin-top:22px;
+    padding: 0.5% 2% 2% 1%;
     gap:32px;
 }
 .result-tab-container{
@@ -827,5 +826,106 @@ label{
     .shortcut-chip{
         font-size:0.85rem;
         padding:10px 14px;
+    }
+}
+.college-results-strip{
+    width:100%;
+    margin-top:5%;
+    padding:0 2%;
+}
+
+.college-results-strip-inner{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    align-items:stretch;
+}
+
+.college-result-card{
+    min-width:240px;
+    max-width:320px;
+    flex:1 1 260px;
+    border:1px solid rgba(255,69,0,0.18);
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+    border-radius:22px;
+    padding:16px 18px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    transition:0.28s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+            0 10px 30px rgba(0,0,0,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.03);
+}
+
+.college-result-card:hover{
+    transform:translateY(-4px);
+    border:1px solid rgba(255,69,0,0.42);
+    box-shadow:
+            0 16px 38px rgba(0,0,0,0.24),
+            0 0 0 1px rgba(255,69,0,0.06);
+}
+
+.college-result-card-logo{
+    width:58px;
+    min-width:58px;
+    height:58px;
+    border-radius:16px;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.05);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.college-result-card-logo img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.college-result-card-text{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:0;
+}
+
+.college-result-card-label{
+    font-family:'Saira', sans-serif;
+    font-size:0.78rem;
+    color:rgba(255,69,0,0.85);
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.college-result-card-text p{
+    margin:0;
+    font-family:'Saira', sans-serif;
+    color:white;
+    font-size:1rem;
+    line-height:1.4;
+    word-break:break-word;
+}
+
+@media (max-width: 768px){
+    .college-results-strip{
+        margin-top:5%;
+    }
+
+    .college-result-card{
+        min-width:100%;
+    }
+
+    .search-param-container{
+        margin-top:24px;
+    }
+
+    .search-results-container{
+        margin-top:16px;
+        padding-top:0;
     }
 }
