@@ -387,7 +387,7 @@ app.post('/signup', async (req, res) => {
         expires: Date.now() + 10 * 60 * 1000, // OTP expires in 10 minutes
         resendAllowedAt: Date.now() + 5 *
 
-
+```
 # Uploading Study Materials
 
 DocUp provides a seamless way for college students to contribute to and enrich the community's shared knowledge base by uploading their academic study materials. By sharing your notes, assignments, and resources, you help fellow students and earn valuable DocScore points.
