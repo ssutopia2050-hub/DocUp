@@ -119,7 +119,7 @@ app.get("/sitemap.xml", (req, res) => {
            Routes
  ******************************/
 app.get('/', (req, res) => {
-    res.render('signup' , {err:null})
+    res.render('seo' , {err:null})
 })
 /******************************
           Signup
