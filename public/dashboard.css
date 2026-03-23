@@ -713,7 +713,7 @@ label{
     justify-content:center;
     text-align:center;
     backdrop-filter: blur(10px);
-    margin-bottom:5vh;
+    margin-top:5vh;
 }
 
 .empty-results-glow{
