@@ -1,8 +1,8 @@
-# Introduction to [DocUp](www.docup.in)
+# Introduction to [DocUp](https://www.docup.in)
 
 DocUp is a web application designed to facilitate the **sharing and access of academic study materials** among college students. It provides a centralized platform where users can upload lecture notes, PDFs, and other educational resources, fostering a collaborative learning environment. This document serves as an introduction to DocUp, outlining its purpose, key features, and underlying technology.
 
-[Click here to visit DocUp](www.docup.in)
+[Click here to visit DocUp](https://www.docup.in)
 
 ## What is DocUp?
 
