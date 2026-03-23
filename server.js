@@ -932,7 +932,7 @@ app.get("/logout", (req, res) => {
         }
 
         res.clearCookie("connect.sid");   // VERY IMPORTANT
-        res.redirect("/signin");           // or homepage
+        res.redirect("/");           // or homepage
 
     });
 
