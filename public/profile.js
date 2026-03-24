@@ -1,53 +1,13 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const displayAvatar = document.querySelector('.avatar');
-    const avatarBox = document.querySelector('.avatar-container');
+document.addEventListener("DOMContentLoaded", () => {
+    const displayAvatar = document.querySelector(".avatar");
+    const avatarBox = document.querySelector(".avatar-container");
+
     if (!displayAvatar || !avatarBox) return;
 
-    function openAvatarBox() {
-        avatarBox.style.display = 'flex';
-        render_avatars();
-    }
+    let avatarsRendered = false;
+    let avatarObserver = null;
 
-    function closeAvatarBox() {
-        avatarBox.style.display = 'none';
-    }
-
-    function toggleAvatarBox() {
-        const isOpen =
-            window.getComputedStyle(avatarBox).display !== 'none';
-
-        if (isOpen) {
-            closeAvatarBox();
-        } else {
-            openAvatarBox();
-        }
-    }
-
-    displayAvatar.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleAvatarBox();
-    });
-
-    avatarBox.addEventListener('click', (e) => {
-        e.stopPropagation();
-    });
-
-    document.addEventListener('click', (e) => {
-        const clickedInsideAvatar =
-            displayAvatar.contains(e.target);
-
-        const clickedInsideBox =
-            avatarBox.contains(e.target);
-
-        if (!clickedInsideAvatar && !clickedInsideBox) {
-            closeAvatarBox();
-        }
-    });
-
-
-    // Main avatar loading logic
     const avatarPaths = [
-        // "/images/Characters/jean.png",
         "/images/Characters/sucrose.png",
         "/images/Characters/xingqiu.png",
         "/images/Characters/aether.png",
@@ -100,7 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
         "/images/Characters/shinobu.png",
         "/images/Characters/rosaria.png",
         "/images/Characters/signora.png",
-
 
         "/images/Characters/Aloy_Icon.png",
         "/images/Characters/Freminet_Icon.png",
@@ -195,53 +154,143 @@ document.addEventListener('DOMContentLoaded', () => {
         "/images/Characters/Nilou_Icon.png",
         "/images/Characters/Traveler_Icon.png"
     ];
-    function render_avatars() {
-        avatarBox.innerHTML = "";
 
-        for (let i = 0; i < avatarPaths.length; i++) {
+    function closeAvatarBox() {
+        avatarBox.style.display = "none";
+    }
 
-            const custom_avtr = document.createElement("div");
-            custom_avtr.classList.add("custom-avatar");
+    function openAvatarBox() {
+        avatarBox.style.display = "flex";
 
-            const img_avatar = document.createElement("img");
-            img_avatar.classList.add("avatar-img");
-            img_avatar.src = avatarPaths[i];
-
-            custom_avtr.addEventListener("click", async () => {
-                try {
-                    const res = await fetch("/set_avatar", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            avatarPath: avatarPaths[i]
-                        })
-                    });
-
-                    const data = await res.json();
-
-                    if (data.success) {
-                        const displayAvatar = document.querySelector(".avatar");
-
-                        displayAvatar.classList.add("has-image");
-                        displayAvatar.innerHTML =
-                            `<img class="avatar-img" src="${avatarPaths[i]}" alt="avatar">`;
-
-                        avatarBox.style.display = "none";
-                    } else {
-                        alert("Server error");
-                    }
-
-                } catch (err) {
-                    alert("Network error");
-                }
-            });
-
-            custom_avtr.append(img_avatar);
-            avatarBox.appendChild(custom_avtr);
+        if (!avatarsRendered) {
+            renderAvatars();
+            avatarsRendered = true;
         }
     }
 
+    function toggleAvatarBox() {
+        const isOpen = window.getComputedStyle(avatarBox).display !== "none";
+        if (isOpen) {
+            closeAvatarBox();
+        } else {
+            openAvatarBox();
+        }
+    }
 
+    function setDisplayAvatar(path) {
+        displayAvatar.classList.add("has-image");
+        displayAvatar.innerHTML = `<img class="avatar-img" src="${path}" alt="avatar">`;
+    }
+
+    function createObserver() {
+        if (!("IntersectionObserver" in window)) return null;
+
+        return new IntersectionObserver(
+            (entries, observer) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+
+                    const img = entry.target;
+                    const realSrc = img.dataset.src;
+
+                    if (realSrc) {
+                        img.src = realSrc;
+                        img.removeAttribute("data-src");
+                    }
+
+                    observer.unobserve(img);
+                });
+            },
+            {
+                root: avatarBox,
+                rootMargin: "150px"
+            }
+        );
+    }
+
+    async function saveAvatar(path) {
+        const res = await fetch("/set_avatar", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                avatarPath: path
+            })
+        });
+
+        let data;
+        try {
+            data = await res.json();
+        } catch {
+            throw new Error("Invalid server response");
+        }
+
+        if (!res.ok || !data.success) {
+            throw new Error("Avatar save failed");
+        }
+
+        return data;
+    }
+
+    function renderAvatars() {
+        avatarBox.innerHTML = "";
+        avatarObserver = createObserver();
+
+        avatarPaths.forEach((path) => {
+            const customAvtr = document.createElement("div");
+            customAvtr.classList.add("custom-avatar");
+
+            const imgAvatar = document.createElement("img");
+            imgAvatar.classList.add("avatar-img");
+            imgAvatar.alt = "avatar option";
+            imgAvatar.loading = "lazy";
+            imgAvatar.decoding = "async";
+
+            if (avatarObserver) {
+                imgAvatar.dataset.src = path;
+                avatarObserver.observe(imgAvatar);
+            } else {
+                imgAvatar.src = path;
+            }
+
+            customAvtr.addEventListener("click", async () => {
+                try {
+                    await saveAvatar(path);
+                    setDisplayAvatar(path);
+                    closeAvatarBox();
+                } catch (err) {
+                    console.error("Avatar update error:", err);
+                    alert("Server error");
+                }
+            });
+
+            customAvtr.appendChild(imgAvatar);
+            avatarBox.appendChild(customAvtr);
+        });
+    }
+
+    displayAvatar.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleAvatarBox();
+    });
+
+    avatarBox.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+
+    document.addEventListener("click", (e) => {
+        const clickedInsideAvatar = displayAvatar.contains(e.target);
+        const clickedInsideBox = avatarBox.contains(e.target);
+
+        if (!clickedInsideAvatar && !clickedInsideBox) {
+            closeAvatarBox();
+        }
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeAvatarBox();
+        }
+    });
 });
