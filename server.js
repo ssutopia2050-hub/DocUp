@@ -924,27 +924,70 @@ app.get("/profile", async (req, res) => {
     try {
         const email = req.session.email;
 
-        if (!email) {
-            return res.redirect("/signin");
-        }
+        if (!email) return res.redirect("/signin");
 
         const user = await user_profile.findOne({ email })
             .populate("saved_documents")
             .populate("uploads.doc_id")
             .populate("doc_view_history");
 
-        if (!user) {
-            return res.redirect("/signin");
-        }
+        if (!user) return res.redirect("/signin");
 
-        if (user.payment_history && user.payment_history.length > 0) {
-            user.payment_history.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // sort payment history latest first
+        if (user.payment_history?.length) {
+            user.payment_history.sort(
+                (a, b) => new Date(b.date) - new Date(a.date)
+            );
         }
 
         res.render("profile", { user });
+
     } catch (error) {
         console.log("Profile Page Error:", error);
         res.status(500).send("Internal Server Error");
+    }
+});
+app.post("/update-avatar", async (req, res) => {
+
+    try {
+
+        if (!req.session.email) {
+            return res.json({ success: false });
+        }
+
+        const { avatarPath } = req.body;
+
+        await user_profile.updateOne(
+            { email: req.session.email },
+            { avatar_img_path: avatarPath }
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        console.log(err);
+        res.json({ success: false });
+    }
+
+});
+app.post("/set_avatar", async (req, res) => {
+    try {
+        const email = req.session.email;
+        const { avatarPath } = req.body;
+
+        if (!email) {
+            return res.status(401).json({ success: false });
+        }
+
+        await user_profile.updateOne(
+            { email },
+            { avatar_img_path: avatarPath }
+        );
+
+        return res.json({ success: true });
+    } catch (err) {
+        console.log("Avatar Update Error:", err);
+        return res.status(500).json({ success: false });
     }
 });
 /******************************

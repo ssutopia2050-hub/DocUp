@@ -10,10 +10,10 @@ async function run() {
         console.log("MongoDB connected");
 
         const result = await user.updateMany(
-            { doc_view_history: { $exists: false } },   // safer
+            {},   // safer
             {
                 $set: {
-                    doc_view_history: []
+                    avatar_img_path:""
                 }
             }
         );

@@ -101,8 +101,14 @@ return "Document";
 
         <div class="profile-container glass-card">
             <div class="profile-header">
-                <div class="avatar">
+                <div class="avatar <%= user.avatar_img_path ? 'has-image' : '' %>">
+                    <% if (user.avatar_img_path) { %>
+                    <img src="<%= user.avatar_img_path %>" alt="avatar">
+                    <% } else { %>
                     <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+                    <% } %>
+                </div>
+                <div class="avatar-container">
                 </div>
 
                 <div class="profile-main-info">
@@ -316,8 +322,8 @@ return "Document";
             </div>
             <% } %>
         </div>
-
     </div>
+
 
     <div class="right-section">
 
@@ -415,4 +421,5 @@ return "Document";
 </div>
 
 </body>
+<script src="/profile.js"></script>
 </html>

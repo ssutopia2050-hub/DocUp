@@ -130,8 +130,8 @@ a:active{
 }
 
 .avatar{
-    width: 110px;
-    height: 110px;
+    width: 200px;
+    height: 200px;
     border-radius: 50%;
     background: linear-gradient(135deg, #ff5e00, #ff9b45);
     display: flex;
@@ -141,6 +141,19 @@ a:active{
     color: white;
     box-shadow: 0 10px 25px rgba(255, 94, 0, 0.22);
     flex-shrink: 0;
+}
+
+.avatar.has-image{
+    /*background: none;*/
+    background: linear-gradient(135deg, #ff5e00, rgb(255, 155, 69));
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.22);
+}
+.avatar img{
+    width:80%;
+    height:80%;
+    object-fit:cover;
+    border-radius:50%;
+    display:block;
 }
 
 .profile-main-info{
@@ -922,7 +935,7 @@ a:active{
     flex-direction: column;
     gap: 14px;
     max-height: 30vh;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .view-history-item{
@@ -996,4 +1009,77 @@ a:active{
 
 .view-history-btn:hover{
     background: rgba(255,255,255,0.10);
+}
+.avatar-container{
+    height:400px;
+    width:90%;
+    max-height:70vh;
+    overflow-y:auto;
+    z-index:5000;
+    border:1px solid rgba(255,255,255,0.08);
+    position:fixed;
+    top:20vh;
+    left:50%;
+    transform:translateX(-50%);
+    padding:30px;
+
+    background: linear-gradient(
+            145deg,
+            rgba(3, 18, 28, 0.92),
+            rgba(5, 32, 46, 0.88)
+    );
+
+    backdrop-filter: blur(60px);
+    -webkit-backdrop-filter: blur(60px);
+
+    box-shadow:
+            0 20px 60px rgba(0,0,0,0.65),
+            inset 0 1px 0 rgba(255,255,255,0.04);
+
+    border-radius:18px;
+
+    display:none;
+    flex-wrap:wrap;
+    column-gap:70px;
+    row-gap:30px;
+    align-items:flex-start;
+    justify-content:flex-start;
+}
+
+.custom-avatar{
+    width:150px;
+    height:150px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:16px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.06);
+    overflow:hidden;
+    cursor:pointer;
+    transition:0.3s ease;
+}
+
+.custom-avatar:hover{
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.06);
+    border-color:rgba(255,140,60,0.35);
+}
+
+.custom-avatar .avatar-img{
+    width:100px;
+    height:100px;
+    object-fit:cover;
+    border-radius:12px;
+    transition:0.3s ease;
+    display:block;
+}
+
+.custom-avatar .avatar-img:hover{
+    transform:scale(1.08);
+}
+.idk{
+    height:100%;
+    width:100%;
+    overflow:hidden;
 }

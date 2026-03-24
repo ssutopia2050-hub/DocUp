@@ -101,7 +101,11 @@ const user_profile = new mongoose.Schema({
             type:mongoose.Schema.Types.ObjectId,
             ref: "Docs"
         }
-    ]
+    ],
+    avatar_img_path:{
+        type: String,
+        default: null
+    }
 });
 
 export default mongoose.model("user_profile", user_profile);
