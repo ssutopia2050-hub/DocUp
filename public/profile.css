@@ -142,7 +142,9 @@ a:active{
     box-shadow: 0 10px 25px rgba(255, 94, 0, 0.22);
     flex-shrink: 0;
 }
-
+.avatar:hover{
+cursor: pointer;
+}
 .avatar.has-image{
     /*background: none;*/
     background: linear-gradient(135deg, #ff5e00, rgb(255, 155, 69));
