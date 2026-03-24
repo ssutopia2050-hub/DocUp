@@ -192,152 +192,224 @@ a:active {
 .result-tab-container{
     width:100%;
     display:flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-content: flex-start;
-    gap:18px;
-    position:relative;
+    align-items:stretch;
+    justify-content:flex-start;
+    padding:2px 0;
 }
 
 .result-tab{
-    flex:1;
-    border:1px solid rgba(255, 69, 0, 0.18);
-    background:
-            linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
-    display:flex;
-    flex-direction: column;
-    justify-content: space-between;
-    border-radius:22px;
-    transition: 0.28s ease;
+    width:100%;
+    position:relative;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    border-radius:28px;
     overflow:hidden;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border:1px solid rgba(255, 110, 45, 0.14);
+    background:
+            radial-gradient(circle at top right, rgba(255, 98, 0, 0.14), transparent 28%),
+            linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.018));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     box-shadow:
-            0 10px 30px rgba(0,0,0,0.18),
-            inset 0 1px 0 rgba(255,255,255,0.03);
+            0 24px 55px rgba(0,0,0,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(255,255,255,0.025);
+    transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            border-color 0.3s ease;
 }
+
 .result-tab:hover{
-    transform: translateY(-4px);
-    border:1px solid rgba(255, 69, 0, 0.42);
+    transform:translateY(-5px);
+    border-color:rgba(255, 115, 45, 0.3);
     box-shadow:
-            0 16px 38px rgba(0,0,0,0.24),
-            0 0 0 1px rgba(255,69,0,0.06);
+            0 30px 70px rgba(0,0,0,0.36),
+            inset 0 1px 0 rgba(255,255,255,0.07);
 }
-.college-logo{
-    width:72px;
-    min-width:72px;
-    height:72px;
-    border:1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255,255,255,0.04);
+
+.result-tab-top{
+    width:100%;
     display:flex;
-    justify-content: center;
-    align-items: center;
-    border-radius:20px;
-    overflow: hidden;
-    margin-left:0;
-    flex-shrink:0;
-    box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:22px 24px 18px 24px;
+    border-bottom:1px solid rgba(255, 110, 45, 0.08);
+    background:linear-gradient(180deg, rgba(255,69,0,0.08), rgba(255,69,0,0.02));
 }
+
+.result-tab-identity{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    min-width:0;
+}
+
+.college-logo{
+    width:76px;
+    min-width:76px;
+    height:76px;
+    border-radius:22px;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(255,255,255,0.12);
+    background:linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    box-shadow:
+            0 12px 28px rgba(0,0,0,0.22),
+            inset 0 1px 0 rgba(255,255,255,0.08);
+    flex-shrink:0;
+}
+
 .college-logo img{
     width:100%;
     height:100%;
     object-fit:cover;
 }
-.top-result-tab{
-    width:100%;
-    border-bottom:1px solid rgba(255, 69, 0, 0.12);
-    display:flex;
-    padding:18px 20px;
-    align-items: center;
-    color:orangered;
-    font-family:'Saira', sans-serif;
-    font-size:1.18rem;
-    justify-content: space-between;
-    gap:16px;
-    background: linear-gradient(180deg, rgba(255,69,0,0.06), rgba(255,69,0,0.015));
-}
-.top-result-tab a{
-    color: rgb(255, 69, 0);
-    font-family:'Saira', sans-serif;
-    font-size:1.18rem;
 
+.result-tab-title-wrap{
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
 }
-.top-result-tab a:hover{
-   text-decoration: underline;
+
+.result-tab-label{
+    font-family:'Saira', sans-serif;
+    font-size:0.76rem;
+    text-transform:uppercase;
+    letter-spacing:1.3px;
+    color:rgba(255, 138, 88, 0.82);
 }
+
+.result-tab-title-wrap a{
+    font-family:'Saira', sans-serif;
+    font-size:1.18rem;
+    line-height:1.45;
+    color:#ff8a47;
+    text-decoration:none;
+    word-break:break-word;
+    transition:color 0.2s ease;
+}
+
+.result-tab-title-wrap a:hover{
+    color:#ffb07c;
+}
+
+.result-tab-badge{
+    padding:10px 14px;
+    border-radius:999px;
+    border:1px solid rgba(255, 110, 45, 0.16);
+    background:rgba(255, 110, 45, 0.08);
+    color:#ffae7d;
+    font-family:'Saira', sans-serif;
+    font-size:0.74rem;
+    letter-spacing:1px;
+    flex-shrink:0;
+}
+
+.result-tab-body{
+    padding:20px 24px 16px 24px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:10px;
+}
+
+.result-tab-body-label{
+    font-family:'Saira', sans-serif;
+    font-size:0.76rem;
+    text-transform:uppercase;
+    letter-spacing:1.1px;
+    color:rgba(255,255,255,0.42);
+}
+
 .file-link-result-tab{
-    padding:16px 20px 8px 20px;
-    font-family:'Raleway',sans-serif;
+    padding:0;
 }
 
 .file-link-result-tab a{
-    color: rgba(255, 255, 255, 0.52);
-    font-family:'Raleway',sans-serif;
-    display:flex;
-    flex-wrap:wrap;
-    line-height:1.7;
+    font-family:'Raleway', sans-serif;
+    font-size:1rem;
+    line-height:1.8;
+    color:rgba(255,255,255,0.72);
+    text-decoration:none;
     word-break:break-word;
-    transition:0.2s ease;
+    transition:color 0.2s ease;
 }
 
 .file-link-result-tab a:hover{
     color:white;
 }
+
+.result-tab-footer{
+    padding:0 24px 22px 24px;
+}
+
 .tags-container{
-    padding:12px 20px 20px 20px;
     display:flex;
-    flex-direction: row;
     flex-wrap:wrap;
-    gap:12px;
+    gap:10px;
 }
 
 .tags{
     font-family:'Saira', sans-serif;
-    font-size:0.88rem;
-    color: rgba(255, 186, 148, 0.95);
-    background: rgba(255, 69, 0, 0.10);
-    border: 1px solid rgba(255, 69, 0, 0.16);
-    padding:8px 14px;
+    font-size:0.82rem;
+    color:#ffd7c2;
+    background:
+            linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
+            rgba(255, 102, 35, 0.08);
+    border:1px solid rgba(255, 119, 56, 0.14);
+    padding:9px 14px;
     border-radius:999px;
-    transition: 0.2s ease;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+    transition:all 0.2s ease;
 }
 
 .tags:hover{
-    cursor: pointer;
-    color: white;
-    background: rgba(255, 69, 0, 0.18);
-    border-color: rgba(255, 69, 0, 0.28);
-    user-select: none;
+    transform:translateY(-2px);
+    color:white;
+    background:
+            linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+            rgba(255, 102, 35, 0.14);
+    border-color:rgba(255, 132, 66, 0.24);
+    cursor:pointer;
 }
+
 @media (max-width: 900px){
-    .result-tab-container{
-        flex-direction:column;
-        gap:14px;
-    }
-
-    .college-logo{
-        width:64px;
-        min-width:64px;
-        height:64px;
-    }
-
-    .top-result-tab{
-        font-size:1rem;
-        padding:16px;
+    .result-tab-top{
+        padding:18px;
+        align-items:flex-start;
         flex-wrap:wrap;
     }
 
-    .file-link-result-tab{
-        padding:14px 16px 8px 16px;
+    .result-tab-identity{
+        width:100%;
     }
 
-    .tags-container{
-        padding:10px 16px 16px 16px;
+    .college-logo{
+        width:68px;
+        min-width:68px;
+        height:68px;
+        border-radius:20px;
     }
 
-    .tags{
-        font-size:0.82rem;
-        padding:7px 12px;
+    .result-tab-title-wrap a{
+        font-size:1rem;
+    }
+
+    .result-tab-body{
+        padding:16px 18px 14px 18px;
+    }
+
+    .result-tab-footer{
+        padding:0 18px 18px 18px;
+    }
+
+    .result-tab-badge{
+        padding:8px 12px;
     }
 }
 .search-form{
@@ -928,4 +1000,61 @@ label{
         margin-top:16px;
         padding-top:0;
     }
+}
+.file-link-result-tab{
+    padding:4px 0 2px 0;
+}
+
+.view-doc-link{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+
+    font-family:'Saira', sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.3px;
+
+    color:#ffd1bb;
+    text-decoration:none;
+
+    padding:8px 14px;
+    border-radius:999px;
+
+    border:1px solid rgba(255,110,45,0.16);
+    background-color:rgba(255,110,45,0.08);
+
+    transition:
+            background-color 0.32s ease,
+            border-color 0.32s ease,
+            color 0.32s ease,
+            transform 0.32s ease;
+}
+
+a.view-doc-link:hover{
+    color:white;
+    background-color:rgba(255,110,45,0.14);
+    border-color:rgba(255,110,45,0.26);
+    transform:translateY(-2px);
+    text-decoration:none;
+}
+
+a.view-doc-link:active{
+    background-color:rgba(255,110,45,0.10);
+    transform:translateY(0);
+}
+a.view-doc-link {
+    color: #ffd1bb;
+    transition:
+            background-color 0.32s ease,
+            border-color 0.32s ease,
+            color 0.32s ease,
+            transform 0.32s ease;
+}
+
+a.view-doc-link:hover {
+    color: white;
+    background-color: rgba(255,110,45,0.14);
+    border-color: rgba(255,110,45,0.26);
+    transform: translateY(-2px);
+    text-decoration: none;
 }

@@ -314,36 +314,64 @@ document.addEventListener("DOMContentLoaded", function () {
             card.className = "result-tab-container";
 
             card.innerHTML = `
-            <div class="result-tab">
-                <div class="top-result-tab">
-                <a href="/college/${encodeURIComponent(doc.college || "")}">
-                      ${escapeHTML(doc.college || "")}
-                </a>
-                    <div class="tags-container">
-                        <div class="tags">${escapeHTML(doc.branch || "")}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
-                        <div style="display: flex;justify-content: center; align-items: center;gap:20%;" class="tags">${escapeHTML(String(doc.likes ?? 0))}<svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5zM5.5 10A1.5 1.5 0 0 0 4 11.5v7a1.5 1.5 0 0 0 3 0v-7A1.5 1.5 0 0 0 5.5 10z" fill="#FF4500FF"></path></g></svg></div>
-                        <div style="display: flex;justify-content: center; align-items: center;gap:20%;"  class="tags"><svg width="20px" height="20px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#FF4500FF" stroke="#FF4500FF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dislike [#FF4500FF]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-139.000000, -760.000000)" fill="#FF4500FF"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M101.900089,600 L99.8000892,600 L99.8000892,611.987622 L101.900089,611.987622 C103.060339,611.987622 104.000088,611.093545 104.000088,609.989685 L104.000088,601.997937 C104.000088,600.894077 103.060339,600 101.900089,600 M87.6977917,600 L97.7000896,600 L97.7000896,611.987622 L95.89514,618.176232 C95.6819901,619.491874 94.2455904,620.374962 92.7902907,619.842512 C91.9198408,619.52484 91.400091,618.66273 91.400091,617.774647 L91.400091,612.986591 C91.400091,612.43516 90.9296911,611.987622 90.3500912,611.987622 L85.8728921,611.987622 C84.0259425,611.987622 82.6598928,610.35331 83.0746427,608.641078 L84.8995423,602.117813 C85.1998423,600.878093 86.360092,600 87.6977917,600" id="dislike-[#FF4500FF]"> </path> </g> </g> </g> </g></svg>${escapeHTML(String(doc.dislikes ?? 0))}</div>
-                    </div>
-                </div>
+<div class="result-tab">
 
-                <div class="file-link-result-tab">
-                    <a href="/view/${doc._id}" class="view-doc-link">
-                        Click here to view the doc on your browser
-                    </a>
-                </div>
-            </div>
-
+    <div class="result-tab-top">
+        <div class="result-tab-identity">
             <div class="college-logo">
-                <img
-                    src="${logoUrl}"
-                    alt="college logo"
-                    onerror="this.onerror=null; this.src='/images/default.png';"
-                >
+                <img src="${logoUrl}" alt="College Logo">
             </div>
-        `;
+
+            <div class="result-tab-title-wrap">
+                <p class="result-tab-label">Institution</p>
+                <a href="/college/${encodeURIComponent(doc.college || "")}">
+                    ${escapeHTML(doc.college || "")}
+                </a>
+            </div>
+        </div>
+
+        <div class="result-tab-badge">DOC</div>
+    </div>
+
+    <div class="result-tab-body">
+
+        <p class="result-tab-body-label">Open Document</p>
+
+        <div class="file-link-result-tab">
+            <a href="/view/${doc._id}" class="view-doc-link">
+                Click here to view the doc on your browser
+            </a>
+        </div>
+
+    </div>
+
+    <div class="result-tab-footer">
+        <div class="tags-container">
+
+            <div class="tags">${escapeHTML(doc.branch || "")}</div>
+            <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
+            <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
+            <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
+
+            <div style="display:flex;align-items:center;gap:8px;" class="tags">
+                ${escapeHTML(String(doc.likes ?? 0))}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
+                    <path d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5z"/>
+                </svg>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;" class="tags">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
+                    <path d="M8.1 19.5C8.1 21 9.582 22 10.74 22c.806 0 .869-.612.993-1.82.055-.53.121-1.174.267-1.93.386-2.002 1.72-4.56 2.996-5.325V7C15 4.75 14.25 4 11 4H7.227c-2.176 0-2.703 1.433-2.899 1.964l-.013.036c-.114.306-.358.547-.638.82-.31.306-.664.653-.927 1.18-.311.623-.27 1.177-.233 1.67.023.299.044.575-.017.83-.064.27-.146.475-.225.671-.143.356-.275.686-.275 1.329 0 1.5.748 2.498 2.315 2.498H8.5s-.4 3-.4 4.5z"/>
+                </svg>
+                ${escapeHTML(String(doc.dislikes ?? 0))}
+            </div>
+
+        </div>
+    </div>
+
+</div>
+`;
 
             resultsContainer.appendChild(card);
         });
