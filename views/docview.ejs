@@ -110,11 +110,24 @@
                         <% if (doc.comment_section && doc.comment_section.length > 0) { %>
                         <% doc.comment_section.forEach((item) => { %>
                         <div class="comment">
-                            <div class="comment-sender-email">
-                                <%= item.uploaded_by_email %>
+                            <div class="comment-avatar">
+                                <img
+                                        src="<%= item.user_id && item.user_id.avatar_img_path ? item.user_id.avatar_img_path : '/images/default-avatar.png' %>"
+                                        alt="avatar">
                             </div>
-                            <div class="comment-text">
-                                <%= item.comment %>
+
+                            <div class="comment-body">
+                                <div class="comment-name">
+                                    <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
+                                </div>
+
+
+                                <div class="comment-time">
+                                    <%= new Date(item.createdAt).toLocaleString() %>
+                                </div>
+                                <div class="comment-text">
+                                    <%= item.comment %>
+                                </div>
                             </div>
                         </div>
                         <% }) %>

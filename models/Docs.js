@@ -38,16 +38,22 @@ const Docs = new mongoose.Schema({
         trim:true,
         required:true,
     },
-    comment_section:[
+    comment_section: [
         {
-            comment:{
-                type:String,
-                required:true,
+            user_id: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "user_profile",
+                required: true
             },
-            uploaded_by_email:{
-                type:String,
+            comment: {
+                type: String,
+                required: true,
+                trim: true
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
             }
-
         }
     ],
     likes:{

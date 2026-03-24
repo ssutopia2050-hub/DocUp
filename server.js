@@ -1024,7 +1024,11 @@ function escapeRegex(str) {
 app.get("/view/:id", async (req, res) => {
     try {
 
-        const document = await Docs.findById(req.params.id).lean();
+        const document = await Docs.findById(req.params.id)
+            .populate({
+                path: "comment_section.user_id",
+                select: "name avatar_img_path"
+            });
 
         if (!document) {
             return res.status(404).render("404");
@@ -1266,18 +1270,22 @@ app.post("/add_comment/:id", async (req, res) => {
             });
         }
 
+        const currentUser = await user_profile.findOne({ email: userEmail }).select("_id");
+
+        if (!currentUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
         const updatedDoc = await Docs.findByIdAndUpdate(
             docId,
             {
                 $push: {
                     comment_section: {
-                        $each: [
-                            {
-                                comment: comment.trim(),
-                                uploaded_by_email: userEmail
-                            }
-                        ],
-                        $position: 0
+                        user_id: currentUser._id,
+                        comment: comment.trim()
                     }
                 }
             },
@@ -1291,13 +1299,14 @@ app.post("/add_comment/:id", async (req, res) => {
             });
         }
 
-        res.json({
-            success: true
+        return res.json({
+            success: true,
+            message: "Comment added successfully"
         });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).json({
+        console.error("Add comment error:", err);
+        return res.status(500).json({
             success: false,
             message: "Server error"
         });
