@@ -152,7 +152,16 @@ document.addEventListener("DOMContentLoaded", () => {
         "/images/Characters/Layla_Icon.png",
         "/images/Characters/Raiden_Shogun_Icon.png",
         "/images/Characters/Nilou_Icon.png",
-        "/images/Characters/Traveler_Icon.png"
+        "/images/Characters/Traveler_Icon.png",
+        "/images/Characters/marvel_11892423.png",
+        "/images/Characters/man_11892431.png",
+        "/images/Characters/iron_11892457.png",
+        "/images/Characters/avengers_11892429.png",
+        "/images/Characters/mcu_11892386.png",
+        "/images/Characters/star_3119077.png",
+        "/images/Characters/marvel_11892414.png",
+        "/images/Characters/marvel_11892408.png"
+
     ];
 
     function closeAvatarBox() {
