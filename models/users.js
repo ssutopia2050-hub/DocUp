@@ -95,6 +95,12 @@ const user_profile = new mongoose.Schema({
                 default: Date.now
             }
         }
+    ],
+    doc_view_history:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref: "Docs"
+        }
     ]
 });
 

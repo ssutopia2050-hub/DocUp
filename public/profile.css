@@ -896,4 +896,104 @@ a:active{
         justify-content: center;
         display: inline-flex;
     }
+    .view-history-item{
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .view-history-left{
+        width: 100%;
+    }
+
+    .view-history-btn{
+        width: 100%;
+        text-align: center;
+    }
+}
+.view-history-card{
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.view-history-list{
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 30vh;
+    overflow-y: scroll;
+}
+
+.view-history-item{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.07);
+}
+
+.view-history-left{
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+    flex: 1;
+}
+
+.view-history-icon{
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255, 94, 0, 0.14);
+    color: #ffb17a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+}
+
+.view-history-info{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.view-history-title{
+    color: white;
+    font-size: 1rem;
+    font-family: "Raleway", sans-serif;
+    word-break: break-word;
+}
+
+.view-history-meta{
+    color: rgba(255,255,255,0.58);
+    font-size: 0.84rem;
+    font-family: "Saira", sans-serif;
+    word-break: break-word;
+}
+
+.view-history-btn{
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-family: "Saira", sans-serif;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: white;
+    transition: 0.2s ease;
+}
+
+.view-history-btn:hover{
+    background: rgba(255,255,255,0.10);
 }

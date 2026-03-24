@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Docs from "./models/Docs.js"; // adjust path if needed
+import user from "./models/users.js";
 
 dotenv.config();
 
@@ -9,31 +9,19 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
 
-        const before = await Docs.find({
-            college: "University of Petroleum and Energy Studies"
-        });
-
-        console.log("Matched before update:", before.length);
-
-        const result = await Docs.updateMany(
-            { college: "University of Petroleum and Energy Studies" },
+        const result = await user.updateMany(
+            { doc_view_history: { $exists: false } },   // safer
             {
                 $set: {
-                    college: "University of Petroleum and Energy Studies,UPES"
+                    doc_view_history: []
                 }
             }
         );
 
-        console.log("matchedCount:", result.matchedCount);
-        console.log("modifiedCount:", result.modifiedCount);
-
-        const after = await Docs.find({
-            college: "University of Petroleum and Energy Studies,UPES"
-        });
-
-        console.log("Matched after update:", after.length);
+        console.log("Updated Users:", result.modifiedCount);
 
         await mongoose.disconnect();
+        console.log("Disconnected");
     } catch (err) {
         console.error(err);
     }

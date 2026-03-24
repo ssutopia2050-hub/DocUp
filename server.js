@@ -928,7 +928,10 @@ app.get("/profile", async (req, res) => {
             return res.redirect("/signin");
         }
 
-        const user = await user_profile.findOne({ email }).populate("saved_documents");
+        const user = await user_profile.findOne({ email })
+            .populate("saved_documents")
+            .populate("uploads.doc_id")
+            .populate("doc_view_history");
 
         if (!user) {
             return res.redirect("/signin");
@@ -1002,6 +1005,23 @@ app.get("/view/:id", async (req, res) => {
                 msg
             });
         }
+        await user_profile.findOneAndUpdate(
+            { email: req.session.email },
+            { $pull: { doc_view_history: req.params.id } }
+        );
+
+        await user_profile.findOneAndUpdate(
+            { email: req.session.email },
+            {
+                $push: {
+                    doc_view_history: {
+                        $each: [req.params.id],
+                        $position: 0,
+                        $slice: 10
+                    }
+                }
+            }
+        );
 
         await user_profile.findOneAndUpdate(
             { email: req.session.email },

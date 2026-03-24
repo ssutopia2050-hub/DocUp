@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -17,7 +16,9 @@
 
 <%
 const maxDocScore = 100;
-const safeDocScore = Math.max(0, Math.min(user.Doc_score || 0, maxDocScore));
+const rawDocScore = Number(user.Doc_score || 0);
+const safeDocScore = Math.max(0, Math.min(rawDocScore, maxDocScore));
+const safeDisplayDocScore = Math.max(0, rawDocScore);
 const progressDeg = (safeDocScore / maxDocScore) * 360;
 
 let ringColor1 = "#ff6a00";
@@ -38,8 +39,18 @@ ringColor2 = "#69f0ae";
 scoreStatus = "Healthy";
 }
 
-const savedCount = user.saved_documents ? user.saved_documents.length : 0;
-const uploadCount = user.uploads ? user.uploads.length : 0;
+const savedCount = Array.isArray(user.saved_documents) ? user.saved_documents.length : 0;
+const uploadCount = Array.isArray(user.uploads) ? user.uploads.length : 0;
+const viewHistoryCount = Array.isArray(user.doc_view_history) ? user.doc_view_history.length : 0;
+const paymentCount = Array.isArray(user.payment_history) ? user.payment_history.length : 0;
+
+function buildDocTitle(doc) {
+if (!doc) return "Document";
+if (doc.chapter && doc.subject) return doc.chapter + " , " + doc.subject;
+if (doc.chapter) return doc.chapter;
+if (doc.subject) return doc.subject;
+return "Document";
+}
 %>
 
 <div class="topbar">
@@ -64,7 +75,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                white-space:nowrap;
                cursor:crosshair;">
             <span style="color:orangered">DocScore :</span>
-            <span id="docscore-value" style="color:white"><%= user.Doc_score %></span>
+            <span id="docscore-value" style="color:white"><%= safeDisplayDocScore %></span>
             <img style="height:20px;" src="/fire.png" alt="">
         </p>
 
@@ -95,12 +106,12 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                 </div>
 
                 <div class="profile-main-info">
-                    <h1><%= user.name %></h1>
-                    <p class="email-text"><%= user.email %></p>
+                    <h1><%= user.name || "User" %></h1>
+                    <p class="email-text"><%= user.email || "No Email" %></p>
 
                     <div class="badge-row">
-                        <span class="profile-badge orange-badge"><%= user.subscription %></span>
-                        <span class="profile-badge neutral-badge"><%= user.user_type %></span>
+                        <span class="profile-badge orange-badge"><%= user.subscription || "Free Tier" %></span>
+                        <span class="profile-badge neutral-badge"><%= user.user_type || "DocUp Member" %></span>
                     </div>
                 </div>
             </div>
@@ -110,17 +121,17 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
             <div class="info-grid">
                 <div class="info-box">
                     <span class="info-label">Full Name</span>
-                    <span class="info-value"><%= user.name %></span>
+                    <span class="info-value"><%= user.name || "Not Available" %></span>
                 </div>
 
                 <div class="info-box">
                     <span class="info-label">Email Address</span>
-                    <span class="info-value"><%= user.email %></span>
+                    <span class="info-value"><%= user.email || "Not Available" %></span>
                 </div>
 
                 <div class="info-box">
                     <span class="info-label">Subscription</span>
-                    <span class="info-value"><%= user.subscription %></span>
+                    <span class="info-value"><%= user.subscription || "Free Tier" %></span>
                 </div>
 
                 <div class="info-box">
@@ -152,14 +163,14 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                 <span class="mini-tag"><%= uploadCount %> Uploads</span>
             </div>
 
-            <% if (user.uploads && user.uploads.length > 0) { %>
+            <% if (uploadCount > 0) { %>
             <div class="uploads-list">
                 <% user.uploads.slice().reverse().forEach(upload => { %>
                 <div class="upload-item">
                     <div class="upload-left">
                         <div class="upload-icon">↑</div>
                         <div class="upload-details">
-                            <p class="upload-subject"><%= upload.chapter || upload.subject %></p>
+                            <p class="upload-subject"><%= upload.chapter || upload.subject || "Uploaded Document" %></p>
                             <p class="upload-meta">
                                 <%= upload.college || "Unknown College" %>
                                 <% if (upload.uploadedAt) { %>
@@ -191,20 +202,22 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
                 <span class="mini-tag"><%= savedCount %> Saved</span>
             </div>
 
-            <% if (user.saved_documents && user.saved_documents.length > 0) { %>
+            <% if (savedCount > 0) { %>
             <div class="saved-docs-list">
                 <% user.saved_documents.forEach(doc => { %>
                 <div class="saved-doc-item">
                     <div class="saved-doc-left">
                         <div class="saved-doc-icon">★</div>
                         <div class="saved-doc-info">
-                            <p class="saved-doc-title"><%= doc.chapter+" , "+doc.subject || doc.subject || "Saved Document" %></p>
-                            <p class="saved-doc-meta"><%= doc.college || "Unknown College" %></p>
+                            <p class="saved-doc-title"><%= buildDocTitle(doc) %></p>
+                            <p class="saved-doc-meta"><%= (doc && doc.college) || "Unknown College" %></p>
                         </div>
                     </div>
 
-                    <% if (doc._id) { %>
+                    <% if (doc && doc._id) { %>
                     <a href="/view/<%= doc._id %>" class="view-doc-btn">View</a>
+                    <% } else { %>
+                    <span class="disabled-upload-btn">Unavailable</span>
                     <% } %>
                 </div>
                 <% }) %>
@@ -216,13 +229,48 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
             </div>
             <% } %>
         </div>
+
+        <div class="view-history-card glass-card">
+            <div class="section-header">
+                <h2>Recently Viewed</h2>
+                <span class="mini-tag"><%= viewHistoryCount %> Viewed</span>
+            </div>
+
+            <% if (viewHistoryCount > 0) { %>
+            <div class="view-history-list">
+                <% user.doc_view_history.slice(0, 5).forEach(doc => { %>
+                <div class="view-history-item">
+                    <div class="view-history-left">
+                        <div class="view-history-icon">↗</div>
+                        <div class="view-history-info">
+                            <p class="view-history-title"><%= buildDocTitle(doc) %></p>
+                            <p class="view-history-meta"><%= (doc && doc.college) || "Unknown College" %></p>
+                        </div>
+                    </div>
+
+                    <% if (doc && doc._id) { %>
+                    <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
+                    <% } else { %>
+                    <span class="disabled-upload-btn">Unavailable</span>
+                    <% } %>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No viewed documents yet.</p>
+                <a href="/dashboard" class="empty-btn">Start Exploring</a>
+            </div>
+            <% } %>
+        </div>
+
         <div class="payment-history-card glass-card">
             <div class="section-header">
                 <h2>Payment History</h2>
-                <span class="mini-tag"><%= user.payment_history ? user.payment_history.length : 0 %> Payments</span>
+                <span class="mini-tag"><%= paymentCount %> Payments</span>
             </div>
 
-            <% if (user.payment_history && user.payment_history.length > 0) { %>
+            <% if (paymentCount > 0) { %>
             <div class="payment-history-list">
                 <% user.payment_history.slice(0, 5).forEach(payment => { %>
                 <div class="payment-item">
@@ -323,10 +371,18 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
 
             <div class="stat-box">
                 <div>
+                    <p class="stat-title">Viewed Docs</p>
+                    <span class="stat-subtext">Recently opened documents</span>
+                </div>
+                <h3><%= viewHistoryCount %></h3>
+            </div>
+
+            <div class="stat-box">
+                <div>
                     <p class="stat-title">Subscription</p>
                     <span class="stat-subtext">Current account plan</span>
                 </div>
-                <h3 class="plan-text"><%= user.subscription %></h3>
+                <h3 class="plan-text"><%= user.subscription || "Free Tier" %></h3>
             </div>
         </div>
 
@@ -338,7 +394,7 @@ const uploadCount = user.uploads ? user.uploads.length : 0;
 
             <div class="membership-plan-box">
                 <span>Current Plan</span>
-                <strong><%= user.subscription %></strong>
+                <strong><%= user.subscription || "Free Tier" %></strong>
             </div>
 
             <a href="/pricing" class="upgrade-btn">Upgrade Plan</a>
