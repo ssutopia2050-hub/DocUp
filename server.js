@@ -76,7 +76,6 @@ passport.deserializeUser(async (email, done) => {
         done(err, null);
     }
 });
-
 passport.use(new GoogleStrategy(
     {
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -87,24 +86,24 @@ passport.use(new GoogleStrategy(
         try {
             const email = profile.emails?.[0]?.value?.trim().toLowerCase();
             const name = profile.displayName?.trim() || "DocUp User";
+            const avatar = profile.photos?.[0]?.value || "/images/default-avatar.png";
 
             if (!email) {
-                return done(new Error("Google account email not found"), null);
+                return done(new Error("Google email not found"), null);
             }
 
-            let existingUser = await user_profile.findOne({ email });
+            let user = await user_profile.findOne({ email });
 
-            if (existingUser) {
-                return done(null, existingUser);
+            if (!user) {
+                user = await user_profile.create({
+                    name,
+                    email,
+                    password: "",
+                    avatar_img_path: avatar
+                });
             }
 
-            // user does not exist yet
-            // store temp google signup data in session-like object via profile
-            return done(null, {
-                email,
-                name,
-                googleAuthTemp: true
-            });
+            return done(null, user);
         } catch (err) {
             return done(err, null);
         }
@@ -273,6 +272,12 @@ app.post('/signin', async (req, res) => {
     if (!exists) {
         return res.render('signin', {
             err: { message: "You dont have an account with DocUp" }
+        });
+    }
+
+    if (!exists.password) {
+        return res.render('signin', {
+            err: { message: "This account uses Google Sign-In. Please continue with Google." }
         });
     }
 
@@ -1700,3 +1705,32 @@ app.post("/google_create_password", async (req, res) => {
         return res.status(500).send("Internal Server Error");
     }
 });
+/******************************
+ Google Auth
+ ******************************/
+app.get(
+    "/auth/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })
+);
+
+app.get(
+    "/auth/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/signin"
+    }),
+    async (req, res) => {
+        try {
+            if (!req.user) {
+                return res.redirect("/signin");
+            }
+
+            req.session.email = req.user.email;
+            return res.redirect("/dashboard");
+        } catch (err) {
+            console.log("Google callback error:", err);
+            return res.redirect("/signin");
+        }
+    }
+);
