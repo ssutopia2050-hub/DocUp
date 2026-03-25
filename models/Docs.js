@@ -84,6 +84,10 @@ const Docs = new mongoose.Schema({
             }
         }
     ],
+    reviewed:{
+        type:Boolean,
+        default:false
+    }
 });
 
 export default mongoose.model("Docs", Docs);

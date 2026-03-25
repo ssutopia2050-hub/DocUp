@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import User from "./models/users.js";
-
+import doc from "./models/Docs.js";
 dotenv.config();
 
 async function run() {
@@ -9,9 +9,9 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
 
-        const result = await User.updateMany(
+        const result = await doc.updateMany(
             {},
-            { $set: { google_auth: true } }
+            { $set: { reviewed: true } }
         );
 
         console.log("Update result:", result);
