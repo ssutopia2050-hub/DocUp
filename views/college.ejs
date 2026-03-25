@@ -45,15 +45,20 @@
             Uploads
         </a>
 
-        <a style="padding-bottom: 2px;" href="/profile">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19.14 12.94a7.43 7.43 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.6-.22l-2.39.96a7.28 7.28 0 00-1.63-.95l-.36-2.54A.5.5 0 0014.9 2h-3.8a.5.5 0 00-.49.41l-.36 2.54a7.28 7.28 0 00-1.63.95l-2.39-.96a.5.5 0 00-.6.22L3.71 8.48a.5.5 0 00.12.64l2.03 1.58a7.43 7.43 0 000 1.88L3.83 14.16a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.6.22l2.39-.96c.5.38 1.05.7 1.63.95l.36 2.54a.5.5 0 00.49.41h3.8a.5.5 0 00.49-.41l.36-2.54c.58-.25 1.13-.57 1.63-.95l2.39.96a.5.5 0 00.6-.22l1.92-3.32a.5.5 0 00-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1112 8a3.5 3.5 0 010 7.5z"/>
-            </svg>
-            Profile
-        </a>
+        <div class="profile-btn">
+            <% if (user.avatar_img_path) { %>
+            <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+            <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+
+        </div>
     </div>
 </div>
-
+<div class="profile-btn-dropdown">
+    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+    <a href="/pricing">Recharge DocScore</a>
+</div>
 
 <div class="college-container">
 
@@ -210,6 +215,7 @@
     </div>
 </div>
 </body>
+<script src="/dashboard2.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById("college-search");

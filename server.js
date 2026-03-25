@@ -994,7 +994,7 @@ app.post("/set_avatar", async (req, res) => {
     Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
-        res.render("privacy_policy");//TODO:make privacy_policy page
+    res.render("privacy_policy");//TODO:make privacy_policy page
 });
 /******************************
  Logout
@@ -1340,8 +1340,8 @@ app.get("/pricing", async (req, res) => {
     if (!req.session.email) {
         return res.redirect("/signin");
     }
-
-    res.render("pricing");
+    const user_data = await user_profile.findOne({email:req.session.email});
+    res.render("pricing",{data:user_data});
 });
 app.post("/buy-recharge", async (req, res) => {
     try {
