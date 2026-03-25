@@ -924,7 +924,8 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             subject,
             chapter,
             file_url: fileUrl,
-            uploaded_by: user.email
+            uploaded_by: user.email,
+            reviewed:false
         });
 
         await user_profile.updateOne(
@@ -983,9 +984,9 @@ app.get("/profile", async (req, res) => {
         if (!email) return res.redirect("/signin");
 
         const user = await user_profile.findOne({ email })
-            .populate("saved_documents")
-            .populate("uploads.doc_id")
-            .populate("doc_view_history");
+            .populate("saved_documents", "college subject chapter reviewed")
+            .populate("doc_view_history", "college subject chapter reviewed")
+            .populate("uploads.doc_id", "college subject chapter reviewed")
 
         if (!user) return res.redirect("/signin");
 

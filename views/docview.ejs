@@ -48,6 +48,11 @@
                     <span class="doc-tag"><%= doc.subject %></span>
                     <span class="doc-tag"><%= doc.branch %></span>
                     <span class="doc-tag"><%= doc.year %></span>
+                    <% if (doc.reviewed) { %>
+                    <span class=" verif-status verified">Verified</span>
+                    <% } else { %>
+                    <span class=" verif-status not-verified">To be reviewed</span>
+                    <% } %>
                 </div>
             </div>
         </div>

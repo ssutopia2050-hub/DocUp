@@ -469,3 +469,23 @@ a:active{
         font-size:2.4rem;
     }
 }
+.verif-status {
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-family: 'Saira', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.verif-status.verified {
+    color: #b9ffcf;
+    background: rgba(34, 197, 94, 0.14);
+    border: 1px solid rgba(34, 197, 94, 0.28);
+}
+
+.verif-status.not-verified {
+    color: #ffd6bf;
+    background: rgba(255, 110, 45, 0.12);
+    border: 1px solid rgba(255, 110, 45, 0.22);
+}

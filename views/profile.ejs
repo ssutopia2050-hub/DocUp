@@ -190,11 +190,19 @@ return "Document";
                         </div>
                     </div>
 
-                    <% if (upload.doc_id && upload.doc_id._id) { %>
-                    <a href="/view/<%= upload.doc_id._id %>" class="open-upload-btn">Open</a>
-                    <% } else { %>
-                    <span class="disabled-upload-btn">Unavailable</span>
-                    <% } %>
+                    <div class="doc-action-group">
+                        <% if (upload && upload.doc_id && upload.doc_id.reviewed) { %>
+                        <span class="review-badge verified-badge">Verified</span>
+                        <% } else { %>
+                        <span class="review-badge pending-badge">To be Reviewed</span>
+                        <% } %>
+
+                        <% if (upload.doc_id && upload.doc_id._id) { %>
+                        <a href="/view/<%= upload.doc_id._id %>" class="open-upload-btn">Open</a>
+                        <% } else { %>
+                        <span class="disabled-upload-btn">Unavailable</span>
+                        <% } %>
+                    </div>
                 </div>
                 <% }) %>
             </div>
@@ -224,11 +232,19 @@ return "Document";
                         </div>
                     </div>
 
-                    <% if (doc && doc._id) { %>
-                    <a href="/view/<%= doc._id %>" class="view-doc-btn">View</a>
-                    <% } else { %>
-                    <span class="disabled-upload-btn">Unavailable</span>
-                    <% } %>
+                    <div class="doc-action-group">
+                        <% if (doc && doc.reviewed) { %>
+                        <span class="review-badge verified-badge">Verified</span>
+                        <% } else { %>
+                        <span class="review-badge pending-badge">To be Reviewed</span>
+                        <% } %>
+
+                        <% if (doc && doc._id) { %>
+                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
+                        <% } else { %>
+                        <span class="disabled-upload-btn">Unavailable</span>
+                        <% } %>
+                    </div>
                 </div>
                 <% }) %>
             </div>
@@ -257,12 +273,19 @@ return "Document";
                             <p class="view-history-meta"><%= (doc && doc.college) || "Unknown College" %></p>
                         </div>
                     </div>
+                    <div class="doc-action-group">
+                        <% if (doc && doc.reviewed) { %>
+                        <span class="review-badge verified-badge">Verified</span>
+                        <% } else { %>
+                        <span class="review-badge pending-badge">To be Reviewed</span>
+                        <% } %>
 
-                    <% if (doc && doc._id) { %>
-                    <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
-                    <% } else { %>
-                    <span class="disabled-upload-btn">Unavailable</span>
-                    <% } %>
+                        <% if (doc && doc._id) { %>
+                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
+                        <% } else { %>
+                        <span class="disabled-upload-btn">Unavailable</span>
+                        <% } %>
+                    </div>
                 </div>
                 <% }) %>
             </div>

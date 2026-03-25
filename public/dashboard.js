@@ -352,7 +352,10 @@ document.addEventListener("DOMContentLoaded", function () {
             <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
             <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
             <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
-
+           ${doc.reviewed
+                ? `<div class="verif-status verified">Verified</div>`
+                : `<div class="verif-status not-verified">To be Verified</div>`
+            }
             <div style="display:flex;align-items:center;gap:8px;" class="tags">
                 ${escapeHTML(String(doc.likes ?? 0))}
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
