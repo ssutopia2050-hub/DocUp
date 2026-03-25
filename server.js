@@ -17,6 +17,8 @@ import session from "express-session";
 import crypto from "crypto";
 import Razorpay from "razorpay";
 import paymentOrder from "./models/paymentOrder.js";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 dotenv.config();
 const upload = multer({dest:"uploads/"});
 /******************************
@@ -59,6 +61,55 @@ const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+    done(null, user.email);
+});
+
+passport.deserializeUser(async (email, done) => {
+    try {
+        const user = await user_profile.findOne({ email });
+        done(null, user || null);
+    } catch (err) {
+        done(err, null);
+    }
+});
+
+passport.use(new GoogleStrategy(
+    {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL
+    },
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            const email = profile.emails?.[0]?.value?.trim().toLowerCase();
+            const name = profile.displayName?.trim() || "DocUp User";
+
+            if (!email) {
+                return done(new Error("Google account email not found"), null);
+            }
+
+            let existingUser = await user_profile.findOne({ email });
+
+            if (existingUser) {
+                return done(null, existingUser);
+            }
+
+            // user does not exist yet
+            // store temp google signup data in session-like object via profile
+            return done(null, {
+                email,
+                name,
+                googleAuthTemp: true
+            });
+        } catch (err) {
+            return done(err, null);
+        }
+    }
+));
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -215,11 +266,9 @@ app.get('/signin',  (req, res) => {
 app.post('/signin', async (req, res) => {
     const { email, password } = req.body;
 
-    // console.log("typed email:", JSON.stringify(email));
-    // console.log("typed password:", JSON.stringify(password));
+    const normalizedEmail = (email || "").trim().toLowerCase();
 
-    const exists = await user_profile.findOne({ email });
-    // console.log("db user:", exists);
+    const exists = await user_profile.findOne({ email: normalizedEmail });
 
     if (!exists) {
         return res.render('signin', {
@@ -227,10 +276,8 @@ app.post('/signin', async (req, res) => {
         });
     }
 
-    // console.log("db password:", JSON.stringify(exists.pin));
-
     if (password === exists.password) {
-        req.session.email = email;
+        req.session.email = normalizedEmail;
         return res.redirect('/dashboard');
     } else {
         return res.render('signin', {
@@ -1538,3 +1585,118 @@ app.get("/contact",(req,res)=>{
 app.get("/version_report",(req,res)=>{
 res.render("version_report");
 })
+/******************************
+ Google Signup / Login
+ ******************************/
+app.get(
+    "/auth/google",
+    passport.authenticate("google", {
+        scope: ["profile", "email"]
+    })
+);
+
+app.get(
+    "/auth/google/callback",
+    passport.authenticate("google", {
+        failureRedirect: "/signup"
+    }),
+    async (req, res) => {
+        try {
+            const googleUser = req.user;
+
+            // Existing real DB user
+            if (googleUser && googleUser._id) {
+                req.session.email = googleUser.email;
+                return res.redirect("/dashboard");
+            }
+
+            // New Google user → ask to create password
+            if (googleUser && googleUser.googleAuthTemp) {
+                req.session.googleSignup = {
+                    email: googleUser.email,
+                    name: googleUser.name
+                };
+                return res.redirect("/google_create_password");
+            }
+
+            return res.redirect("/signup");
+        } catch (err) {
+            console.log("Google callback error:", err);
+            return res.redirect("/signup");
+        }
+    }
+);
+/******************************
+ Google Create Password
+ ******************************/
+app.get("/google_create_password", (req, res) => {
+    const data = req.session.googleSignup;
+
+    if (!data) {
+        return res.redirect("/signup");
+    }
+
+    res.render("google_create_password", {
+        email: data.email,
+        name: data.name,
+        err: null
+    });
+});
+
+app.post("/google_create_password", async (req, res) => {
+    try {
+        const data = req.session.googleSignup;
+
+        if (!data) {
+            return res.redirect("/signup");
+        }
+
+        const { password, confirm_password } = req.body;
+
+        if (!password || !confirm_password) {
+            return res.render("google_create_password", {
+                email: data.email,
+                name: data.name,
+                err: { message: "Please fill both password fields." }
+            });
+        }
+
+        if (password.length < 6 || password.length > 10) {
+            return res.render("google_create_password", {
+                email: data.email,
+                name: data.name,
+                err: { message: "Password must be between 6 and 10 characters." }
+            });
+        }
+
+        if (password !== confirm_password) {
+            return res.render("google_create_password", {
+                email: data.email,
+                name: data.name,
+                err: { message: "Passwords do not match." }
+            });
+        }
+
+        const alreadyExists = await user_profile.findOne({ email: data.email });
+
+        if (alreadyExists) {
+            req.session.email = alreadyExists.email;
+            delete req.session.googleSignup;
+            return res.redirect("/dashboard");
+        }
+
+        await user_profile.create({
+            name: data.name,
+            email: data.email,
+            password
+        });
+
+        req.session.email = data.email;
+        delete req.session.googleSignup;
+
+        return res.redirect("/dashboard");
+    } catch (err) {
+        console.log("Google create password error:", err);
+        return res.status(500).send("Internal Server Error");
+    }
+});

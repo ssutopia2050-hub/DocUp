@@ -5,19 +5,22 @@ const user_profile = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
-        unique: true
+        unique: true,
+        default:""
     },
 
     password: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        default:""
     },
 
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        default:""
     },
 
     saved_documents: [
