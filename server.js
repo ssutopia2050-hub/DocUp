@@ -92,19 +92,20 @@ passport.use(new GoogleStrategy(
                 return done(new Error("Google email not found"), null);
             }
 
-            let user = await user_profile.findOne({ email });
+            const existingUser = await user_profile.findOne({ email });
 
-            if (!user) {
-                user = await user_profile.create({
-                    name,
-                    email,
-                    password: "",
-                    avatar_img_path: avatar
-                });
+            if (existingUser) {
+                return done(null, existingUser);
             }
 
-            return done(null, user);
+            return done(null, {
+                email,
+                name,
+                avatar,
+                googleAuthTemp: true
+            });
         } catch (err) {
+            console.log("Google Strategy Error:", err);
             return done(err, null);
         }
     }
@@ -267,28 +268,22 @@ app.post('/signin', async (req, res) => {
 
     const normalizedEmail = (email || "").trim().toLowerCase();
 
-    const exists = await user_profile.findOne({ email: normalizedEmail });
+    const user = await user_profile.findOne({ email: normalizedEmail });
 
-    if (!exists) {
+    if (!user) {
         return res.render('signin', {
             err: { message: "You dont have an account with DocUp" }
         });
     }
 
-    if (!exists.password) {
-        return res.render('signin', {
-            err: { message: "This account uses Google Sign-In. Please continue with Google." }
-        });
-    }
-
-    if (password === exists.password) {
+    if (password === user.password) {
         req.session.email = normalizedEmail;
         return res.redirect('/dashboard');
-    } else {
-        return res.render('signin', {
-            err: { message: "Invalid Credentials !!" }
-        });
     }
+
+    return res.render('signin', {
+        err: { message: "Invalid Credentials !!" }
+    });
 });
 /******************************
     Email Verification
@@ -338,7 +333,8 @@ app.post("/email_verify", async (req, res) => {
     await user_profile.create({
         name: data.name,
         email: data.email,
-        password: data.password
+        password: data.password,
+        google_auth: false
     });
 
     delete req.session.pendingUser;
@@ -406,7 +402,11 @@ app.post("/forgot_password", async (req, res) => {
         password: exists.password,
         resendAllowedAt: Date.now() + 5 * 60 * 1000
     };
-
+    if (exists.google_auth) {
+        return res.render("forgot_password", {
+            err: { message: "This account uses Google Sign-In. Please continue with Google." }
+        });
+    }
     try {
         await emailjs.send(
             process.env.EMAILJS_SERVICE_ID,
@@ -454,7 +454,11 @@ app.post("/resend_forgot_password", async (req, res) => {
     }
 
     data.resendAllowedAt = Date.now() + 5 * 60 * 1000;
-
+    if (exists.google_auth) {
+        return res.render("forgot_password", {
+            err: { message: "This account uses Google Sign-In. Please continue with Google." }
+        });
+    }
     await emailjs.send(
         process.env.EMAILJS_SERVICE_ID,
         process.env.EMAILJS_TEMPLATE_ID,
@@ -1590,9 +1594,6 @@ app.get("/contact",(req,res)=>{
 app.get("/version_report",(req,res)=>{
 res.render("version_report");
 })
-/******************************
- Google Signup / Login
- ******************************/
 app.get(
     "/auth/google",
     passport.authenticate("google", {
@@ -1603,37 +1604,39 @@ app.get(
 app.get(
     "/auth/google/callback",
     passport.authenticate("google", {
-        failureRedirect: "/signup"
+        failureRedirect: "/signin"
     }),
     async (req, res) => {
         try {
             const googleUser = req.user;
 
-            // Existing real DB user
-            if (googleUser && googleUser._id) {
+            if (!googleUser) {
+                return res.redirect("/signin");
+            }
+
+            // Existing user → login directly
+            if (googleUser._id) {
                 req.session.email = googleUser.email;
                 return res.redirect("/dashboard");
             }
 
-            // New Google user → ask to create password
-            if (googleUser && googleUser.googleAuthTemp) {
+            // New Google user → ask for password
+            if (googleUser.googleAuthTemp) {
                 req.session.googleSignup = {
                     email: googleUser.email,
-                    name: googleUser.name
+                    name: googleUser.name,
+                    avatar: googleUser.avatar
                 };
                 return res.redirect("/google_create_password");
             }
 
-            return res.redirect("/signup");
+            return res.redirect("/signin");
         } catch (err) {
             console.log("Google callback error:", err);
-            return res.redirect("/signup");
+            return res.redirect("/signin");
         }
     }
 );
-/******************************
- Google Create Password
- ******************************/
 app.get("/google_create_password", (req, res) => {
     const data = req.session.googleSignup;
 
@@ -1693,7 +1696,9 @@ app.post("/google_create_password", async (req, res) => {
         await user_profile.create({
             name: data.name,
             email: data.email,
-            password
+            password,
+            google_auth: true,
+            avatar_img_path: data.avatar
         });
 
         req.session.email = data.email;
@@ -1705,32 +1710,3 @@ app.post("/google_create_password", async (req, res) => {
         return res.status(500).send("Internal Server Error");
     }
 });
-/******************************
- Google Auth
- ******************************/
-app.get(
-    "/auth/google",
-    passport.authenticate("google", {
-        scope: ["profile", "email"]
-    })
-);
-
-app.get(
-    "/auth/google/callback",
-    passport.authenticate("google", {
-        failureRedirect: "/signin"
-    }),
-    async (req, res) => {
-        try {
-            if (!req.user) {
-                return res.redirect("/signin");
-            }
-
-            req.session.email = req.user.email;
-            return res.redirect("/dashboard");
-        } catch (err) {
-            console.log("Google callback error:", err);
-            return res.redirect("/signin");
-        }
-    }
-);

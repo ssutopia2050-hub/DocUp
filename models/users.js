@@ -6,21 +6,26 @@ const user_profile = new mongoose.Schema({
         required: true,
         trim: true,
         unique: true,
-        default:""
+        default: ""
     },
 
     password: {
         type: String,
         required: true,
         trim: true,
-        default:""
+        default: ""
     },
 
     name: {
         type: String,
         required: true,
         trim: true,
-        default:""
+        default: ""
+    },
+
+    google_auth: {
+        type: Boolean,
+        default: false
     },
 
     saved_documents: [
@@ -63,7 +68,7 @@ const user_profile = new mongoose.Schema({
         type: String,
         required: true,
         default: "DocUp Member",
-        enum: ["DocUp Member", "DocUp Admin", "DocUp Developer","Verified Uploader"]
+        enum: ["DocUp Member", "DocUp Admin", "DocUp Developer", "Verified Uploader"]
     },
 
     payment_history: [
@@ -99,16 +104,18 @@ const user_profile = new mongoose.Schema({
             }
         }
     ],
-    doc_view_history:[
+
+    doc_view_history: [
         {
-            type:mongoose.Schema.Types.ObjectId,
+            type: mongoose.Schema.Types.ObjectId,
             ref: "Docs"
         }
     ],
-    avatar_img_path:{
+
+    avatar_img_path: {
         type: String,
         default: null
-    }
+    },
 });
 
 export default mongoose.model("user_profile", user_profile);
