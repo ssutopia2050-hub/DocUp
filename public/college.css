@@ -42,7 +42,6 @@ body{
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    /*padding-right: 3%;*/
     gap: 40px;
     font-family: 'Archivo Black', sans-serif;
 }
@@ -66,14 +65,8 @@ a{
     color: white;
 }
 
-a:visited{
-    color: white;
-}
-
-a:hover{
-    color: white;
-}
-
+a:visited,
+a:hover,
 a:active{
     color: white;
 }
@@ -139,149 +132,6 @@ a:active{
     font-weight:700;
 }
 
-.year-block{
-    margin-top:40px;
-}
-
-.year-title{
-    font-family:'Archivo Black';
-    font-size:1.8rem;
-    margin-bottom:20px;
-}
-
-.semester-title{
-    font-size:1.3rem;
-    margin-bottom:16px;
-    color:#ff6a00;
-}
-
-.docs-grid{
-    display:flex;
-    flex-wrap:wrap;
-    gap:18px;
-    margin-bottom:30px;
-    align-items:stretch;
-    flex-direction: row;
-}
-
-.doc-card{
-    background:rgba(255,255,255,0.05);
-    padding:18px;
-    border-radius:20px;
-    text-decoration:none;
-    color:white;
-    border:1px solid rgba(255,255,255,0.08);
-    transition:.25s;
-    min-width:400px;
-    min-height:190px;
-    word-break:break-word;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    flex:0 0 260px;
-}
-
-.doc-card:hover{
-    transform:translateY(-5px);
-    border-color:#ff6a00;
-}
-
-.doc-top{
-    display:flex;
-    gap:14px;
-}
-
-.doc-icon{
-    background:#ff6a00;
-    width:50px;
-    height:50px;
-    border-radius:14px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-weight:700;
-}
-
-.doc-subject{
-    font-weight:700;
-    margin-bottom:4px;
-}
-
-.doc-chapter{
-    font-size:.9rem;
-    color:rgba(255,255,255,0.6);
-}
-
-.doc-branch{
-    font-size:.85rem;
-    color:rgba(255,255,255,0.5);
-}
-
-.doc-bottom{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:18px;
-    font-size:.9rem;
-    gap:12px;
-}
-
-.doc-tags{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    height:36px;
-    min-width:64px;
-    padding:0 14px;
-    border-radius:999px;
-    background:rgba(255,106,0,0.15);
-    color:#ffb07a;
-    white-space:nowrap;
-    flex-shrink:0;
-}
-
-.doc-stats{
-    color:rgba(255,255,255,0.7);
-}
-.footer{
-    margin-top: auto;
-    width: 100%;
-    min-height: 90px;
-    border-top: 1px solid rgba(255,255,255,0.08);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 5%;
-}
-
-.footer-left{
-    font-size: 2rem;
-    color: white;
-    font-family: 'Archivo Black', sans-serif;
-}
-.footer-left a{
-    font-family: 'Archivo Black', sans-serif;
-}
-
-.footer-right{
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-}
-
-.footer-right a{
-    color: rgba(255,255,255,0.62);
-    font-family: "Saira", sans-serif;
-    text-decoration: none;
-}
-
-.footer-right a:hover{
-    color: white;
-}
-
-.footer-right a:hover{
-    color: white;
-}
 .college-controls{
     width:100%;
     display:flex;
@@ -334,6 +184,7 @@ a:active{
 
 .no-docs-found{
     margin-top:20px;
+    margin-bottom:24px;
     padding:18px 20px;
     border-radius:16px;
     background:rgba(255,255,255,0.04);
@@ -341,25 +192,203 @@ a:active{
     color:rgba(255,255,255,0.7);
     display:none;
 }
+
+.year-block{
+    margin-top:44px;
+}
+
+.year-title{
+    font-family:'Archivo Black';
+    font-size:1.8rem;
+    margin-bottom:22px;
+}
+
+.semester-block{
+    margin-bottom:34px;
+}
+
+.semester-title{
+    font-size:1.3rem;
+    margin-bottom:18px;
+    color:#ff6a00;
+}
+
+.branch-block{
+    margin-bottom:28px;
+    padding:20px;
+    border-radius:24px;
+    background:rgba(255,255,255,0.025);
+    border:1px solid rgba(255,255,255,0.06);
+}
+
+.branch-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Archivo Black', sans-serif;
+    font-size:1.08rem;
+    color:#ffd2b3;
+    margin-bottom:18px;
+    letter-spacing:0.3px;
+}
+
+.branch-title-dot{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    background:#ff6a00;
+    box-shadow:0 0 14px rgba(255,106,0,0.45);
+    flex-shrink:0;
+}
+
+.docs-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    margin-bottom:0;
+    align-items:stretch;
+    flex-direction:row;
+}
+
+.doc-card{
+    background:rgba(255,255,255,0.05);
+    padding:18px;
+    border-radius:20px;
+    text-decoration:none;
+    color:white;
+    border:1px solid rgba(255,255,255,0.08);
+    transition:.25s;
+    min-width:400px;
+    min-height:190px;
+    word-break:break-word;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    flex:0 0 260px;
+}
+
+.doc-card:hover{
+    transform:translateY(-5px);
+    border-color:#ff6a00;
+}
+
+.doc-top{
+    display:flex;
+    gap:14px;
+}
+
+.doc-icon{
+    background:#ff6a00;
+    width:50px;
+    height:50px;
+    border-radius:14px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:700;
+    flex-shrink:0;
+}
+
+.doc-meta{
+    min-width:0;
+}
+
+.doc-subject{
+    font-weight:700;
+    margin-bottom:4px;
+}
+
+.doc-chapter{
+    font-size:.9rem;
+    color:rgba(255,255,255,0.6);
+}
+
+.doc-branch{
+    font-size:.85rem;
+    color:rgba(255,255,255,0.5);
+}
+
+.doc-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:18px;
+    font-size:.9rem;
+    gap:12px;
+}
+
+.doc-tags{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    height:36px;
+    min-width:64px;
+    padding:0 14px;
+    border-radius:999px;
+    background:rgba(255,106,0,0.15);
+    color:#ffb07a;
+    white-space:nowrap;
+    flex-shrink:0;
+}
+
+.doc-stats{
+    color:rgba(255,255,255,0.7);
+}
+
+.footer{
+    margin-top:auto;
+    width:100%;
+    min-height:90px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 5%;
+}
+
+.footer-left{
+    font-size:2rem;
+    color:white;
+    font-family:'Archivo Black', sans-serif;
+}
+
+.footer-left a{
+    font-family:'Archivo Black', sans-serif;
+}
+
+.footer-right{
+    display:flex;
+    gap:24px;
+    flex-wrap:wrap;
+}
+
+.footer-right a{
+    color:rgba(255,255,255,0.62);
+    font-family:"Saira", sans-serif;
+    text-decoration:none;
+}
+
+.footer-right a:hover{
+    color:white;
+}
+
 .profile-btn{
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    overflow: hidden;
-    flex-shrink: 0;
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    overflow:hidden;
+    flex-shrink:0;
     color:white;
     font-size:1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-
-    border: 1.5px solid rgba(255, 255, 255, 0.16);
-    background: linear-gradient(135deg, #ff5e00, #ff9b45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    border:1.5px solid rgba(255, 255, 255, 0.16);
+    background:linear-gradient(135deg, #ff5e00, #ff9b45);
     box-shadow:
             0 8px 20px rgba(0, 0, 0, 0.28),
             0 0 0 3px rgba(255, 94, 0, 0.08);
-
     transition:
             transform 0.22s ease,
             box-shadow 0.22s ease,
@@ -367,24 +396,25 @@ a:active{
 }
 
 .profile-btn:hover{
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.28);
+    transform:translateY(-2px);
+    border-color:rgba(255, 255, 255, 0.28);
     box-shadow:
             0 14px 28px rgba(0, 0, 0, 0.34),
             0 0 0 4px rgba(255, 94, 0, 0.12);
 }
 
 .profile-btn img{
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: cover;
-    object-position: center;
-    border-radius: 50%;
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    object-position:center;
+    border-radius:50%;
 }
+
 .profile-btn-dropdown{
     position:fixed;
-    z-index: 9999;
+    z-index:9999;
     height:fit-content;
     width:250px;
     border:1px solid rgba(255, 69, 0, 0.34);
@@ -392,8 +422,8 @@ a:active{
     top:10vh;
     padding:20px;
     background-color:rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
     display:none;
     align-items:center;
     justify-content:center;
@@ -403,12 +433,39 @@ a:active{
     border-bottom-left-radius:20px;
     border-bottom-right-radius:20px;
 }
+
 .profile-btn-dropdown a{
     font-family:'Saira', sans-serif;
     font-size:1.3rem;
-    color: rgb(255, 94, 0);
+    color:rgb(255, 94, 0);
     transition:0.3s ease-in-out;
 }
+
 .profile-btn-dropdown a:hover{
-    color: rgb(255, 143, 79);
+    color:rgb(255, 143, 79);
+}
+
+@media (max-width: 900px){
+    .college-hero{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .doc-card{
+        min-width:100%;
+        flex:1 1 100%;
+    }
+
+    .topbar{
+        padding-left:4%;
+        padding-right:4%;
+    }
+
+    .pg-links{
+        gap:18px;
+    }
+
+    .logo-text-container{
+        font-size:2.4rem;
+    }
 }
