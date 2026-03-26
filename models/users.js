@@ -34,7 +34,16 @@ const user_profile = new mongoose.Schema({
             ref: "Docs"
         }
     ],
-
+    saved_profiles: [
+        {
+            _id: false,
+            email: {
+                type: String,
+                trim: true,
+                lowercase: true
+            }
+        }
+    ],
     Doc_score: {
         type: Number,
         required: true,

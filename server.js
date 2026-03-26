@@ -986,18 +986,37 @@ app.get("/profile", async (req, res) => {
         const user = await user_profile.findOne({ email })
             .populate("saved_documents", "college subject chapter reviewed")
             .populate("doc_view_history", "college subject chapter reviewed")
-            .populate("uploads.doc_id", "college subject chapter reviewed")
+            .populate("uploads.doc_id", "college subject chapter reviewed");
 
         if (!user) return res.redirect("/signin");
 
-        // sort payment history latest first
         if (user.payment_history?.length) {
             user.payment_history.sort(
                 (a, b) => new Date(b.date) - new Date(a.date)
             );
         }
 
-        res.render("profile", { user });
+        const savedProfileEmails = Array.isArray(user.saved_profiles)
+            ? user.saved_profiles
+                .map(item => item?.email?.trim().toLowerCase())
+                .filter(Boolean)
+            : [];
+
+        const savedProfilesData = savedProfileEmails.length
+            ? await user_profile.find(
+                { email: { $in: savedProfileEmails } },
+                "name email avatar_img_path subscription user_type uploads"
+            ).lean()
+            : [];
+
+        const savedProfilesOrdered = savedProfileEmails
+            .map(email => savedProfilesData.find(profile => profile.email === email))
+            .filter(Boolean);
+
+        res.render("profile", {
+            user,
+            savedProfilesData: savedProfilesOrdered
+        });
 
     } catch (error) {
         console.log("Profile Page Error:", error);
@@ -1717,17 +1736,50 @@ app.post("/google_create_password", async (req, res) => {
  ****************************/
 app.get("/show_other_user_profile/:email", async (req, res) => {
     try {
+        const targetEmail = String(req.params.email).trim().toLowerCase();
+
         const user_data = await user_profile.findOne({
-            email: req.params.email
+            email: targetEmail
         }).populate("uploads.doc_id", "college subject chapter reviewed");
 
         if (!user_data) {
             return res.status(404).send("User not found");
         }
 
-        res.render("profile_view_second_person", { data: user_data });
+        const personal_data = await user_profile.findOne({
+            email: req.session.email
+        });
+
+        let s_status = false;
+
+        if (personal_data && Array.isArray(personal_data.saved_profiles)) {
+            s_status = personal_data.saved_profiles.some(
+                item => item.email === targetEmail
+            );
+        }
+
+        return res.render("profile_view_second_person", {
+            data: user_data,
+            p_data: personal_data,
+            saved_status: s_status
+        });
+
     } catch (err) {
         console.log("Public profile error:", err);
-        res.status(500).send("Internal Server Error");
+        return res.status(500).send("Internal Server Error");
     }
+});
+app.get("/save_profile/:email", async (req, res) => {
+    await user_profile.findOneAndUpdate(
+        { email: req.session.email },
+        {
+            $addToSet: {
+                saved_profiles: {
+                    email: String(req.params.email).trim().toLowerCase()
+                }
+            }
+        }
+    );
+
+    res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });

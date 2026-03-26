@@ -43,6 +43,12 @@ const savedCount = Array.isArray(user.saved_documents) ? user.saved_documents.le
 const uploadCount = Array.isArray(user.uploads) ? user.uploads.length : 0;
 const viewHistoryCount = Array.isArray(user.doc_view_history) ? user.doc_view_history.length : 0;
 const paymentCount = Array.isArray(user.payment_history) ? user.payment_history.length : 0;
+const savedProfileCount = Array.isArray(savedProfilesData) ? savedProfilesData.length : 0;
+
+function profileInitials(name) {
+if (!name) return "U";
+return name.trim().charAt(0).toUpperCase();
+}
 
 function buildDocTitle(doc) {
 if (!doc) return "Document";
@@ -51,6 +57,7 @@ if (doc.chapter) return doc.chapter;
 if (doc.subject) return doc.subject;
 return "Document";
 }
+
 %>
 
 <div class="topbar">
@@ -166,7 +173,87 @@ return "Document";
                 <a style="border-color:rgba(255,0,0,0.32)" href="/logout" class="action-btn secondary-btn">Logout</a>
             </div>
         </div>
+        <div class="view-history-card glass-card">
+            <div class="section-header">
+                <h2>Recently Viewed</h2>
+                <span class="mini-tag"><%= viewHistoryCount %> Viewed</span>
+            </div>
 
+            <% if (viewHistoryCount > 0) { %>
+            <div class="view-history-list">
+                <% user.doc_view_history.slice(0, 5).forEach(doc => { %>
+                <div class="view-history-item">
+                    <div class="view-history-left">
+                        <div class="view-history-icon">↗</div>
+                        <div class="view-history-info">
+                            <p class="view-history-title"><%= buildDocTitle(doc) %></p>
+                            <p class="view-history-meta"><%= (doc && doc.college) || "Unknown College" %></p>
+                        </div>
+                    </div>
+                    <div class="doc-action-group">
+                        <% if (doc && doc.reviewed) { %>
+                        <span class="review-badge verified-badge">Verified</span>
+                        <% } else { %>
+                        <span class="review-badge pending-badge">To be Reviewed</span>
+                        <% } %>
+
+                        <% if (doc && doc._id) { %>
+                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
+                        <% } else { %>
+                        <span class="disabled-upload-btn">Unavailable</span>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No viewed documents yet.</p>
+                <a href="/dashboard" class="empty-btn">Start Exploring</a>
+            </div>
+            <% } %>
+        </div>
+        <div class="saved-docs-card glass-card">
+            <div class="section-header">
+                <h2>Saved Documents</h2>
+                <span class="mini-tag"><%= savedCount %> Saved</span>
+            </div>
+
+            <% if (savedCount > 0) { %>
+            <div class="saved-docs-list">
+                <% user.saved_documents.forEach(doc => { %>
+                <div class="saved-doc-item">
+                    <div class="saved-doc-left">
+                        <div class="saved-doc-icon">★</div>
+                        <div class="saved-doc-info">
+                            <p class="saved-doc-title"><%= buildDocTitle(doc) %></p>
+                            <p class="saved-doc-meta"><%= (doc && doc.college) || "Unknown College" %></p>
+                        </div>
+                    </div>
+
+                    <div class="doc-action-group">
+                        <% if (doc && doc.reviewed) { %>
+                        <span class="review-badge verified-badge">Verified</span>
+                        <% } else { %>
+                        <span class="review-badge pending-badge">To be Reviewed</span>
+                        <% } %>
+
+                        <% if (doc && doc._id) { %>
+                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
+                        <% } else { %>
+                        <span class="disabled-upload-btn">Unavailable</span>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <p>No saved documents yet.</p>
+                <a href="/dashboard" class="empty-btn">Find Documents</a>
+            </div>
+            <% } %>
+        </div>
         <div class="recent-uploads-card glass-card">
             <div class="section-header">
                 <h2>Recent Uploads</h2>
@@ -214,88 +301,9 @@ return "Document";
             <% } %>
         </div>
 
-        <div class="saved-docs-card glass-card">
-            <div class="section-header">
-                <h2>Saved Documents</h2>
-                <span class="mini-tag"><%= savedCount %> Saved</span>
-            </div>
 
-            <% if (savedCount > 0) { %>
-            <div class="saved-docs-list">
-                <% user.saved_documents.forEach(doc => { %>
-                <div class="saved-doc-item">
-                    <div class="saved-doc-left">
-                        <div class="saved-doc-icon">★</div>
-                        <div class="saved-doc-info">
-                            <p class="saved-doc-title"><%= buildDocTitle(doc) %></p>
-                            <p class="saved-doc-meta"><%= (doc && doc.college) || "Unknown College" %></p>
-                        </div>
-                    </div>
 
-                    <div class="doc-action-group">
-                        <% if (doc && doc.reviewed) { %>
-                        <span class="review-badge verified-badge">Verified</span>
-                        <% } else { %>
-                        <span class="review-badge pending-badge">To be Reviewed</span>
-                        <% } %>
 
-                        <% if (doc && doc._id) { %>
-                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
-                        <% } else { %>
-                        <span class="disabled-upload-btn">Unavailable</span>
-                        <% } %>
-                    </div>
-                </div>
-                <% }) %>
-            </div>
-            <% } else { %>
-            <div class="empty-state">
-                <p>No saved documents yet.</p>
-                <a href="/dashboard" class="empty-btn">Find Documents</a>
-            </div>
-            <% } %>
-        </div>
-
-        <div class="view-history-card glass-card">
-            <div class="section-header">
-                <h2>Recently Viewed</h2>
-                <span class="mini-tag"><%= viewHistoryCount %> Viewed</span>
-            </div>
-
-            <% if (viewHistoryCount > 0) { %>
-            <div class="view-history-list">
-                <% user.doc_view_history.slice(0, 5).forEach(doc => { %>
-                <div class="view-history-item">
-                    <div class="view-history-left">
-                        <div class="view-history-icon">↗</div>
-                        <div class="view-history-info">
-                            <p class="view-history-title"><%= buildDocTitle(doc) %></p>
-                            <p class="view-history-meta"><%= (doc && doc.college) || "Unknown College" %></p>
-                        </div>
-                    </div>
-                    <div class="doc-action-group">
-                        <% if (doc && doc.reviewed) { %>
-                        <span class="review-badge verified-badge">Verified</span>
-                        <% } else { %>
-                        <span class="review-badge pending-badge">To be Reviewed</span>
-                        <% } %>
-
-                        <% if (doc && doc._id) { %>
-                        <a href="/view/<%= doc._id %>" class="view-history-btn">View</a>
-                        <% } else { %>
-                        <span class="disabled-upload-btn">Unavailable</span>
-                        <% } %>
-                    </div>
-                </div>
-                <% }) %>
-            </div>
-            <% } else { %>
-            <div class="empty-state">
-                <p>No viewed documents yet.</p>
-                <a href="/dashboard" class="empty-btn">Start Exploring</a>
-            </div>
-            <% } %>
-        </div>
 
         <div class="payment-history-card glass-card">
             <div class="section-header">
@@ -382,7 +390,62 @@ return "Document";
                 <a href="/pricing" class="recharge-btn">Recharge DocScore</a>
             </div>
         </div>
+        <div class="saved-profiles-card glass-card">
+            <div class="section-header">
+                <h2>Saved Profiles</h2>
+                <span class="mini-tag"><%= savedProfileCount %> Saved</span>
+            </div>
 
+            <% if (savedProfileCount > 0) { %>
+            <div class="saved-profiles-list">
+                <% savedProfilesData.forEach(profile => { %>
+                <div class="saved-profile-item">
+                    <div class="saved-profile-top">
+                        <div class="saved-profile-left">
+                            <div class="saved-profile-avatar <%= profile.avatar_img_path ? 'has-image' : '' %>">
+                                <% if (profile.avatar_img_path) { %>
+                                <img src="<%= profile.avatar_img_path %>" alt="avatar">
+                                <% } else { %>
+                                <%= profileInitials(profile.name) %>
+                                <% } %>
+                            </div>
+
+                            <div class="saved-profile-info">
+                                <p class="saved-profile-name"><%= profile.name || "DocUp User" %></p>
+                                <p class="saved-profile-email"><%= profile.email || "No Email" %></p>
+
+                                <div class="saved-profile-badges">
+                            <span class="saved-profile-badge orange-badge">
+                                <%= profile.subscription || "Free Tier" %>
+                            </span>
+                                    <span class="saved-profile-badge neutral-badge">
+                                <%= profile.user_type || "DocUp Member" %>
+                            </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="saved-profile-stats-row">
+                        <div class="saved-profile-mini-stat">
+                            <span>Uploads</span>
+                            <strong><%= Array.isArray(profile.uploads) ? profile.uploads.length : 0 %></strong>
+                        </div>
+
+                        <a href="/show_other_user_profile/<%= encodeURIComponent(profile.email) %>" class="visit-profile-btn">
+                            Visit Profile
+                        </a>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state saved-profiles-empty">
+                <p>No saved profiles yet.</p>
+                <a href="/dashboard" class="empty-btn">Explore Contributors</a>
+            </div>
+            <% } %>
+        </div>
         <div class="stats-card glass-card">
             <h2>Quick Stats</h2>
 

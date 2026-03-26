@@ -54,13 +54,22 @@ return name.trim().charAt(0).toUpperCase();
             Uploads
         </a>
 
-        <a class="active-public-link" href="/profile">
-            Community Profile
-        </a>
+        <p style="border:1px solid orangered;
+               padding:15px 25px;
+               border-radius:30px;
+               display:flex;
+               gap:10px;
+               align-items:center;
+               white-space:nowrap;
+               cursor:crosshair;">
+            <span style="color:orangered">DocScore :</span>
+            <span id="docscore-value" style="color:white"><%= p_data.Doc_score %></span>
+            <img style="height:20px;" src="/fire.png" alt="">
+        </p>
 
         <div class="profile-btn">
             <% if (data.avatar_img_path) { %>
-            <img src="<%= data.avatar_img_path %>" alt="avatar">
+            <img src="<%= p_data.avatar_img_path %>" alt="avatar">
             <% } else { %>
             <%= initials(data.name) %>
             <% } %>
@@ -91,9 +100,15 @@ return name.trim().charAt(0).toUpperCase();
                 </p>
 
                 <div class="badge-row">
-                    <span class="profile-badge orange-badge"><%= contributorLevel %></span>
+                    <span style="border-radius:5px" class="profile-badge orange-badge"><%= contributorLevel %></span>
+                    <% if( saved_status){ %>
+                    <a  style="border-radius:5px" class="profile-badge orange-badge" href="/save_profile/<%= data.email %>"> Saved Profile !</a>
+                    <% } else { %>
+                    <a  style="border-radius:5px" class="profile-badge orange-badge" href="/save_profile/<%= data.email %>"> Save Profile </a>
+                    <% } %>
                     <span class="profile-badge neutral-badge"><%= data.subscription || "Free Tier" %></span>
                     <span class="profile-badge neutral-badge"><%= data.user_type || "DocUp Member" %></span>
+
                 </div>
             </div>
         </div>
@@ -242,9 +257,9 @@ return name.trim().charAt(0).toUpperCase();
             <div class="public-action-card glass-card">
                 <h2>Explore More</h2>
                 <div class="public-action-row">
-                    <a href="/dashboard" class="action-btn primary-btn">Find Documents</a>
+                    <a href="/dashboard" class="action-btn secondary-btn">Find Documents</a>
                     <a href="/uploads" class="action-btn secondary-btn">Upload Notes</a>
-                    <a href="/uploads" class="action-btn secondary-btn">Message</a>
+                    <a href="" class="action-btn primary-btn">Message Update Coming soon ...</a>
                 </div>
             </div>
 

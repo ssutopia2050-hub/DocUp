@@ -9,9 +9,9 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
 
-        const result = await doc.updateMany(
+        const result = await User.updateMany(
             {},
-            { $set: { reviewed: true } }
+            { $set: { saved_profiles:[] } }
         );
 
         console.log("Update result:", result);
