@@ -1084,7 +1084,7 @@ app.get("/view/:id", async (req, res) => {
         const document = await Docs.findById(req.params.id)
             .populate({
                 path: "comment_section.user_id",
-                select: "name avatar_img_path"
+                select: "name avatar_img_path email"
             });
 
         if (!document) {
@@ -1709,5 +1709,25 @@ app.post("/google_create_password", async (req, res) => {
     } catch (err) {
         console.log("Google create password error:", err);
         return res.status(500).send("Internal Server Error");
+    }
+});
+
+/* ***************************
+   Profile View by Second person
+ ****************************/
+app.get("/show_other_user_profile/:email", async (req, res) => {
+    try {
+        const user_data = await user_profile.findOne({
+            email: req.params.email
+        }).populate("uploads.doc_id", "college subject chapter reviewed");
+
+        if (!user_data) {
+            return res.status(404).send("User not found");
+        }
+
+        res.render("profile_view_second_person", { data: user_data });
+    } catch (err) {
+        console.log("Public profile error:", err);
+        res.status(500).send("Internal Server Error");
     }
 });

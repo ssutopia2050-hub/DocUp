@@ -132,7 +132,9 @@
 
                             <div class="comment-body">
                                 <div class="comment-name">
-                                    <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
+                                    <a href="/show_other_user_profile/<%= encodeURIComponent(item.user_id.email) %>">
+                                        <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
+                                    </a>
                                 </div>
 
 

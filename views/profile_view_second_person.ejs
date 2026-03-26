@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/profile_view.css">
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | <%= data.name || "Profile" %></title>
+</head>
+<body>
+
+<%
+const uploadCount = Array.isArray(data.uploads) ? data.uploads.length : 0;
+const paymentCount = Array.isArray(data.payment_history) ? data.payment_history.length : 0;
+const safeDocScore = Math.max(0, Number(data.Doc_score || 0));
+
+const recentUploads = Array.isArray(data.uploads)
+? data.uploads.slice().reverse().slice(0, 8)
+: [];
+
+let contributorLevel = "Rising Contributor";
+if (uploadCount >= 25) contributorLevel = "Elite Contributor";
+else if (uploadCount >= 10) contributorLevel = "Trusted Contributor";
+else if (uploadCount >= 3) contributorLevel = "Active Contributor";
+
+function initials(name) {
+if (!name) return "U";
+return name.trim().charAt(0).toUpperCase();
+}
+%>
+
+<div class="topbar">
+    <div class="logo-text-container">
+        DocUp
+    </div>
+
+    <div class="pg-links">
+        <a href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+
+        <a href="/uploads">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+            </svg>
+            Uploads
+        </a>
+
+        <a class="active-public-link" href="/profile">
+            Community Profile
+        </a>
+
+        <div class="profile-btn">
+            <% if (data.avatar_img_path) { %>
+            <img src="<%= data.avatar_img_path %>" alt="avatar">
+            <% } else { %>
+            <%= initials(data.name) %>
+            <% } %>
+        </div>
+    </div>
+</div>
+<div class="profile-btn-dropdown">
+    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+    <a href="/pricing">Recharge DocScore</a>
+</div>
+<div class="public-profile-page">
+
+    <section class="hero-card glass-card">
+        <div class="hero-left">
+            <div class="public-avatar <%= data.avatar_img_path ? 'has-image' : '' %>">
+                <% if (data.avatar_img_path) { %>
+                <img src="<%= data.avatar_img_path %>" alt="avatar">
+                <% } else { %>
+                <%= initials(data.name) %>
+                <% } %>
+            </div>
+
+            <div class="hero-text">
+                <p class="eyebrow">DocUp Community Profile</p>
+                <h1><%= data.name || "DocUp User" %></h1>
+                <p class="hero-subtext">
+                  Press the back button of browser to return to your document . No DocScore will be deducted for this..
+                </p>
+
+                <div class="badge-row">
+                    <span class="profile-badge orange-badge"><%= contributorLevel %></span>
+                    <span class="profile-badge neutral-badge"><%= data.subscription || "Free Tier" %></span>
+                    <span class="profile-badge neutral-badge"><%= data.user_type || "DocUp Member" %></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="hero-stat-card">
+                <p class="hero-stat-number"><%= safeDocScore %></p>
+                <p class="hero-stat-label">DocScore</p>
+            </div>
+
+            <div class="hero-stat-card">
+                <p class="hero-stat-number"><%= uploadCount %></p>
+                <p class="hero-stat-label">Uploads</p>
+            </div>
+
+            <div class="hero-stat-card">
+                <p class="hero-stat-number"><%= paymentCount %></p>
+                <p class="hero-stat-label">Payments</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="profile-content-grid">
+
+        <div class="main-column">
+
+            <div class="identity-card glass-card">
+                <div class="section-header">
+                    <h2>Profile Overview</h2>
+                    <span class="mini-tag">Public View</span>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <span class="info-label">Full Name</span>
+                        <span class="info-value"><%= data.name || "Not Available" %></span>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-label">Account Type</span>
+                        <span class="info-value"><%= data.user_type || "DocUp Member" %></span>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-label">Subscription</span>
+                        <span class="info-value"><%= data.subscription || "Free Tier" %></span>
+                    </div>
+
+                    <div class="info-box">
+                        <span class="info-label">Contribution Level</span>
+                        <span class="info-value"><%= contributorLevel %></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-uploads-card glass-card">
+                <div class="section-header">
+                    <h2>Recent Uploads</h2>
+                    <span class="mini-tag"><%= uploadCount %> Uploads</span>
+                </div>
+
+                <% if (recentUploads.length > 0) { %>
+                <div class="uploads-list">
+                    <% recentUploads.forEach(upload => { %>
+                    <div class="upload-item">
+                        <div class="upload-left">
+                            <div class="upload-icon">↑</div>
+
+                            <div class="upload-details">
+                                <p class="upload-subject">
+                                    <%= upload.chapter || upload.subject || "Uploaded Document" %>
+                                </p>
+
+                                <p class="upload-meta">
+                                    <%= upload.subject || "Unknown Subject" %>
+                                    <% if (upload.college) { %>
+                                    • <%= upload.college %>
+                                    <% } %>
+                                    <% if (upload.uploadedAt) { %>
+                                    • <%= new Date(upload.uploadedAt).toLocaleDateString() %>
+                                    <% } %>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="doc-action-group">
+                            <% if (upload.doc_id?.reviewed === true) { %>
+                            <span class="review-badge verified-badge">Verified</span>
+                            <% } else { %>
+                            <span class="review-badge pending-badge">To be Reviewed</span>
+                            <% } %>
+
+                            <% if (upload.doc_id?._id) { %>
+                            <a href="/view/<%= upload.doc_id._id %>" class="open-upload-btn">Open</a>
+                            <% } else { %>
+                            <span class="disabled-upload-btn">Unavailable</span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% }) %>
+                </div>
+                <% } else { %>
+                <div class="empty-state">
+                    <p>This contributor has not uploaded any documents yet.</p>
+                </div>
+                <% } %>
+            </div>
+
+        </div>
+
+        <aside class="side-column">
+
+            <div class="contributor-card glass-card">
+                <h2>Contributor Snapshot</h2>
+
+                <div class="snapshot-list">
+                    <div class="snapshot-item">
+                        <span>Public Role</span>
+                        <strong>Contributor</strong>
+                    </div>
+
+                    <div class="snapshot-item">
+                        <span>Total Uploads</span>
+                        <strong><%= uploadCount %></strong>
+                    </div>
+
+                    <div class="snapshot-item">
+                        <span>DocScore</span>
+                        <strong><%= safeDocScore %></strong>
+                    </div>
+
+                    <div class="snapshot-item">
+                        <span>Membership</span>
+                        <strong><%= data.subscription || "Free Tier" %></strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="public-note-card glass-card">
+                <h2>About This Page</h2>
+                <p class="public-note-text">
+                    This is a public-facing DocUp profile designed to help learners discover active contributors and explore the materials they share.
+                </p>
+            </div>
+
+            <div class="public-action-card glass-card">
+                <h2>Explore More</h2>
+                <div class="public-action-row">
+                    <a href="/dashboard" class="action-btn primary-btn">Find Documents</a>
+                    <a href="/uploads" class="action-btn secondary-btn">Upload Notes</a>
+                    <a href="/uploads" class="action-btn secondary-btn">Message</a>
+                </div>
+            </div>
+
+        </aside>
+
+    </section>
+
+</div>
+
+<script src="/dashboard2.js"></script>
+</body>
+</html>
