@@ -19,7 +19,9 @@ import Razorpay from "razorpay";
 import paymentOrder from "./models/paymentOrder.js";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { Resend } from "resend";
 dotenv.config();
+const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({dest:"uploads/"});
 /******************************
            Middleware
@@ -110,6 +112,101 @@ passport.use(new GoogleStrategy(
         }
     }
 ));
+function getWelcomeTemplate(name = "there") {
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <title>Welcome to DocUp</title>
+    </head>
+    <body style="margin:0; padding:0; background-color:#0b0f14; font-family:Arial, sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0; background-color:#0b0f14;">
+        <tr>
+          <td align="center">
+            <table width="520" cellpadding="0" cellspacing="0" style="background:#121821; border-radius:16px; padding:32px; box-shadow:0 10px 40px rgba(0,0,0,0.4);">
+              
+              <tr>
+                <td style="color:#ff6a00; font-size:22px; font-weight:bold; letter-spacing:1px;">
+                  DocUp
+                </td>
+              </tr>
+
+              <tr><td height="20"></td></tr>
+
+              <tr>
+                <td style="color:#ffffff; font-size:22px; font-weight:700; line-height:1.4;">
+                  Welcome to DocUp, ${name} 👋
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div style="height:1px; background:rgba(255,255,255,0.06); margin:16px 0;"></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="color:#9fb0c3; font-size:14px; line-height:1.8;">
+                  You’re now inside <span style="color:#ff6a00; font-weight:600;">DocUp</span> — a space built for students to access, share, and grow through quality academic resources.
+                  <br><br>
+                  Start exploring documents, upload your own, and build your <span style="color:#ff6a00; font-weight:600;">DocScore</span>.
+                  <br><br>
+                  <span style="color:#ff6a00; font-weight:600;">+5 DocScore</span> added to your account to get started.
+                  <br><br>
+                  <span style="color:#5f6b7a; font-size:12px;">
+                    Built for students who actually want better notes.
+                  </span>
+                </td>
+              </tr>
+
+              <tr><td height="24"></td></tr>
+
+              <tr>
+                <td align="center">
+                  <a
+                    href="https://www.docup.in/dashboard"
+                    style="background:linear-gradient(90deg,#ff6a00,#ff9a00); box-shadow:0 6px 20px rgba(255,106,0,0.25); color:#ffffff; text-decoration:none; padding:12px 26px; border-radius:999px; font-size:14px; font-weight:700; display:inline-block;"
+                  >
+                    Go to Dashboard →
+                  </a>
+                </td>
+              </tr>
+
+              <tr><td height="28"></td></tr>
+
+              <tr>
+                <td style="color:#5f6b7a; font-size:12px; text-align:center; line-height:1.7;">
+                  If this wasn’t you, you can safely ignore this email.
+                  <br><br>
+                  © 2026 DocUp • Built for students
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>`;
+}
+
+async function sendWelcomeEmail(userEmail, userName) {
+    const { data, error } = await resend.emails.send({
+        from: "DocUp <hello@mail.docup.in>",
+        to: [userEmail],
+        subject: "Welcome to DocUp 👋",
+        html: getWelcomeTemplate(userName),
+        replyTo: "docup.ltd@gmail.com"
+    });
+
+    if (error) {
+        console.error("Resend welcome email error:", error);
+        throw new Error(error.message || "Failed to send welcome email");
+    }
+
+    return data;
+}
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -330,15 +427,21 @@ app.post("/email_verify", async (req, res) => {
     }
 
     // OTP correct → create user
-    await user_profile.create({
+    const newUser = await user_profile.create({
         name: data.name,
         email: data.email,
         password: data.password,
         google_auth: false
     });
 
+    try {
+        await sendWelcomeEmail(newUser.email, newUser.name);
+    } catch (mailErr) {
+        console.error("Welcome email failed:", mailErr.message);
+    }
+
     delete req.session.pendingUser;
-    res.redirect("/signin",);
+    res.redirect("/signin");
 });
 /******************************
  OTP Resend
@@ -1713,13 +1816,19 @@ app.post("/google_create_password", async (req, res) => {
             return res.redirect("/dashboard");
         }
 
-        await user_profile.create({
+        const newUser = await user_profile.create({
             name: data.name,
             email: data.email,
             password,
             google_auth: true,
             avatar_img_path: data.avatar
         });
+
+        try {
+            await sendWelcomeEmail(newUser.email, newUser.name);
+        } catch (mailErr) {
+            console.error("Welcome email failed:", mailErr.message);
+        }
 
         req.session.email = data.email;
         delete req.session.googleSignup;
