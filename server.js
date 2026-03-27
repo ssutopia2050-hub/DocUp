@@ -207,6 +207,144 @@ async function sendWelcomeEmail(userEmail, userName) {
 
     return data;
 }
+function getRechargeSuccessTemplate({
+                                        name = "there",
+                                        planLabel = "DocScore Recharge",
+                                        amount = 0,
+                                        docscoreAdded = 0,
+                                        orderId = "",
+                                        paymentId = "",
+                                        date = new Date()
+                                    }) {
+    const formattedDate = new Date(date).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short"
+    });
+
+    return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8" />
+      <title>DocUp Recharge Successful</title>
+    </head>
+    <body style="margin:0; padding:0; background-color:#0b0f14; font-family:Arial, sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0; background-color:#0b0f14;">
+        <tr>
+          <td align="center">
+            <table width="520" cellpadding="0" cellspacing="0" style="background:#121821; border-radius:16px; padding:32px; box-shadow:0 10px 40px rgba(0,0,0,0.4);">
+              
+              <tr>
+                <td style="color:#ff6a00; font-size:22px; font-weight:bold; letter-spacing:1px;">
+                  DocUp
+                </td>
+              </tr>
+
+              <tr><td height="20"></td></tr>
+
+              <tr>
+                <td style="color:#ffffff; font-size:22px; font-weight:700; line-height:1.4;">
+                  Recharge Successful, ${name} 🎉
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  <div style="height:1px; background:rgba(255,255,255,0.06); margin:16px 0;"></div>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="color:#9fb0c3; font-size:14px; line-height:1.8;">
+                  Your DocScore recharge was successful and has been added to your account.
+                  <br><br>
+                  You can now continue exploring documents on <span style="color:#ff6a00; font-weight:600;">DocUp</span>.
+                </td>
+              </tr>
+
+              <tr><td height="22"></td></tr>
+
+              <tr>
+                <td>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f141c; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:18px;">
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">Plan</td>
+                      <td align="right" style="color:#ffffff; font-size:13px; padding:8px 0; font-weight:600;">${planLabel}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">Amount Paid</td>
+                      <td align="right" style="color:#ffffff; font-size:13px; padding:8px 0; font-weight:600;">₹${amount}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">DocScore Added</td>
+                      <td align="right" style="color:#ff6a00; font-size:13px; padding:8px 0; font-weight:700;">+${docscoreAdded}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">Order ID</td>
+                      <td align="right" style="color:#ffffff; font-size:13px; padding:8px 0;">${orderId}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">Payment ID</td>
+                      <td align="right" style="color:#ffffff; font-size:13px; padding:8px 0;">${paymentId}</td>
+                    </tr>
+                    <tr>
+                      <td style="color:#5f6b7a; font-size:12px; padding:8px 0;">Date</td>
+                      <td align="right" style="color:#ffffff; font-size:13px; padding:8px 0;">${formattedDate}</td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <tr><td height="24"></td></tr>
+
+              <tr>
+                <td align="center">
+                  <a
+                    href="https://www.docup.in/profile"
+                    style="background:linear-gradient(90deg,#ff6a00,#ff9a00); box-shadow:0 6px 20px rgba(255,106,0,0.25); color:#ffffff; text-decoration:none; padding:12px 26px; border-radius:999px; font-size:14px; font-weight:700; display:inline-block;"
+                  >
+                    View Profile →
+                  </a>
+                </td>
+              </tr>
+
+              <tr><td height="28"></td></tr>
+
+              <tr>
+                <td style="color:#5f6b7a; font-size:12px; text-align:center; line-height:1.7;">
+                  If you did not make this payment, please reply to this email immediately.
+                  <br><br>
+                  © 2026 DocUp • Built for students
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>`;
+}
+
+async function sendRechargeSuccessEmail(userEmail, userName, rechargeData) {
+    const { data, error } = await resend.emails.send({
+        from: "DocUp <hello@mail.docup.in>",
+        to: [userEmail],
+        subject: "DocUp Recharge Successful 🎉",
+        html: getRechargeSuccessTemplate({
+            name: userName,
+            ...rechargeData
+        }),
+        replyTo: "docup.ltd@gmail.com"
+    });
+
+    if (error) {
+        console.error("Resend recharge email error:", error);
+        throw new Error(error.message || "Failed to send recharge email");
+    }
+
+    return data;
+}
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
@@ -542,44 +680,61 @@ app.post("/forgot_password", async (req, res) => {
 
 });
 app.post("/resend_forgot_password", async (req, res) => {
+    try {
+        const data = req.session.forgotData;
 
-    const data = req.session.forgotData;
+        if (!data) {
+            return res.redirect("/forgot_password");
+        }
 
-    if (!data) {
-        return res.redirect("/forgot_password");
-    }
+        const exists = await user_profile.findOne({ email: data.email });
 
-    if (Date.now() < data.resendAllowedAt) {
+        if (!exists) {
+            delete req.session.forgotData;
+            return res.render("forgot_password", {
+                err: { message: "You have not signed up." }
+            });
+        }
+
+        if (exists.google_auth) {
+            return res.render("forgot_password", {
+                err: { message: "This account uses Google Sign-In. Please continue with Google." }
+            });
+        }
+
+        if (Date.now() < data.resendAllowedAt) {
+            return res.render("forgot_password", {
+                err: { message: "Password sent to your email." },
+                resendAllowedAt: data.resendAllowedAt
+            });
+        }
+
+        data.resendAllowedAt = Date.now() + 5 * 60 * 1000;
+
+        await emailjs.send(
+            process.env.EMAILJS_SERVICE_ID,
+            process.env.EMAILJS_TEMPLATE_ID,
+            {
+                email: data.email,
+                password: data.password,
+                name: data.name
+            },
+            {
+                publicKey: process.env.EMAILJS_PUBLIC_KEY,
+                privateKey: process.env.EMAILJS_PRIVATE_KEY
+            }
+        );
+
         return res.render("forgot_password", {
             err: { message: "Password sent to your email." },
-            resendAllowedAt: req.session.forgotData.resendAllowedAt
+            resendAllowedAt: data.resendAllowedAt
         });
-    }
-
-    data.resendAllowedAt = Date.now() + 5 * 60 * 1000;
-    if (exists.google_auth) {
+    } catch (err) {
+        console.error("Resend forgot password error:", err);
         return res.render("forgot_password", {
-            err: { message: "This account uses Google Sign-In. Please continue with Google." }
+            err: { message: "Failed to send password email. Try again." }
         });
     }
-    await emailjs.send(
-        process.env.EMAILJS_SERVICE_ID,
-        process.env.EMAILJS_TEMPLATE_ID,
-        {
-            email: data.email,
-            password: data.password,
-            name: data.name
-        },
-        {
-            publicKey: process.env.EMAILJS_PUBLIC_KEY,
-            privateKey: process.env.EMAILJS_PRIVATE_KEY
-        }
-    );
-
-    res.render("forgot_password", {
-        err: { message: "Password sent to your email." },
-        resendAllowedAt: req.session.forgotData.resendAllowedAt
-    });
 });
 /******************************
  Dashboard
@@ -1690,6 +1845,23 @@ app.post("/payment/verify", async (req, res) => {
                     gateway_response: req.body
                 }
             );
+
+            try {
+                const user = await user_profile.findOne({ email: existingOrder.user_email });
+
+                if (user) {
+                    await sendRechargeSuccessEmail(user.email, user.name, {
+                        planLabel: existingOrder.plan_label,
+                        amount: existingOrder.amount,
+                        docscoreAdded: existingOrder.docscore_to_add,
+                        orderId: existingOrder.order_id,
+                        paymentId: razorpay_payment_id,
+                        date: new Date()
+                    });
+                }
+            } catch (mailErr) {
+                console.error("Recharge success email failed:", mailErr.message);
+            }
         }
 
         return res.json({
