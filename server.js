@@ -1661,7 +1661,7 @@ const RECHARGE_PLANS = {
         docscore: 30,
     },
     pro: {
-        label: "Unlimited Study Pack",
+        label: "Ultimate Study Pack",
         amount: 149,
         docscore: 100
     }
