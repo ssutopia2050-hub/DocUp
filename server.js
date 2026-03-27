@@ -1662,7 +1662,7 @@ const RECHARGE_PLANS = {
     },
     pro: {
         label: "Unlimited Study Pack",
-        amount: 99,
+        amount: 149,
         docscore: 100
     }
 };
