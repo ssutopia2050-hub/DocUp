@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     const profileBtn = document.querySelector(".profile-btn");
     const dropdown = document.querySelector(".profile-btn-dropdown");
 
@@ -9,26 +8,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openDropdown() {
         clearTimeout(hoverTimeout);
-        dropdown.style.display = "flex";
+        dropdown.classList.add("active");
     }
 
     function closeDropdown() {
         hoverTimeout = setTimeout(() => {
-            dropdown.style.display = "none";
-        }, 120); // small delay prevents flicker
+            dropdown.classList.remove("active");
+        }, 120);
     }
 
-    // hover on icon
     profileBtn.addEventListener("mouseenter", openDropdown);
     profileBtn.addEventListener("mouseleave", closeDropdown);
 
-    // hover on dropdown itself
     dropdown.addEventListener("mouseenter", openDropdown);
     dropdown.addEventListener("mouseleave", closeDropdown);
 
-    //click
     profileBtn.addEventListener("click", () => {
-        window.location.href="/profile";
+        window.location.href = "/profile";
     });
-
 });

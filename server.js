@@ -1341,7 +1341,6 @@ app.get("/logout", (req, res) => {
             console.log("Logout Error:", err);
             return res.redirect("/dashboard");
         }
-
         res.clearCookie("connect.sid");   // VERY IMPORTANT
         res.redirect("/");           // or homepage
 

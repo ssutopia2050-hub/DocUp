@@ -229,6 +229,11 @@
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
+        if ((e.command || e.metaKey) && e.shiftKey && e.code === "Digit3") {
+            e.preventDefault();
+            alert("Printing and saving are disabled on DocUp.");
+        }
+
 
     });
 </script>

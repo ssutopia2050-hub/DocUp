@@ -6,7 +6,6 @@
     user-select: none;
 }
 body{
-    /*background-color: rgb(2, 11, 27);*/
     background-color: #001219;
     min-height: 100vh;
     display: flex;
@@ -16,37 +15,32 @@ body{
     width:100%;
     height:100px;
     border-bottom:1px solid rgba(255, 255, 255, 0.08);
-    /*width:20vw;*/
     display:flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    /*padding-top: 5vh;*/
     padding-left:2%;
     padding-right:3%;
     position:sticky;
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
-    /*background-color: rgba(255, 255, 255, 0.02);*/
     background-color: rgba(0, 18, 25, 0.45);
     top:0;
     z-index: 1000;
 }
 .logo-text-container{
-   font-size:3.5rem;
+    font-size:3.5rem;
     color:white;
 }
 .pg-links{
     width:fit-content;
     height:100%;
-    /*border-left:1px solid rgba(255, 255, 255, 0.08);*/
     display:flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     padding-right:3%;
     gap:10%;
-
 }
 .pg-links a{
     display: flex;
@@ -61,16 +55,13 @@ a {
     display: flex;
     flex-direction: row;
 }
-
 a:visited {
     color: white;
 }
-
 a:hover {
     text-decoration: none;
     color: white;
 }
-
 a:active {
     color: white;
 }
@@ -91,14 +82,11 @@ a:active {
     flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    /*border:1px solid white;*/
     height:fit-content;
     position:absolute;
     gap:3vw;
     padding-left:2vw;
 }
-
-
 .search-form .search-input-wrapper{
     width:10%;
     height:50px;
@@ -137,7 +125,6 @@ a:active {
     border:none;
     font-size:1rem;
 }
-
 .search-form .search-btn{
     width:fit-content;
     height:50px;
@@ -196,7 +183,6 @@ a:active {
     justify-content:flex-start;
     padding:2px 0;
 }
-
 .result-tab{
     width:100%;
     position:relative;
@@ -219,7 +205,6 @@ a:active {
             box-shadow 0.3s ease,
             border-color 0.3s ease;
 }
-
 .result-tab:hover{
     transform:translateY(-5px);
     border-color:rgba(255, 115, 45, 0.3);
@@ -227,7 +212,6 @@ a:active {
             0 30px 70px rgba(0,0,0,0.36),
             inset 0 1px 0 rgba(255,255,255,0.07);
 }
-
 .result-tab-top{
     width:100%;
     display:flex;
@@ -238,14 +222,12 @@ a:active {
     border-bottom:1px solid rgba(255, 110, 45, 0.08);
     background:linear-gradient(180deg, rgba(255,69,0,0.08), rgba(255,69,0,0.02));
 }
-
 .result-tab-identity{
     display:flex;
     align-items:center;
     gap:16px;
     min-width:0;
 }
-
 .college-logo{
     width:76px;
     min-width:76px;
@@ -262,20 +244,17 @@ a:active {
             inset 0 1px 0 rgba(255,255,255,0.08);
     flex-shrink:0;
 }
-
 .college-logo img{
     width:100%;
     height:100%;
     object-fit:cover;
 }
-
 .result-tab-title-wrap{
     min-width:0;
     display:flex;
     flex-direction:column;
     gap:6px;
 }
-
 .result-tab-label{
     font-family:'Saira', sans-serif;
     font-size:0.76rem;
@@ -283,7 +262,6 @@ a:active {
     letter-spacing:1.3px;
     color:rgba(255, 138, 88, 0.82);
 }
-
 .result-tab-title-wrap a{
     font-family:'Saira', sans-serif;
     font-size:1.18rem;
@@ -293,11 +271,9 @@ a:active {
     word-break:break-word;
     transition:color 0.2s ease;
 }
-
 .result-tab-title-wrap a:hover{
     color:#ffb07c;
 }
-
 .result-tab-badge{
     padding:10px 14px;
     border-radius:999px;
@@ -309,7 +285,6 @@ a:active {
     letter-spacing:1px;
     flex-shrink:0;
 }
-
 .result-tab-body{
     padding:20px 24px 16px 24px;
     display:flex;
@@ -317,7 +292,6 @@ a:active {
     justify-content:center;
     gap:10px;
 }
-
 .result-tab-body-label{
     font-family:'Saira', sans-serif;
     font-size:0.76rem;
@@ -325,11 +299,9 @@ a:active {
     letter-spacing:1.1px;
     color:rgba(255,255,255,0.42);
 }
-
 .file-link-result-tab{
     padding:0;
 }
-
 .file-link-result-tab a{
     font-family:'Raleway', sans-serif;
     font-size:1rem;
@@ -339,21 +311,17 @@ a:active {
     word-break:break-word;
     transition:color 0.2s ease;
 }
-
 .file-link-result-tab a:hover{
     color:white;
 }
-
 .result-tab-footer{
     padding:0 24px 22px 24px;
 }
-
 .tags-container{
     display:flex;
     flex-wrap:wrap;
     gap:10px;
 }
-
 .tags{
     font-family:'Saira', sans-serif;
     font-size:0.82rem;
@@ -367,7 +335,6 @@ a:active {
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
     transition:all 0.2s ease;
 }
-
 .tags:hover{
     transform:translateY(-2px);
     color:white;
@@ -377,37 +344,30 @@ a:active {
     border-color:rgba(255, 132, 66, 0.24);
     cursor:pointer;
 }
-
 @media (max-width: 900px){
     .result-tab-top{
         padding:18px;
         align-items:flex-start;
         flex-wrap:wrap;
     }
-
     .result-tab-identity{
         width:100%;
     }
-
     .college-logo{
         width:68px;
         min-width:68px;
         height:68px;
         border-radius:20px;
     }
-
     .result-tab-title-wrap a{
         font-size:1rem;
     }
-
     .result-tab-body{
         padding:16px 18px 14px 18px;
     }
-
     .result-tab-footer{
         padding:0 18px 18px 18px;
     }
-
     .result-tab-badge{
         padding:8px 12px;
     }
@@ -417,22 +377,18 @@ a:active {
     gap:15px;
     align-items:center;
 }
-
 .search-input-wrapper{
     position:relative;
     flex:1;
 }
-
 .filter-wrapper{
     position:relative;
 }
-
 .filter-btn{
     display:flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    /*padding: 2vh 4vw;*/
     padding:10px;
     border-radius:50%;
     border:1px solid rgba(255,255,255,0.15);
@@ -441,31 +397,23 @@ a:active {
     cursor:pointer;
     margin-right:2vw;
 }
-
 .filter-dropdown{
     position:absolute;
     top:120%;
     right:0;
     width:240px;
-
-    background: transparent;   /* IMPORTANT: darker transparent bg */
-
+    background: transparent;
     backdrop-filter: blur(58px);
-    -webkit-backdrop-filter: blur(58px);   /* VERY IMPORTANT for Safari / Mac */
-
+    -webkit-backdrop-filter: blur(58px);
     border:1px solid rgba(255,255,255,0.12);
     border-radius:18px;
     padding:18px;
-
     display:none;
     flex-direction:column;
     gap:12px;
-
     box-shadow:0 20px 50px rgba(0,0,0,0.45);
-
     z-index:999;
 }
-
 .filter-dropdown select{
     width:100%;
     padding:8px;
@@ -477,20 +425,13 @@ a:active {
 label{
     color:orangered;
 }
-#filter-toggle{
-
-}
-
 /* ===== ONLY NECESSARY ADDITIONS FOR COLLEGE SUGGESTION DROPDOWN ===== */
-
 .search-input-wrapper{
     overflow: visible;
 }
-
 .search-input-wrapper input::placeholder{
     color: rgba(255, 255, 255, 0.3);
 }
-
 .suggestions-box{
     position: absolute;
     top: calc(100% + 8px);
@@ -508,20 +449,16 @@ label{
     box-shadow: 0 20px 45px rgba(0,0,0,0.38);
     z-index: 1200;
 }
-
 .suggestions-box::-webkit-scrollbar{
     width: 8px;
 }
-
 .suggestions-box::-webkit-scrollbar-track{
     background: transparent;
 }
-
 .suggestions-box::-webkit-scrollbar-thumb{
     background: rgba(255, 69, 0, 0.35);
     border-radius: 20px;
 }
-
 .suggestions-box div{
     width: 100%;
     font-family: 'Saira', sans-serif;
@@ -529,17 +466,14 @@ label{
     line-height: 1.4;
     word-wrap: break-word;
 }
-
 .suggestions-box div:first-child{
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
 }
-
 .suggestions-box div:last-child{
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
 }
-
 .search-param-container,
 .search-form,
 .search-input-wrapper,
@@ -556,34 +490,24 @@ label{
     justify-content: space-between;
     padding: 0 5%;
 }
-
 .footer-left{
     font-size: 2rem;
     color: white;
 }
-
 .footer-right{
     display: flex;
     gap: 24px;
     flex-wrap: wrap;
 }
-
 .footer-right a{
     color: rgba(255,255,255,0.62);
     font-family: "Saira", sans-serif;
     text-decoration: none;
 }
-
 .footer-right a:hover{
     color: white;
 }
-
-.footer-right a:hover{
-    color: white;
-}
-
 /* ===== Upload Loader ===== */
-
 .upload-loader-overlay{
     position: fixed;
     inset: 0;
@@ -595,16 +519,13 @@ label{
     justify-content: center;
     z-index: 9999;
 }
-
 .upload-loader-overlay.active{
     display: flex;
 }
-
 .upload-loader-box{
     min-width: 280px;
     padding: 28px 32px;
     border: 1px solid rgba(255, 69, 0, 0.48);
-    /*border-radius: 22px;*/
     background: rgba(255, 255, 255, 0.04);
     display: flex;
     flex-direction: column;
@@ -613,7 +534,6 @@ label{
     gap: 18px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.35);
 }
-
 .upload-loader-box p{
     color: white;
     font-family: 'Saira', sans-serif;
@@ -624,7 +544,6 @@ label{
     text-decoration: underline;
 }
 /* ===== CONTACT PAGE ===== */
-
 .contact-page{
     width:100%;
     padding:5% 6%;
@@ -632,7 +551,6 @@ label{
     gap:3%;
     align-items:flex-start;
 }
-
 .contact-left{
     width:40%;
     padding:40px;
@@ -640,18 +558,15 @@ label{
     flex-direction:column;
     gap:22px;
 }
-
 .contact-left h1{
     font-size:2.6rem;
     font-family:'Raleway',sans-serif;
 }
-
 .contact-desc{
     font-family:'Saira',sans-serif;
     color:rgba(255,255,255,0.7);
     line-height:1.7;
 }
-
 .contact-info-block{
     display:flex;
     flex-direction:column;
@@ -661,19 +576,16 @@ label{
     background:rgba(255,255,255,0.04);
     border:1px solid rgba(255,255,255,0.08);
 }
-
 .contact-label{
     font-size:0.8rem;
     color:rgba(255,255,255,0.5);
     font-family:'Saira',sans-serif;
 }
-
 .contact-value{
     font-size:1rem;
     color:#ff9d59;
     font-family:'Raleway',sans-serif;
 }
-
 .contact-right{
     width:57%;
     padding:40px;
@@ -681,30 +593,25 @@ label{
     flex-direction:column;
     gap:20px;
 }
-
 .contact-right h2{
     font-family:'Raleway',sans-serif;
     font-size:1.6rem;
 }
-
 .contact-form{
     display:flex;
     flex-direction:column;
     gap:18px;
 }
-
 .contact-field{
     display:flex;
     flex-direction:column;
     gap:6px;
 }
-
 .contact-field label{
     font-size:0.85rem;
     font-family:'Saira',sans-serif;
     color:rgba(255,255,255,0.6);
 }
-
 .contact-field input,
 .contact-field textarea{
     padding:14px;
@@ -715,11 +622,9 @@ label{
     font-family:'Saira',sans-serif;
     outline:none;
 }
-
 .contact-field textarea{
     resize:none;
 }
-
 .contact-btn{
     margin-top:10px;
     padding:15px;
@@ -732,32 +637,25 @@ label{
     font-size:1rem;
     transition:.25s;
 }
-
 .contact-btn:hover{
     transform:translateY(-2px);
     box-shadow:0 10px 25px rgba(255,94,0,0.25);
 }
-
 /* ===== RESPONSIVE ===== */
-
 @media(max-width:1000px){
-
     .contact-page{
         flex-direction:column;
         gap:25px;
     }
-
     .contact-left,
     .contact-right{
         width:100%;
         padding:28px;
     }
-
 }
 .search-input-wrapper{
     position:relative;
 }
-
 #clear-search:hover{
     color:orangered;
 }
@@ -767,9 +665,7 @@ label{
     display:flex;
     justify-content:center;
     align-items:flex-start;
-    /*padding:20px 28px 0 28px;*/
 }
-
 .empty-results-state{
     position:relative;
     width:100%;
@@ -787,7 +683,6 @@ label{
     backdrop-filter: blur(10px);
     margin-top:5vh;
 }
-
 .empty-results-glow{
     position:absolute;
     width:260px;
@@ -798,7 +693,6 @@ label{
     pointer-events:none;
     filter:blur(10px);
 }
-
 .empty-results-label{
     font-family:'Saira', sans-serif;
     color:rgba(255,69,0,0.85);
@@ -807,7 +701,6 @@ label{
     font-size:0.9rem;
     margin-bottom:12px;
 }
-
 .empty-results-state h2{
     font-family:'Archivo Black', sans-serif;
     font-size:2rem;
@@ -816,7 +709,6 @@ label{
     max-width:700px;
     margin-bottom:12px;
 }
-
 .empty-results-subtext{
     font-family:'Saira', sans-serif;
     color:rgba(255,255,255,0.58);
@@ -824,7 +716,6 @@ label{
     max-width:600px;
     margin-bottom:28px;
 }
-
 .search-shortcuts{
     display:flex;
     flex-wrap:wrap;
@@ -832,7 +723,6 @@ label{
     gap:12px;
     margin-bottom:30px;
 }
-
 .shortcut-chip{
     font-family:'Saira', sans-serif;
     color:rgba(255,255,255,0.88);
@@ -843,7 +733,6 @@ label{
     font-size:0.95rem;
     backdrop-filter:blur(8px);
 }
-
 .empty-preview-grid{
     width:100%;
     max-width:760px;
@@ -851,7 +740,6 @@ label{
     grid-template-columns:repeat(3, 1fr);
     gap:16px;
 }
-
 .preview-card{
     border:1px solid rgba(255,255,255,0.07);
     background:rgba(255,255,255,0.03);
@@ -860,7 +748,6 @@ label{
     text-align:left;
     min-height:110px;
 }
-
 .preview-card-top{
     display:inline-block;
     font-family:'Saira', sans-serif;
@@ -870,31 +757,25 @@ label{
     text-transform:uppercase;
     letter-spacing:1px;
 }
-
 .preview-card p{
     font-family:'Raleway', sans-serif;
     color:rgba(255,255,255,0.88);
     font-size:1rem;
     line-height:1.4;
 }
-
 @media (max-width: 768px){
     .empty-results-state{
         padding:30px 20px;
     }
-
     .empty-results-state h2{
         font-size:1.45rem;
     }
-
     .empty-preview-grid{
         grid-template-columns:1fr;
     }
-
     .search-shortcuts{
         gap:10px;
     }
-
     .shortcut-chip{
         font-size:0.85rem;
         padding:10px 14px;
@@ -905,14 +786,12 @@ label{
     margin-top:5%;
     padding:0 2%;
 }
-
 .college-results-strip-inner{
     display:flex;
     flex-wrap:wrap;
     gap:16px;
     align-items:stretch;
 }
-
 .college-result-card{
     min-width:240px;
     max-width:320px;
@@ -931,7 +810,6 @@ label{
             0 10px 30px rgba(0,0,0,0.18),
             inset 0 1px 0 rgba(255,255,255,0.03);
 }
-
 .college-result-card:hover{
     transform:translateY(-4px);
     border:1px solid rgba(255,69,0,0.42);
@@ -939,7 +817,6 @@ label{
             0 16px 38px rgba(0,0,0,0.24),
             0 0 0 1px rgba(255,69,0,0.06);
 }
-
 .college-result-card-logo{
     width:58px;
     min-width:58px;
@@ -952,20 +829,17 @@ label{
     align-items:center;
     justify-content:center;
 }
-
 .college-result-card-logo img{
     width:100%;
     height:100%;
     object-fit:cover;
 }
-
 .college-result-card-text{
     display:flex;
     flex-direction:column;
     gap:6px;
     min-width:0;
 }
-
 .college-result-card-label{
     font-family:'Saira', sans-serif;
     font-size:0.78rem;
@@ -973,7 +847,6 @@ label{
     text-transform:uppercase;
     letter-spacing:1px;
 }
-
 .college-result-card-text p{
     margin:0;
     font-family:'Saira', sans-serif;
@@ -982,20 +855,16 @@ label{
     line-height:1.4;
     word-break:break-word;
 }
-
 @media (max-width: 768px){
     .college-results-strip{
         margin-top:5%;
     }
-
     .college-result-card{
         min-width:100%;
     }
-
     .search-param-container{
         margin-top:24px;
     }
-
     .search-results-container{
         margin-top:16px;
         padding-top:0;
@@ -1004,32 +873,25 @@ label{
 .file-link-result-tab{
     padding:4px 0 2px 0;
 }
-
 .view-doc-link{
     display:inline-flex;
     align-items:center;
     justify-content:center;
-
     font-family:'Saira', sans-serif;
     font-size:0.85rem;
     letter-spacing:0.3px;
-
     color:#ffd1bb;
     text-decoration:none;
-
     padding:8px 14px;
     border-radius:999px;
-
     border:1px solid rgba(255,110,45,0.16);
     background-color:rgba(255,110,45,0.08);
-
     transition:
             background-color 0.32s ease,
             border-color 0.32s ease,
             color 0.32s ease,
             transform 0.32s ease;
 }
-
 a.view-doc-link:hover{
     color:white;
     background-color:rgba(255,110,45,0.14);
@@ -1037,7 +899,6 @@ a.view-doc-link:hover{
     transform:translateY(-2px);
     text-decoration:none;
 }
-
 a.view-doc-link:active{
     background-color:rgba(255,110,45,0.10);
     transform:translateY(0);
@@ -1050,7 +911,6 @@ a.view-doc-link {
             color 0.32s ease,
             transform 0.32s ease;
 }
-
 a.view-doc-link:hover {
     color: white;
     background-color: rgba(255,110,45,0.14);
@@ -1058,40 +918,32 @@ a.view-doc-link:hover {
     transform: translateY(-2px);
     text-decoration: none;
 }
-.profile-btn{
-    width: 52px;
-    height: 52px;
+
+/* ===== PROFILE BUTTON ===== */
+.profile-btn {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    color:white;
-    font-size:1.5rem;
+    color: white;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-
-    border: 1.5px solid rgba(255, 255, 255, 0.16);
+    border: 1.5px solid rgba(255, 94, 0, 0.35);
     background: linear-gradient(135deg, #ff5e00, #ff9b45);
-    box-shadow:
-            0 8px 20px rgba(0, 0, 0, 0.28),
-            0 0 0 3px rgba(255, 94, 0, 0.08);
-
-    transition:
-            transform 0.22s ease,
-            box-shadow 0.22s ease,
-            border-color 0.22s ease;
+    box-shadow: 0 4px 14px rgba(255, 94, 0, 0.22);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    position: relative;
 }
-
-.profile-btn:hover{
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.28);
-    box-shadow:
-            0 14px 28px rgba(0, 0, 0, 0.34),
-            0 0 0 4px rgba(255, 94, 0, 0.12);
+.profile-btn:hover {
+    transform: translateY(-1px) scale(1.04);
+    border-color: rgba(255, 140, 60, 0.55);
+    box-shadow: 0 6px 20px rgba(255, 94, 0, 0.32);
 }
-
-.profile-btn img{
+.profile-btn img {
     width: 100%;
     height: 100%;
     display: block;
@@ -1099,53 +951,137 @@ a.view-doc-link:hover {
     object-position: center;
     border-radius: 50%;
 }
-.profile-btn-dropdown{
-    position:fixed;
+
+/* ===== PROFILE DROPDOWN ===== */
+.profile-btn-dropdown {
+    position: fixed;
     z-index: 9999;
-    height:fit-content;
-    width:250px;
-    border:1px solid rgba(255, 69, 0, 0.34);
-    right:2vw;
-    top:10vh;
-    padding:20px;
-    background-color:rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    gap:3vh;
-    flex-direction:column;
-    border-top-left-radius:20px;
-    border-bottom-left-radius:20px;
-    border-bottom-right-radius:20px;
+    top: 80px;
+    right: 2.2vw;
+    width: 220px;
+    padding: 8px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(6, 14, 20, 0.92);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+            0 20px 48px rgba(0, 0, 0, 0.6),
+            0 4px 16px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.16s ease, transform 0.16s ease;
 }
-.profile-btn-dropdown a{
-    font-family:'Saira', sans-serif;
-    font-size:1.3rem;
-    color: rgb(255, 94, 0);
-    transition:0.3s ease-in-out;
+.profile-btn-dropdown.active {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
-.profile-btn-dropdown a:hover{
-    color: rgb(255, 143, 79);
+.profile-btn-dropdown::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    right: 18px;
+    width: 10px;
+    height: 10px;
+    transform: rotate(45deg);
+    background: rgba(6, 14, 20, 0.92);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
 }
+/* Override the messy inline styles on the Profile link */
+.profile-btn-dropdown a:first-child {
+    border-bottom: none !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    padding-bottom: 0 !important;
+}
+.profile-btn-dropdown a {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.68);
+    text-decoration: none;
+    font-family: 'Saira', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.2px;
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    box-sizing: border-box;
+}
+.profile-btn-dropdown a::before {
+    font-size: 15px;
+    flex-shrink: 0;
+    opacity: 0.55;
+    transition: opacity 0.15s ease;
+}
+.profile-btn-dropdown a[href="/profile"]::before {
+    content: "◎";
+}
+.profile-btn-dropdown a[href="/pricing"]::before {
+    content: "⚡";
+}
+.profile-btn-dropdown a::after {
+    content: none;
+}
+.profile-btn-dropdown a:hover {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+.profile-btn-dropdown a:hover::before {
+    opacity: 1;
+}
+.profile-btn-dropdown .dropdown-divider {
+    width: calc(100% - 16px);
+    height: 1px;
+    margin: 2px 8px;
+    background: rgba(255, 255, 255, 0.07);
+}
+/* ===== VERIFICATION STATUS BADGES ===== */
 .verif-status {
-    padding: 8px 14px;
+    padding: 5px 10px;
     border-radius: 999px;
     font-family: 'Saira', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
 }
-
 .verif-status.verified {
-    color: #b9ffcf;
-    background: rgba(34, 197, 94, 0.14);
-    border: 1px solid rgba(34, 197, 94, 0.28);
+    color: rgba(140, 255, 190, 0.9);
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.18);
 }
-
 .verif-status.not-verified {
-    color: #ffd6bf;
-    background: rgba(255, 110, 45, 0.12);
-    border: 1px solid rgba(255, 110, 45, 0.22);
+    color: rgba(255, 190, 150, 0.88);
+    background: rgba(255, 110, 45, 0.08);
+    border: 1px solid rgba(255, 110, 45, 0.16);
+}
+@media (max-width: 768px) {
+    .profile-btn-dropdown {
+        right: 14px;
+        top: 72px;
+        width: calc(100vw - 28px);
+        max-width: 260px;
+        border-radius: 16px;
+    }
+    .profile-btn-dropdown a {
+        min-height: 48px;
+        font-size: 0.9rem;
+    }
 }
