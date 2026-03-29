@@ -1063,6 +1063,9 @@ a.view-doc-link:hover {
     flex-shrink: 0;
 }
 .verif-status.verified {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: rgba(140, 255, 190, 0.9);
     background: rgba(34, 197, 94, 0.1);
     border: 1px solid rgba(34, 197, 94, 0.18);
