@@ -18,6 +18,70 @@
             <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
         </svg>
             <span style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;">FindDocs</span></a>
+        <div class="notification-wrap">
+            <div class="notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notification-badge">
+                <%= unreadCount > 9 ? "9+" : unreadCount %>
+            </span>
+                <% } %>
+            </div>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <span>Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="notification-view-all">View all</a>
+                    <% } %>
+                </div>
+
+                <div class="notification-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="notification-item-top">
+                            <div class="notification-item-top-left">
+                                <span class="notification-dot"></span>
+                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
+                            </div>
+
+                            <span class="notification-meta">
+            <%= item.createdAt
+                ? new Date(item.createdAt).toLocaleString("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                })
+                : "Just now" %>
+        </span>
+                        </div>
+
+                        <div class="notification-content">
+                            <%= item.content %>
+                        </div>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="notification-empty">
+                        No notifications yet.
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
         <div class="profile-btn">
             <% if (user.avatar_img_path) { %>
             <img src="<%= user.avatar_img_path %>" alt="">
@@ -131,13 +195,20 @@
                             </div>
 
                             <div class="comment-body">
-                                <div class="comment-name">
+                                <div class="comment-name" style="display: flex;flex-direction: row;gap:2vw;justify-content:center;align-items: center;flex-wrap:wrap">
                                     <a href="/show_other_user_profile/<%= encodeURIComponent(item.user_id.email) %>">
                                         <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
                                     </a>
+
+                                    <div
+                                            class="reply-btn"
+                                            data-reply-name="<%= item.user_id && item.user_id.name ? item.user_id.name : 'DocUp User' %>"
+                                            data-reply-email="<%= item.user_id && item.user_id.email ? item.user_id.email : '' %>"
+                                            style="font-size:0.8rem;font-family: Saira, sans-serif;color:grey;border:1px solid rgba(128,128,128,0.4); border-radius:10px;padding:5px 20px;cursor:pointer;"
+                                    >
+                                        Reply
+                                    </div>
                                 </div>
-
-
                                 <div class="comment-time">
                                     <%= new Date(item.createdAt).toLocaleString() %>
                                 </div>
@@ -165,6 +236,23 @@
         </aside>
     </section>
 </main>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.querySelector(".comment-input-container");
+        const replyButtons = document.querySelectorAll(".reply-btn");
+
+        replyButtons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const name = btn.dataset.replyName || "DocUp User";
+                const email = btn.dataset.replyEmail || "";
+
+                input.value = `@$${email}# : `;
+                input.focus();
+            });
+        });
+    });
+</script>
+
 <script src="/dashboard2.js"></script>
 <script>
     const DOC_ID = "<%= doc._id %>";
@@ -235,6 +323,17 @@
         }
 
 
+    });
+</script>
+<script>
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
+    window.addEventListener("popstate", function () {
+        window.location.reload();
     });
 </script>
 <script src="/docview.js"></script>

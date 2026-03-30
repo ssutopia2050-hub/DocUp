@@ -5,7 +5,11 @@
     <title><%= collegeInfo.name %> | DocUp</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
     <link rel="stylesheet" href="/college.css">
 </head>
@@ -13,7 +17,7 @@
 <body>
 
 <div class="topbar">
-    <div class="logo-text-container">
+    <div style="font-family: 'Archivo Black', sans-serif" class="logo-text-container">
         DocUp
     </div>
 
@@ -22,7 +26,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
             </svg>
-            <span style="font-family: 'Archivo Black', sans-serif;">FindDocs</span>
+            <span style="font-family: Archivo Black, sans-serif;">FindDocs</span>
         </a>
 
         <p style="border:1px solid orangered;
@@ -42,9 +46,72 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
             </svg>
-            Uploads
+            <span style="font-family: Archivo Black, sans-serif">Uploads</span>
         </a>
+        <div class="notification-wrap">
+            <div class="notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
 
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notification-badge">
+                <%= unreadCount > 9 ? "9+" : unreadCount %>
+            </span>
+                <% } %>
+            </div>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <span>Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="notification-view-all">View all</a>
+                    <% } %>
+                </div>
+
+                <div class="notification-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="notification-item-top">
+                            <div class="notification-item-top-left">
+                                <span class="notification-dot"></span>
+                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
+                            </div>
+
+                            <span class="notification-meta">
+            <%= item.createdAt
+                ? new Date(item.createdAt).toLocaleString("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                })
+                : "Just now" %>
+        </span>
+                        </div>
+
+                        <div class="notification-content">
+                            <%= item.content %>
+                        </div>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="notification-empty">
+                        No notifications yet.
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
         <div class="profile-btn">
             <% if (user.avatar_img_path) { %>
             <img src="<%= user.avatar_img_path %>" alt="">

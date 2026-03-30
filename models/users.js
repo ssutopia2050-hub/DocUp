@@ -44,6 +44,27 @@ const user_profile = new mongoose.Schema({
             }
         }
     ],
+    notifications: [
+        {
+            _id: false,
+            email: {
+                type: String,
+                trim: true,
+                lowercase: true
+            },
+            content: {
+                type: String,
+            },
+            createdAt: {
+                type: Date,
+                default: Date.now
+            },
+            isRead: {
+                type: Boolean,
+                default: false
+            }
+        }
+    ],
     Doc_score: {
         type: Number,
         required: true,

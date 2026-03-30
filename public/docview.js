@@ -106,3 +106,5 @@ fitWidthBtn.addEventListener("click", async () => {
 });
 
 loadPdf();
+
+// document.querySelector("#pdf-container").appendChild(pageStatus);

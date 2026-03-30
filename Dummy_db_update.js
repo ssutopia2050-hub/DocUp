@@ -11,7 +11,7 @@ async function run() {
 
         const result = await User.updateMany(
             {},
-            { $set: { saved_profiles:[] } }
+            { $set: { notifications:[] } }
         );
 
         console.log("Update result:", result);

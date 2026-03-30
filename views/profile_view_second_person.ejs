@@ -66,7 +66,70 @@ return name.trim().charAt(0).toUpperCase();
             <span id="docscore-value" style="color:white"><%= p_data.Doc_score %></span>
             <img style="height:20px;" src="/fire.png" alt="">
         </p>
+        <div class="notification-wrap">
+            <div class="notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
 
+                <% const unreadCount = (p_data.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notification-badge">
+                <%= unreadCount > 9 ? "9+" : unreadCount %>
+            </span>
+                <% } %>
+            </div>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <span>Notifications</span>
+                    <% if (p_data.notifications && p_data.notifications.length > 0) { %>
+                    <a style="font-size: 0.82rem;font-family: Saira, sans-serif" href="/notifications" class="notification-view-all">View all</a>
+                    <% } %>
+                </div>
+
+                <div class="notification-list">
+                    <% if (p_data.notifications && data.notifications.length > 0) { %>
+                    <% p_data.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="notification-item-top">
+                            <div class="notification-item-top-left">
+                                <span class="notification-dot"></span>
+                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
+                            </div>
+
+                            <span class="notification-meta">
+            <%= item.createdAt
+                ? new Date(item.createdAt).toLocaleString("en-IN", {
+                    dateStyle: "medium",
+                    timeStyle: "short"
+                })
+                : "Just now" %>
+        </span>
+                        </div>
+
+                        <div class="notification-content">
+                            <%= item.content %>
+                        </div>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="notification-empty">
+                        No notifications yet.
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
         <div class="profile-btn">
             <% if (data.avatar_img_path) { %>
             <img src="<%= p_data.avatar_img_path %>" alt="avatar">

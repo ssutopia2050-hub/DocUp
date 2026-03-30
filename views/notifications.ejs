@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DocUp | Notifications</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:'Archivo Black', sans-serif;
+            user-select:none;
+        }
+
+        body{
+            background:#001219;
+            min-height:100vh;
+            display:flex;
+            flex-direction:column;
+            color:white;
+        }
+
+        .topbar{
+            width:100%;
+            height:100px;
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding-left:2%;
+            padding-right:3%;
+            position:sticky;
+            top:0;
+            z-index:1000;
+            backdrop-filter:blur(10px);
+            -webkit-backdrop-filter:blur(10px);
+            background-color:rgba(0,18,25,0.45);
+        }
+
+        .logo-text-container{
+            font-size:3.5rem;
+            color:white;
+        }
+
+        .pg-links{
+            display:flex;
+            align-items:center;
+            gap:18px;
+        }
+
+        .pg-links a{
+            text-decoration:none;
+            color:white;
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-family:'Saira', sans-serif;
+        }
+
+        .pg-links a:hover{
+            color:#ffb07c;
+        }
+
+        .profile-btn{
+            width:44px;
+            height:44px;
+            border-radius:50%;
+            overflow:hidden;
+            flex-shrink:0;
+            color:white;
+            font-size:1.2rem;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:1.5px solid rgba(255,94,0,0.35);
+            background:linear-gradient(135deg, #ff5e00, #ff9b45);
+            box-shadow:0 4px 14px rgba(255,94,0,0.22);
+        }
+
+        .profile-btn img{
+            width:100%;
+            height:100%;
+            object-fit:cover;
+            border-radius:50%;
+        }
+
+        .notifications-page{
+            width:100%;
+            max-width:980px;
+            margin:34px auto;
+            padding:0 20px 40px 20px;
+            display:flex;
+            flex-direction:column;
+            gap:20px;
+        }
+
+        .page-hero{
+            border:1px solid rgba(255,255,255,0.08);
+            background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+            border-radius:28px;
+            padding:28px 28px 24px 28px;
+            backdrop-filter:blur(10px);
+        }
+
+        .page-kicker{
+            font-family:'Saira', sans-serif;
+            text-transform:uppercase;
+            letter-spacing:1.5px;
+            font-size:0.82rem;
+            color:rgba(255,94,0,0.88);
+            margin-bottom:10px;
+        }
+
+        .page-hero h1{
+            font-size:2rem;
+            color:white;
+            margin-bottom:10px;
+        }
+
+        .page-subtext{
+            font-family:'Saira', sans-serif;
+            color:rgba(255,255,255,0.58);
+            line-height:1.7;
+        }
+
+        .notifications-shell{
+            border:1px solid rgba(255,255,255,0.08);
+            background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+            border-radius:28px;
+            padding:18px;
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+            backdrop-filter:blur(10px);
+        }
+
+        .notifications-topbar{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:14px;
+            padding:4px 6px 10px 6px;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        }
+
+        .notifications-topbar h2{
+            font-size:1.1rem;
+            color:white;
+        }
+
+        .notifications-count{
+            font-family:'Saira', sans-serif;
+            font-size:0.82rem;
+            color:#ffb07c;
+            padding:8px 12px;
+            border-radius:999px;
+            border:1px solid rgba(255,110,45,0.16);
+            background:rgba(255,110,45,0.08);
+        }
+
+        .notification-list{
+            display:flex;
+            flex-direction:column;
+            gap:14px;
+        }
+
+        .notification-card{
+            border-radius:20px;
+            border:1px solid rgba(255,255,255,0.06);
+            background:
+                    radial-gradient(circle at top right, rgba(255,94,0,0.10), transparent 35%),
+                    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+            padding:18px 18px 16px 18px;
+            transition:transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .notification-card:hover{
+            transform:translateY(-2px);
+            border-color:rgba(255,110,45,0.18);
+            box-shadow:0 14px 28px rgba(0,0,0,0.18);
+        }
+
+        .notification-card.unread{
+            border-color:rgba(255,110,45,0.22);
+            box-shadow:0 0 0 1px rgba(255,110,45,0.05) inset;
+        }
+
+        .notification-meta-row{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:14px;
+            margin-bottom:12px;
+        }
+
+        .notification-meta-left{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            min-width:0;
+        }
+
+        .notification-dot{
+            width:10px;
+            height:10px;
+            min-width:10px;
+            border-radius:50%;
+            background:linear-gradient(135deg, #ff5e00, #ff9b45);
+            box-shadow:0 0 14px rgba(255,94,0,0.45);
+        }
+
+        .notification-card:not(.unread) .notification-dot{
+            opacity:0.22;
+            box-shadow:none;
+        }
+
+        .notification-state{
+            font-family:'Saira', sans-serif;
+            font-size:0.76rem;
+            text-transform:uppercase;
+            letter-spacing:1px;
+            color:rgba(255,145,92,0.82);
+        }
+
+        .notification-time{
+            font-family:'Saira', sans-serif;
+            font-size:0.78rem;
+            color:rgba(255,255,255,0.45);
+            white-space:nowrap;
+        }
+
+        .notification-content{
+            font-family:'Saira', sans-serif;
+            font-size:0.96rem;
+            line-height:1.75;
+            color:rgba(255,255,255,0.88);
+            word-break:break-word;
+        }
+
+        .notification-content strong{
+            color:white;
+            font-weight:600;
+            font-family:'Saira', sans-serif;
+        }
+
+        .empty-state{
+            min-height:260px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:14px;
+            text-align:center;
+            border:1px dashed rgba(255,255,255,0.08);
+            border-radius:22px;
+            background:rgba(255,255,255,0.02);
+            padding:30px;
+        }
+
+        .empty-state p{
+            font-family:'Saira', sans-serif;
+            color:rgba(255,255,255,0.52);
+            line-height:1.7;
+            max-width:420px;
+        }
+
+        .empty-btn{
+            text-decoration:none;
+            color:#ffd1bb;
+            font-family:'Saira', sans-serif;
+            padding:10px 18px;
+            border-radius:999px;
+            border:1px solid rgba(255,110,45,0.16);
+            background-color:rgba(255,110,45,0.08);
+            transition:0.25s ease;
+        }
+
+        .empty-btn:hover{
+            color:white;
+            background-color:rgba(255,110,45,0.14);
+            border-color:rgba(255,110,45,0.26);
+        }
+
+        @media (max-width: 768px){
+            .logo-text-container{
+                font-size:2.3rem;
+            }
+
+            .page-hero h1{
+                font-size:1.55rem;
+            }
+
+            .notifications-page{
+                margin:22px auto;
+            }
+
+            .notification-meta-row{
+                flex-direction:column;
+                align-items:flex-start;
+            }
+
+            .notification-time{
+                white-space:normal;
+            }
+        }
+        /* ===== PROFILE DROPDOWN ===== */
+        .profile-btn-dropdown {
+            position: fixed;
+            z-index: 9999;
+            top: 80px;
+            right: 2.2vw;
+            width: 220px;
+            padding: 8px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(6, 14, 20, 0.92);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            box-shadow:
+                    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+                    0 20px 48px rgba(0, 0, 0, 0.6),
+                    0 4px 16px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transform: translateY(-6px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+        .profile-btn-dropdown.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .profile-btn-dropdown::before {
+            content: "";
+            position: absolute;
+            top: -5px;
+            right: 18px;
+            width: 10px;
+            height: 10px;
+            transform: rotate(45deg);
+            background: rgba(6, 14, 20, 0.92);
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            border-left: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        /* Override the messy inline styles on the Profile link */
+        .profile-btn-dropdown a:first-child {
+            border-bottom: none !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            padding-bottom: 0 !important;
+        }
+        .profile-btn-dropdown a {
+            width: 100%;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+            padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            color: rgba(255, 255, 255, 0.68);
+            text-decoration: none;
+            font-family: 'Saira', sans-serif;
+            font-size: 0.9rem;
+            letter-spacing: 0.2px;
+            background: transparent;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+            box-sizing: border-box;
+        }
+        .profile-btn-dropdown a::before {
+            font-size: 15px;
+            flex-shrink: 0;
+            opacity: 0.55;
+            transition: opacity 0.15s ease;
+        }
+        .profile-btn-dropdown a[href="/profile"]::before {
+            content: "◎";
+        }
+        .profile-btn-dropdown a[href="/pricing"]::before {
+            content: "⚡";
+        }
+        .profile-btn-dropdown a::after {
+            content: none;
+        }
+        .profile-btn-dropdown a:hover {
+            color: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        .profile-btn-dropdown a:hover::before {
+            opacity: 1;
+        }
+        .profile-btn-dropdown .dropdown-divider {
+            width: calc(100% - 16px);
+            height: 1px;
+            margin: 2px 8px;
+            background: rgba(255, 255, 255, 0.07);
+        }
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div class="logo-text-container">DocUp</div>
+
+    <div class="pg-links">
+        <a href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+
+        <a href="/uploads">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+            </svg>
+            <span>Uploads</span>
+        </a>
+
+        <a href="/profile" class="profile-btn">
+            <% if (user.avatar_img_path) { %>
+            <img src="<%= user.avatar_img_path %>" alt="avatar">
+            <% } else { %>
+            <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </a>
+    </div>
+</div>
+<div class="profile-btn-dropdown">
+    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+    <a href="/pricing">Recharge DocScore</a>
+</div>
+
+<%
+const unreadCount = notifications.filter(n => !n.isRead).length;
+%>
+
+<main class="notifications-page">
+    <section class="page-hero">
+        <p class="page-kicker">DocUp Alerts</p>
+        <h1>Your Notifications</h1>
+        <p class="page-subtext">
+            Stay updated with replies, activity, and important account events across DocUp.
+        </p>
+    </section>
+
+    <section class="notifications-shell">
+        <div class="notifications-topbar">
+            <h2>Recent Activity</h2>
+            <div class="notifications-count">
+                <%= unreadCount %> unread • <%= notifications.length %> total
+            </div>
+        </div>
+
+        <% if (notifications.length > 0) { %>
+        <div class="notification-list">
+            <% notifications.forEach((item) => { %>
+            <div class="notification-card <%= item.isRead ? '' : 'unread' %>">
+                <div class="notification-meta-row">
+                    <div class="notification-meta-left">
+                        <span class="notification-dot"></span>
+                        <span class="notification-state"><%= item.isRead ? "Seen" : "New" %></span>
+                    </div>
+
+                    <span class="notification-time">
+                                <%= item.createdAt
+                                    ? new Date(item.createdAt).toLocaleString("en-IN", {
+                                        dateStyle: "medium",
+                                        timeStyle: "short"
+                                    })
+                                    : "Just now" %>
+                            </span>
+                </div>
+
+                <div class="notification-content">
+                    <%= item.content %>
+                </div>
+            </div>
+            <% }) %>
+        </div>
+        <% } else { %>
+        <div class="empty-state">
+            <p>You do not have any notifications yet.</p>
+            <a href="/dashboard" class="empty-btn">Go to Dashboard</a>
+        </div>
+        <% } %>
+    </section>
+</main>
+</body>
+<script src="/dashboard2.js"></script>
+</html>

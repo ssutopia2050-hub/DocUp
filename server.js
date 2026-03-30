@@ -1026,9 +1026,9 @@ app.get("/college/:collegeName", async (req, res) => {
             }
         };
 
-        console.log("requested college:", collegeName);
-        console.log("matched college row:", collegeData);
-        console.log("docs found:", docs.length);
+        // console.log("requested college:", collegeName);
+        // console.log("matched college row:", collegeData);
+        // console.log("docs found:", docs.length);
         const user_data = await user_profile.findOne({email:req.session.email});
         const allBranches = [...new Set(
             docs
@@ -1356,12 +1356,23 @@ function escapeRegex(str) {
 
 app.get("/view/:id", async (req, res) => {
     try {
+        if (!req.session.email) {
+            return res.redirect("/signin");
+        }
 
-        const document = await Docs.findById(req.params.id)
-            .populate({
-                path: "comment_section.user_id",
-                select: "name avatar_img_path email"
-            });
+        res.set({
+            "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+            "Surrogate-Control": "no-store"
+        });
+
+        const docId = req.params.id;
+
+        const document = await Docs.findById(docId).populate({
+            path: "comment_section.user_id",
+            select: "name avatar_img_path email"
+        });
 
         if (!document) {
             return res.status(404).render("404");
@@ -1385,9 +1396,10 @@ app.get("/view/:id", async (req, res) => {
                 msg
             });
         }
+
         await user_profile.findOneAndUpdate(
             { email: req.session.email },
-            { $pull: { doc_view_history: req.params.id } }
+            { $pull: { doc_view_history: docId } }
         );
 
         await user_profile.findOneAndUpdate(
@@ -1395,7 +1407,7 @@ app.get("/view/:id", async (req, res) => {
             {
                 $push: {
                     doc_view_history: {
-                        $each: [req.params.id],
+                        $each: [docId],
                         $position: 0,
                         $slice: 10
                     }
@@ -1407,6 +1419,8 @@ app.get("/view/:id", async (req, res) => {
             { email: req.session.email },
             { $inc: { Doc_score: -1 } }
         );
+
+        user_data.Doc_score = Math.max(0, (user_data.Doc_score || 0) - 1);
 
         const collegeName = (document.college || "").trim();
         const safeCollegeName = escapeRegex(collegeName);
@@ -1603,13 +1617,56 @@ app.post("/add_comment/:id", async (req, res) => {
             });
         }
 
-        const currentUser = await user_profile.findOne({ email: userEmail }).select("_id");
+        const cleanComment = comment.trim();
+
+        const currentUser = await user_profile.findOne({ email: userEmail }).select("_id name email");
 
         if (!currentUser) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
             });
+        }
+        const docData = await Docs.findById(docId)
+        const docData_college = await Docs.findById(docId).select("college");
+        const docData_subject = await Docs.findById(docId).select("branch");
+        const docData_chapter = await Docs.findById(docId).select("chapter");
+
+        if (!docData) {
+            return res.status(404).json({
+                success: false,
+                message: "Document not found"
+            });
+        }
+
+        // Reply format expected:
+        // @$someone@email.com# : actual reply text
+        if (cleanComment.startsWith("@$")) {
+            const hashIndex = cleanComment.indexOf("#");
+            const colonIndex = cleanComment.indexOf(":");
+
+            if (hashIndex !== -1 && colonIndex !== -1 && hashIndex < colonIndex) {
+                const replyToEmail = cleanComment.slice(2, hashIndex).trim();
+                const replyMessage = cleanComment.slice(colonIndex + 1).trim();
+
+                if (replyToEmail && replyToEmail !== currentUser.email) {
+                    const replyToData = await user_profile.findOne({ email: replyToEmail }).select("email name");
+
+                    if (replyToData) {
+                        await user_profile.updateOne(
+                            { email: replyToEmail },
+                            {
+                                $push: {
+                                    notifications: {
+                                        email: currentUser.email,
+                                        content: `${currentUser.name} replied to your comment on "${docData.chapter}" (${docData.subject}) — "${replyMessage}"`
+                                    }
+                                }
+                            }
+                        );
+                    }
+                }
+            }
         }
 
         const updatedDoc = await Docs.findByIdAndUpdate(
@@ -1618,19 +1675,12 @@ app.post("/add_comment/:id", async (req, res) => {
                 $push: {
                     comment_section: {
                         user_id: currentUser._id,
-                        comment: comment.trim()
+                        comment: cleanComment
                     }
                 }
             },
             { new: true }
         );
-
-        if (!updatedDoc) {
-            return res.status(404).json({
-                success: false,
-                message: "Document not found"
-            });
-        }
 
         return res.json({
             success: true,
@@ -2062,4 +2112,46 @@ app.get("/save_profile/:email", async (req, res) => {
     );
 
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
+});
+
+
+/* ***************************
+   notification
+ ****************************/
+app.get("/notifications", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.redirect("/signin");
+        }
+
+        const user = await user_profile.findOne({ email: req.session.email });
+
+        if (!user) {
+            return res.redirect("/signin");
+        }
+
+        if (Array.isArray(user.notifications) && user.notifications.length > 0) {
+            user.notifications.forEach((notification) => {
+                notification.isRead = true;
+            });
+
+            await user.save();
+        }
+
+        const notifications = Array.isArray(user.notifications)
+            ? user.notifications.slice().sort((a, b) => {
+                const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                return bTime - aTime;
+            })
+            : [];
+
+        res.render("notifications", {
+            user,
+            notifications
+        });
+    } catch (err) {
+        console.log("Notifications page error:", err);
+        res.status(500).send("Server Error");
+    }
 });
