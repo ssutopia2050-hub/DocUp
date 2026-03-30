@@ -5,6 +5,7 @@
     <title>DocUp | Notifications</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
@@ -16,7 +17,6 @@
             margin:0;
             padding:0;
             box-sizing:border-box;
-            font-family:'Archivo Black', sans-serif;
             user-select:none;
         }
 
@@ -26,6 +26,7 @@
             display:flex;
             flex-direction:column;
             color:white;
+            font-family:'Saira', sans-serif;
         }
 
         .topbar{
@@ -46,6 +47,7 @@
         }
 
         .logo-text-container{
+            font-family:'Archivo Black', sans-serif;
             font-size:3.5rem;
             color:white;
         }
@@ -62,11 +64,26 @@
             display:flex;
             align-items:center;
             gap:8px;
-            font-family:'Saira', sans-serif;
+            font-family:'Archivo Black', sans-serif;
         }
 
         .pg-links a:hover{
             color:#ffb07c;
+        }
+
+        .docscore-pill{
+            border:1px solid orangered;
+            padding:15px 25px;
+            border-radius:30px;
+            display:flex;
+            gap:10px;
+            align-items:center;
+            white-space:nowrap;
+            cursor:crosshair;
+        }
+
+        .docscore-pill span{
+            font-family:'Archivo Black', sans-serif;
         }
 
         .profile-btn{
@@ -83,6 +100,7 @@
             border:1.5px solid rgba(255,94,0,0.35);
             background:linear-gradient(135deg, #ff5e00, #ff9b45);
             box-shadow:0 4px 14px rgba(255,94,0,0.22);
+            cursor:pointer;
         }
 
         .profile-btn img{
@@ -90,6 +108,372 @@
             height:100%;
             object-fit:cover;
             border-radius:50%;
+        }
+
+        .profile-btn-dropdown{
+            position:fixed;
+            z-index:9999;
+            top:80px;
+            right:2.2vw;
+            width:220px;
+            padding:8px;
+            display:none;
+            flex-direction:column;
+            gap:4px;
+            border-radius:16px;
+            border:1px solid rgba(255,255,255,0.07);
+            background:rgba(6,14,20,0.92);
+            backdrop-filter:blur(32px);
+            -webkit-backdrop-filter:blur(32px);
+            box-shadow:
+                    0 0 0 1px rgba(255,255,255,0.04) inset,
+                    0 20px 48px rgba(0,0,0,0.6),
+                    0 4px 16px rgba(0,0,0,0.4);
+            opacity:0;
+            transform:translateY(-6px) scale(0.98);
+            pointer-events:none;
+            transition:opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .profile-btn-dropdown.active{
+            display:flex;
+            opacity:1;
+            transform:translateY(0) scale(1);
+            pointer-events:auto;
+        }
+
+        .profile-btn-dropdown::before{
+            content:"";
+            position:absolute;
+            top:-5px;
+            right:18px;
+            width:10px;
+            height:10px;
+            transform:rotate(45deg);
+            background:rgba(6,14,20,0.92);
+            border-top:1px solid rgba(255,255,255,0.07);
+            border-left:1px solid rgba(255,255,255,0.07);
+        }
+
+        .profile-btn-dropdown a:first-child{
+            border-bottom:none !important;
+            width:100% !important;
+            display:flex !important;
+            justify-content:flex-start !important;
+            align-items:center !important;
+            padding-bottom:0 !important;
+        }
+
+        .profile-btn-dropdown a{
+            width:100%;
+            min-height:44px;
+            display:flex;
+            align-items:center;
+            justify-content:flex-start;
+            gap:10px;
+            padding:0 12px;
+            border-radius:10px;
+            border:1px solid transparent;
+            color:rgba(255,255,255,0.68);
+            text-decoration:none;
+            font-family:'Saira', sans-serif;
+            font-size:0.9rem;
+            letter-spacing:0.2px;
+            background:transparent;
+            transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+            box-sizing:border-box;
+        }
+
+        .profile-btn-dropdown a::before{
+            font-size:15px;
+            flex-shrink:0;
+            opacity:0.55;
+            transition:opacity 0.15s ease;
+        }
+
+        .profile-btn-dropdown a[href="/profile"]::before{
+            content:"◎";
+        }
+
+        .profile-btn-dropdown a[href="/pricing"]::before{
+            content:"⚡";
+        }
+
+        .profile-btn-dropdown a:hover{
+            color:rgba(255,255,255,0.95);
+            background:rgba(255,255,255,0.06);
+            border-color:rgba(255,255,255,0.06);
+        }
+
+        .profile-btn-dropdown a:hover::before{
+            opacity:1;
+        }
+
+        .notification-wrap{
+            position:relative;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:44px;
+            height:44px;
+            flex-shrink:0;
+        }
+
+        .notification-btn{
+            width:44px;
+            height:44px;
+            min-width:44px;
+            min-height:44px;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            position:relative;
+            flex-shrink:0;
+            color:#ffe2d1;
+            border:1.5px solid rgba(255,94,0,0.28);
+            background:
+                    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+                    rgba(255,94,0,0.08);
+            box-shadow:0 4px 14px rgba(255,94,0,0.14);
+            transition:
+                    transform 0.2s ease,
+                    box-shadow 0.2s ease,
+                    border-color 0.2s ease,
+                    background 0.2s ease,
+                    color 0.2s ease;
+        }
+
+        .notification-btn:hover{
+            transform:translateY(-1px);
+            color:white;
+            border-color:rgba(255,140,60,0.5);
+            background:
+                    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+                    rgba(255,94,0,0.12);
+            box-shadow:0 8px 22px rgba(255,94,0,0.22);
+        }
+
+        .notification-btn svg{
+            width:21px;
+            height:21px;
+            display:block;
+            stroke:#ffe2d1;
+            fill:none;
+            pointer-events:none;
+        }
+
+        .notification-btn:hover svg{
+            stroke:white;
+        }
+
+        .notification-badge{
+            position:absolute;
+            top:-4px;
+            right:-2px;
+            min-width:19px;
+            height:19px;
+            padding:0 5px;
+            border-radius:999px;
+            background:linear-gradient(135deg, #ff5e00, #ff8c42);
+            color:white;
+            font-family:'Saira', sans-serif;
+            font-size:0.7rem;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border:2px solid #001219;
+            box-shadow:0 6px 14px rgba(255,94,0,0.28);
+        }
+
+        .notification-dropdown{
+            position:absolute;
+            top:calc(100% + 12px);
+            right:0;
+            width:370px;
+            max-height:460px;
+            padding:10px;
+            display:none;
+            flex-direction:column;
+            gap:8px;
+            border-radius:22px;
+            border:1px solid rgba(255,255,255,0.08);
+            background:linear-gradient(180deg, rgba(10,18,24,0.96), rgba(5,11,16,0.94));
+            backdrop-filter:blur(28px);
+            -webkit-backdrop-filter:blur(28px);
+            box-shadow:
+                    0 18px 50px rgba(0,0,0,0.58),
+                    0 0 0 1px rgba(255,255,255,0.03) inset;
+            opacity:0;
+            transform:translateY(-8px) scale(0.985);
+            pointer-events:none;
+            transition:opacity 0.18s ease, transform 0.18s ease;
+            z-index:9999;
+        }
+
+        .notification-dropdown.active{
+            display:flex;
+            opacity:1;
+            transform:translateY(0) scale(1);
+            pointer-events:auto;
+        }
+
+        .notification-dropdown::before{
+            content:"";
+            position:absolute;
+            top:-6px;
+            right:16px;
+            width:12px;
+            height:12px;
+            transform:rotate(45deg);
+            background:rgba(9,16,22,0.96);
+            border-top:1px solid rgba(255,255,255,0.08);
+            border-left:1px solid rgba(255,255,255,0.08);
+        }
+
+        .notification-dropdown-header{
+            width:100%;
+            min-height:50px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:4px 8px 10px 8px;
+            border-bottom:1px solid rgba(255,255,255,0.06);
+        }
+
+        .notification-dropdown-header span{
+            color:white;
+            font-size:1rem;
+            letter-spacing:0.2px;
+            font-family:'Archivo Black', sans-serif;
+        }
+
+        .notification-view-all{
+            color:#ff9b66;
+            font-family:'Saira', sans-serif;
+            font-size:0.82rem;
+            padding:6px 10px;
+            border-radius:999px;
+            background:rgba(255,94,0,0.08);
+            border:1px solid rgba(255,94,0,0.12);
+            transition:0.2s ease;
+        }
+
+        .notification-view-all:hover{
+            color:white;
+            background:rgba(255,94,0,0.14);
+            border-color:rgba(255,94,0,0.22);
+        }
+
+        .notification-list{
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            max-height:378px;
+            overflow-y:auto;
+            padding:4px 2px 2px 2px;
+        }
+
+        .notification-list::-webkit-scrollbar{
+            width:7px;
+        }
+
+        .notification-list::-webkit-scrollbar-track{
+            background:transparent;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb{
+            background:rgba(255,94,0,0.24);
+            border-radius:999px;
+        }
+
+        .notification-item{
+            width:100%;
+            display:flex;
+            flex-direction:column;
+            gap:10px;
+            padding:14px 14px 13px 14px;
+            border-radius:16px;
+            border:1px solid rgba(255,255,255,0.05);
+            background:
+                    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+            transition:
+                    transform 0.18s ease,
+                    border-color 0.18s ease,
+                    background 0.18s ease,
+                    box-shadow 0.18s ease;
+        }
+
+        .notification-item:hover{
+            transform:translateY(-2px);
+            border-color:rgba(255,118,55,0.16);
+            background:
+                    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.024));
+            box-shadow:0 10px 24px rgba(0,0,0,0.2);
+        }
+
+        .notification-item.unread{
+            border-color:rgba(255,110,45,0.16);
+            background:
+                    radial-gradient(circle at top right, rgba(255,94,0,0.12), transparent 42%),
+                    linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.022));
+        }
+
+        .notification-item-top{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+        }
+
+        .notification-item-top-left{
+            display:flex;
+            align-items:center;
+            gap:9px;
+            min-width:0;
+        }
+
+        .notification-dot{
+            width:9px;
+            height:9px;
+            min-width:9px;
+            border-radius:50%;
+            background:linear-gradient(135deg, #ff5e00, #ff9b45);
+            box-shadow:0 0 14px rgba(255,94,0,0.5);
+        }
+
+        .notification-item:not(.unread) .notification-dot{
+            opacity:0.18;
+            box-shadow:none;
+        }
+
+        .notification-label{
+            font-family:'Saira', sans-serif;
+            font-size:0.76rem;
+            letter-spacing:0.8px;
+            text-transform:uppercase;
+            color:rgba(255,150,110,0.8);
+        }
+
+        .notification-meta{
+            font-family:'Saira', sans-serif;
+            font-size:0.73rem;
+            color:rgba(255,255,255,0.42);
+            white-space:nowrap;
+        }
+
+        .notification-content{
+            font-family:'Saira', sans-serif;
+            font-size:0.93rem;
+            line-height:1.6;
+            color:rgba(255,255,255,0.88);
+            word-break:break-word;
+        }
+
+        .notification-content strong{
+            color:white;
+            font-weight:600;
         }
 
         .notifications-page{
@@ -120,6 +504,7 @@
         }
 
         .page-hero h1{
+            font-family:'Archivo Black', sans-serif;
             font-size:2rem;
             color:white;
             margin-bottom:10px;
@@ -152,6 +537,7 @@
         }
 
         .notifications-topbar h2{
+            font-family:'Archivo Black', sans-serif;
             font-size:1.1rem;
             color:white;
         }
@@ -164,12 +550,6 @@
             border-radius:999px;
             border:1px solid rgba(255,110,45,0.16);
             background:rgba(255,110,45,0.08);
-        }
-
-        .notification-list{
-            display:flex;
-            flex-direction:column;
-            gap:14px;
         }
 
         .notification-card{
@@ -208,20 +588,6 @@
             min-width:0;
         }
 
-        .notification-dot{
-            width:10px;
-            height:10px;
-            min-width:10px;
-            border-radius:50%;
-            background:linear-gradient(135deg, #ff5e00, #ff9b45);
-            box-shadow:0 0 14px rgba(255,94,0,0.45);
-        }
-
-        .notification-card:not(.unread) .notification-dot{
-            opacity:0.22;
-            box-shadow:none;
-        }
-
         .notification-state{
             font-family:'Saira', sans-serif;
             font-size:0.76rem;
@@ -235,20 +601,6 @@
             font-size:0.78rem;
             color:rgba(255,255,255,0.45);
             white-space:nowrap;
-        }
-
-        .notification-content{
-            font-family:'Saira', sans-serif;
-            font-size:0.96rem;
-            line-height:1.75;
-            color:rgba(255,255,255,0.88);
-            word-break:break-word;
-        }
-
-        .notification-content strong{
-            color:white;
-            font-weight:600;
-            font-family:'Saira', sans-serif;
         }
 
         .empty-state{
@@ -310,112 +662,27 @@
             .notification-time{
                 white-space:normal;
             }
-        }
-        /* ===== PROFILE DROPDOWN ===== */
-        .profile-btn-dropdown {
-            position: fixed;
-            z-index: 9999;
-            top: 80px;
-            right: 2.2vw;
-            width: 220px;
-            padding: 8px;
-            display: none;
-            flex-direction: column;
-            gap: 4px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            background: rgba(6, 14, 20, 0.92);
-            backdrop-filter: blur(32px);
-            -webkit-backdrop-filter: blur(32px);
-            box-shadow:
-                    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-                    0 20px 48px rgba(0, 0, 0, 0.6),
-                    0 4px 16px rgba(0, 0, 0, 0.4);
-            opacity: 0;
-            transform: translateY(-6px) scale(0.98);
-            pointer-events: none;
-            transition: opacity 0.16s ease, transform 0.16s ease;
-        }
-        .profile-btn-dropdown.active {
-            display: flex;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            pointer-events: auto;
-        }
-        .profile-btn-dropdown::before {
-            content: "";
-            position: absolute;
-            top: -5px;
-            right: 18px;
-            width: 10px;
-            height: 10px;
-            transform: rotate(45deg);
-            background: rgba(6, 14, 20, 0.92);
-            border-top: 1px solid rgba(255, 255, 255, 0.07);
-            border-left: 1px solid rgba(255, 255, 255, 0.07);
-        }
-        /* Override the messy inline styles on the Profile link */
-        .profile-btn-dropdown a:first-child {
-            border-bottom: none !important;
-            width: 100% !important;
-            display: flex !important;
-            justify-content: flex-start !important;
-            align-items: center !important;
-            padding-bottom: 0 !important;
-        }
-        .profile-btn-dropdown a {
-            width: 100%;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            padding: 0 12px;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            color: rgba(255, 255, 255, 0.68);
-            text-decoration: none;
-            font-family: 'Saira', sans-serif;
-            font-size: 0.9rem;
-            letter-spacing: 0.2px;
-            background: transparent;
-            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-            box-sizing: border-box;
-        }
-        .profile-btn-dropdown a::before {
-            font-size: 15px;
-            flex-shrink: 0;
-            opacity: 0.55;
-            transition: opacity 0.15s ease;
-        }
-        .profile-btn-dropdown a[href="/profile"]::before {
-            content: "◎";
-        }
-        .profile-btn-dropdown a[href="/pricing"]::before {
-            content: "⚡";
-        }
-        .profile-btn-dropdown a::after {
-            content: none;
-        }
-        .profile-btn-dropdown a:hover {
-            color: rgba(255, 255, 255, 0.95);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.06);
-        }
-        .profile-btn-dropdown a:hover::before {
-            opacity: 1;
-        }
-        .profile-btn-dropdown .dropdown-divider {
-            width: calc(100% - 16px);
-            height: 1px;
-            margin: 2px 8px;
-            background: rgba(255, 255, 255, 0.07);
+
+            .profile-btn-dropdown{
+                right:14px;
+                top:72px;
+                width:calc(100vw - 28px);
+                max-width:260px;
+            }
         }
     </style>
 </head>
 <body>
+
+<%
+const dropdownUnreadCount = (user.notifications || []).filter(n => !n.isRead).length;
+const pageUnreadCount = (notifications || []).filter(n => !n.isRead).length;
+%>
+
 <div class="topbar">
-    <div class="logo-text-container">DocUp</div>
+    <div class="logo-text-container">
+        DocUp
+    </div>
 
     <div class="pg-links">
         <a href="/dashboard">
@@ -425,30 +692,97 @@
             <span>FindDocs</span>
         </a>
 
+        <div class="docscore-pill">
+            <span style="color:orangered">DocScore :</span>
+            <span style="color:white"><%= user.Doc_score %></span>
+            <img style="height:20px;" src="/fire.png" alt="">
+        </div>
+
         <a href="/uploads">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
             </svg>
-            <span>Uploads</span>
+            Uploads
         </a>
 
-        <a href="/profile" class="profile-btn">
+        <div class="notification-wrap">
+            <div class="notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
+                          stroke="currentColor"
+                          stroke-width="1.7"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+
+                <% if (dropdownUnreadCount > 0) { %>
+                <span class="notification-badge">
+                        <%= dropdownUnreadCount > 9 ? "9+" : dropdownUnreadCount %>
+                    </span>
+                <% } %>
+            </div>
+
+            <div class="notification-dropdown">
+                <div class="notification-dropdown-header">
+                    <span>Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="notification-view-all">View all</a>
+                    <% } %>
+                </div>
+
+                <div class="notification-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="notification-item-top">
+                            <div class="notification-item-top-left">
+                                <span class="notification-dot"></span>
+                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
+                            </div>
+
+                            <span class="notification-meta">
+                                        <%= item.createdAt
+                                            ? new Date(item.createdAt).toLocaleString("en-IN", {
+                                                dateStyle: "medium",
+                                                timeStyle: "short"
+                                            })
+                                            : "Just now" %>
+                                    </span>
+                        </div>
+
+                        <div class="notification-content">
+                            <%= item.content %>
+                        </div>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="notification-empty">
+                        No notifications yet.
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-btn">
             <% if (user.avatar_img_path) { %>
-            <img src="<%= user.avatar_img_path %>" alt="avatar">
+            <img src="<%= user.avatar_img_path %>" alt="">
             <% } else { %>
             <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
             <% } %>
-        </a>
+        </div>
     </div>
 </div>
+
 <div class="profile-btn-dropdown">
-    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+    <a href="/profile">Profile</a>
     <a href="/pricing">Recharge DocScore</a>
 </div>
-
-<%
-const unreadCount = notifications.filter(n => !n.isRead).length;
-%>
 
 <main class="notifications-page">
     <section class="page-hero">
@@ -463,7 +797,7 @@ const unreadCount = notifications.filter(n => !n.isRead).length;
         <div class="notifications-topbar">
             <h2>Recent Activity</h2>
             <div class="notifications-count">
-                <%= unreadCount %> unread • <%= notifications.length %> total
+                <%= pageUnreadCount %> unread • <%= notifications.length %> total
             </div>
         </div>
 
@@ -501,6 +835,7 @@ const unreadCount = notifications.filter(n => !n.isRead).length;
         <% } %>
     </section>
 </main>
-</body>
+
 <script src="/dashboard2.js"></script>
+</body>
 </html>
