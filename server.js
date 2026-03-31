@@ -514,24 +514,24 @@ app.post('/signin', async (req, res) => {
 
     if (password === user.password) {
         req.session.email = normalizedEmail;
-        const parser = new UAParser(req.headers["user-agent"]);
-        const result = parser.getResult();
-
-        const deviceName = result.device.type || "desktop";
-        const osName = result.os.name || "Unknown OS";
-        await user_profile.updateOne(
-            { email: req.session.email },
-            {
-                $push: {
-                    notifications: {
-                        email: req.session.email,
-                        content: `A login was detected on ${deviceName} using ${osName} operating system.`,
-                        isRead: false,
-                        createdAt: new Date()
-                    }
-                }
-            }
-        );
+        // const parser = new UAParser(req.headers["user-agent"]);
+        // const result = parser.getResult();
+        //
+        // const deviceName = result.device.type || "desktop";
+        // const osName = result.os.name || "Unknown OS";
+        // await user_profile.updateOne(
+        //     { email: req.session.email },
+        //     {
+        //         $push: {
+        //             notifications: {
+        //                 email: req.session.email,
+        //                 content: `A login was detected on ${deviceName} using ${osName} operating system.`,
+        //                 isRead: false,
+        //                 createdAt: new Date()
+        //             }
+        //         }
+        //     }
+        // );
         return res.redirect('/dashboard');
     }
 
@@ -2004,26 +2004,25 @@ app.get(
 
             // Existing user → login directly
             if (googleUser._id) {
-                const parser = new UAParser(req.headers["user-agent"]);
-                const result = parser.getResult();
-
-                const deviceName = result.device.type || "desktop";
-                const osName = result.os.name || "Unknown OS";
-
-                await user_profile.updateOne(
-                    { email: googleUser.email },
-                    {
-                        $push: {
-                            notifications: {
-                                email: googleUser.email,
-                                content: `A login was detected on ${deviceName} using ${osName} operating system.`,
-                                isRead: false,
-                                createdAt: new Date()
-                            }
-                        }
-                    }
-                );
-
+                // const parser = new UAParser(req.headers["user-agent"]);
+                // const result = parser.getResult();
+                //
+                // const deviceName = result.device.type || "desktop";
+                // const osName = result.os.name || "Unknown OS";
+                //
+                // await user_profile.updateOne(
+                //     { email: googleUser.email },
+                //     {
+                //         $push: {
+                //             notifications: {
+                //                 email: googleUser.email,
+                //                 content: `A login was detected on ${deviceName} using ${osName} operating system.`,
+                //                 isRead: false,
+                //                 createdAt: new Date()
+                //             }
+                //         }
+                //     }
+                // );
                 req.session.email = googleUser.email;
                 return res.redirect("/dashboard");
             }
