@@ -405,13 +405,13 @@ app.get("/sitemap.xml", (req, res) => {
 /******************************
            Routes
  ******************************/
-app.get('/', (req, res) => {
-    if(req.session.email){
-        res.redirect("/dashboard")
+app.get("/", (req, res) => {
+    if (req.session.email) {
+        return res.redirect("/dashboard");
     }
-    res.render('seo' , {err:null})
 
-})
+    return res.render("seo", { err: null });
+});
 /******************************
           Signup
  ******************************/
