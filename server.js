@@ -4,6 +4,7 @@ import user_profile from "./models/users.js";
 import college from "./models/college.js";
 import Docs from "./models/Docs.js";
 import LoginData from "./models/login_data.js";
+import docs_view_data from "./models/docs_view_data.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -1464,7 +1465,9 @@ app.get("/view/:id", async (req, res) => {
         if (!document.comment_section) {
             document.comment_section = [];
         }
-
+        await docs_view_data.create({
+            email: req.session.email,
+        })
         res.render("docview", {
             doc: document,
             college_data: collegeData || {},
