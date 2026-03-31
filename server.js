@@ -662,11 +662,11 @@ app.post("/forgot_password", async (req, res) => {
         password: exists.password,
         resendAllowedAt: Date.now() + 5 * 60 * 1000
     };
-    if (exists.google_auth) {
-        return res.render("forgot_password", {
-            err: { message: "This account uses Google Sign-In. Please continue with Google." }
-        });
-    }
+    // if (exists.google_auth) {
+    //     return res.render("forgot_password", {
+    //         err: { message: "This account uses Google Sign-In. Please continue with Google." }
+    //     });
+    // }
     try {
         await emailjs.send(
             process.env.EMAILJS_SERVICE_ID,
