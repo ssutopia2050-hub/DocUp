@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import user_profile from "./models/users.js";
 import college from "./models/college.js";
 import Docs from "./models/Docs.js";
+import LoginData from "./models/login_data.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -405,11 +406,13 @@ app.get("/sitemap.xml", (req, res) => {
 /******************************
            Routes
  ******************************/
-app.get("/", (req, res) => {
+app.get("/", async (req, res) => {
     if (req.session.email) {
+        await LoginData.create({
+            email: req.session.email,
+        })
         return res.redirect("/dashboard");
     }
-
     return res.render("seo", { err: null });
 });
 /******************************
@@ -1351,7 +1354,7 @@ app.post("/set_avatar", async (req, res) => {
     Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
-    res.render("privacy_policy");//TODO:make privacy_policy page
+    res.render("privacy_policy");
 });
 /******************************
  Logout
