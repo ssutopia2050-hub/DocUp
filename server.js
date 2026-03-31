@@ -20,6 +20,7 @@ import paymentOrder from "./models/paymentOrder.js";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Resend } from "resend";
+import { UAParser } from "ua-parser-js";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({dest:"uploads/"});
@@ -513,6 +514,24 @@ app.post('/signin', async (req, res) => {
 
     if (password === user.password) {
         req.session.email = normalizedEmail;
+        const parser = new UAParser(req.headers["user-agent"]);
+        const result = parser.getResult();
+
+        const deviceName = result.device.type || "desktop";
+        const osName = result.os.name || "Unknown OS";
+        await user_profile.updateOne(
+            { email: req.session.email },
+            {
+                $push: {
+                    notifications: {
+                        email: req.session.email,
+                        content: `A login was detected on ${deviceName} using ${osName} operating system.`,
+                        isRead: false,
+                        createdAt: new Date()
+                    }
+                }
+            }
+        );
         return res.redirect('/dashboard');
     }
 
@@ -1858,7 +1877,17 @@ app.post("/payment/verify", async (req, res) => {
                     payment_mode: "RAZORPAY"
                 }
             );
-
+            await user_profile.updateOne(
+                { email: req.session.email },
+                {
+                    $push: {
+                        notifications: {
+                            email: req.session.email,
+                            content: `Payment Failed for the payment id ${razorpay_payment_id} `
+                        }
+                    }
+                }
+            );
             return res.status(400).json({
                 success: false,
                 message: "Payment verification failed"
@@ -1907,6 +1936,21 @@ app.post("/payment/verify", async (req, res) => {
                         paymentId: razorpay_payment_id,
                         date: new Date()
                     });
+                    await user_profile.updateOne(
+                        { email: req.session.email },
+                        {
+                            $push: {
+                                notifications: {
+                                    email: req.session.email,
+                                    content: `Payment successful 🎉
+
+                     +${existingOrder.docscore_to_add} DocScore added.
+                     Plan: ${existingOrder.plan_label}
+                     Amount: ₹${existingOrder.amount}`
+                                }
+                            }
+                        }
+                    );
                 }
             } catch (mailErr) {
                 console.error("Recharge success email failed:", mailErr.message);
@@ -1960,6 +2004,26 @@ app.get(
 
             // Existing user → login directly
             if (googleUser._id) {
+                const parser = new UAParser(req.headers["user-agent"]);
+                const result = parser.getResult();
+
+                const deviceName = result.device.type || "desktop";
+                const osName = result.os.name || "Unknown OS";
+
+                await user_profile.updateOne(
+                    { email: googleUser.email },
+                    {
+                        $push: {
+                            notifications: {
+                                email: googleUser.email,
+                                content: `A login was detected on ${deviceName} using ${osName} operating system.`,
+                                isRead: false,
+                                createdAt: new Date()
+                            }
+                        }
+                    }
+                );
+
                 req.session.email = googleUser.email;
                 return res.redirect("/dashboard");
             }
@@ -2110,6 +2174,20 @@ app.get("/save_profile/:email", async (req, res) => {
             }
         }
     );
+    const saved_profile_user_data = await user_profile.findOne({email:req.params.email})
+    await user_profile.updateOne(
+        { email: req.session.email },
+        {
+            $push: {
+                notifications: {
+                    email: req.session.email,
+                    content: `${saved_profile_user_data.name}'s profile saved successfully for your account`
+                }
+            }
+        }
+    );
+
+
 
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });

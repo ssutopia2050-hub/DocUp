@@ -98,7 +98,7 @@ return name.trim().charAt(0).toUpperCase();
                 </div>
 
                 <div class="notification-list">
-                    <% if (p_data.notifications && data.notifications.length > 0) { %>
+                    <% if (p_data.notifications && p_data.notifications.length > 0) { %>
                     <% p_data.notifications.slice().reverse().forEach((item) => { %>
                     <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
                         <div class="notification-item-top">
