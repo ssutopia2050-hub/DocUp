@@ -406,7 +406,11 @@ app.get("/sitemap.xml", (req, res) => {
            Routes
  ******************************/
 app.get('/', (req, res) => {
+    if(req.session.email){
+        res.redirect("/dashboard")
+    }
     res.render('seo' , {err:null})
+
 })
 /******************************
           Signup
