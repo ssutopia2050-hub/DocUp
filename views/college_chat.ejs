@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DocUp | <%= collegeName %> Chat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/college_chat.css" />
+</head>
+<body>
+<div class="chat-page">
+    <div class="chat-shell">
+        <div class="chat-topbar">
+            <div class="chat-topbar-left">
+                <div class="chat-badge">DocUp Community</div>
+                <h1><%= collegeName %> Chat Room</h1>
+                <p>Connect with students from your college in real time.</p>
+            </div>
+            <a href="/" class="back-btn">Back</a>
+        </div>
+
+        <div class="chat-room-card">
+            <div class="chat-room-header">
+                <div>
+                    <span class="live-dot"></span>
+                    <span class="live-text">Live Room</span>
+                </div>
+                <div id="status-text">Connected</div>
+            </div>
+
+            <div id="chat-messages" class="chat-messages">
+                <% oldMessages.forEach(msg => { %>
+                <div class="message-row <%= msg.sender_email === currentUser.email ? 'mine' : 'other' %>">
+                    <div class="message-bubble">
+                        <div class="message-meta">
+                            <span class="message-name"><%= msg.sender_name %></span>
+                            <span class="message-time"><%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %></span>
+                        </div>
+                        <div class="message-text"><%= msg.message %></div>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+            <div id="system-message" class="system-message"></div>
+
+            <form id="chat-form" class="chat-form">
+                <input
+                        id="chat-input"
+                        type="text"
+                        maxlength="1000"
+                        placeholder="Type your message..."
+                        autocomplete="off"
+                />
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.CHAT_CONFIG = {
+        roomId: <%- JSON.stringify(roomId) %>,
+        collegeName: <%- JSON.stringify(collegeName) %>,
+        currentUser: <%- JSON.stringify(currentUser) %>
+    };
+</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/college_chat.js"></script>
+</body>
+</html>

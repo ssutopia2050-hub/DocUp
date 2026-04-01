@@ -5,6 +5,7 @@ import college from "./models/college.js";
 import Docs from "./models/Docs.js";
 import LoginData from "./models/login_data.js";
 import docs_view_data from "./models/docs_view_data.js";
+import ChatMessage from "./models/chatMessage.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -23,6 +24,8 @@ import passport from "passport";
 import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Resend } from "resend";
+import http from "http";
+import { Server } from "socket.io";
 import { UAParser } from "ua-parser-js";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -35,22 +38,22 @@ app.set("views", "./views");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
-app.use(
-    session({
-        secret: process.env.SESSION_SECRET,  // keep your secret
-        resave: false,
-        saveUninitialized: false,
-        store: MongoStore.create({
-            mongoUrl: process.env.MONGO_URI,   // your MongoDB connection string
-            collectionName: "sessions",        // collection to store sessions
-            ttl: 24 * 60 * 60                  // session expiry in seconds (1 day)
-        }),
-        cookie: {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000        // 1 day in ms
-        }
-    })
-);
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: "sessions",
+        ttl: 24 * 60 * 60
+    }),
+    cookie: {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+    }
+});
+
+app.use(sessionMiddleware);
 app.use((req, res, next) => {
     if (req.headers.host === "docup.in") {
         return res.redirect(301, "https://www.docup.in" + req.url);
@@ -69,6 +72,7 @@ const supabase = createClient(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 passport.serializeUser((user, done) => {
     done(null, user.email);
@@ -376,10 +380,18 @@ app.use(cors({
     origin: true,
     credentials: true
 }));
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: true,
+        credentials: true
+    }
+});
+io.engine.use(sessionMiddleware);
 /******************************
            Server Start
  ******************************/
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server running on url: http://localhost:${port}/`);
 });
 app.get("/sitemap.xml", (req, res) => {
@@ -1583,7 +1595,6 @@ app.get("/update_likes/:id", async (req, res) => {
         return res.status(500).send("Server Error");
     }
 });
-
 app.get("/update_dislikes/:id", async (req, res) => {
     try {
         const userEmail = req.session.email;
@@ -2189,6 +2200,7 @@ app.get("/save_profile/:email", async (req, res) => {
         }
     );
     const saved_profile_user_data = await user_profile.findOne({email:req.params.email})
+    const user_data = await user_profile.findOne({email:req.session.email})
     await user_profile.updateOne(
         { email: req.session.email },
         {
@@ -2200,9 +2212,18 @@ app.get("/save_profile/:email", async (req, res) => {
             }
         }
     );
+    await user_profile.updateOne(
+        { email: req.params.email },
+        {
+            $push:{
+                notifications: {
+                    email: req.params.email,
+                    content:`${user_data.name} saved your profile`
+                }
+            }
 
-
-
+        }
+    )
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });
 
@@ -2248,265 +2269,128 @@ app.get("/notifications", async (req, res) => {
     }
 });
 
+/*
+Chat Rooms
+ */
+/******************************
+ Chat Rooms
+ ******************************/
+io.on("connection", (socket) => {
+    const req = socket.request;
+    const session = req.session;
 
-
-
-
-
-
-
-
-
-
-
-/* ************************
-Mobile App Server Routes
-************************ */
-app.post('/api/auth/signup', async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
-
-        const normalizedEmail = (email || "").trim().toLowerCase();
-        const cleanName = (name || "").trim();
-
-        if (!cleanName || !normalizedEmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Please fill all fields"
-            });
-        }
-
-        const allowedDomains = new Set([
-            "gmail.com",
-            "outlook.com",
-            "hotmail.com",
-            "live.com",
-            "yahoo.com",
-            "icloud.com",
-            "me.com",
-            "mac.com",
-            "proton.me",
-            "protonmail.com",
-            "aol.com"
-        ]);
-
-        const emailParts = normalizedEmail.split("@");
-
-        if (emailParts.length !== 2) {
-            return res.status(400).json({
-                success: false,
-                message: "Please enter a valid email address"
-            });
-        }
-
-        const domain = emailParts[1];
-
-        if (!allowedDomains.has(domain)) {
-            return res.status(400).json({
-                success: false,
-                message: "Please use a supported email provider"
-            });
-        }
-
-        const exists = await user_profile.findOne({ email: normalizedEmail });
-
-        if (exists) {
-            return res.status(409).json({
-                success: false,
-                message: "Account already exists"
-            });
-        }
-
-        const otp = Math.floor(100000 + Math.random() * 900000);
-
-        req.session.pendingUser = {
-            name: cleanName,
-            email: normalizedEmail,
-            password,
-            otp,
-            expires: Date.now() + 10 * 60 * 1000,
-            resendAllowedAt: Date.now() + 5 * 60 * 1000
-        };
-
-        await emailjs.send(
-            process.env.EMAILJS_SERVICE_ID,
-            process.env.EMAILJS_VERIF_TEMPLATE_ID,
-            {
-                email: normalizedEmail,
-                otp,
-                name: cleanName
-            },
-            {
-                publicKey: process.env.EMAILJS_PUBLIC_KEY,
-                privateKey: process.env.EMAILJS_PRIVATE_KEY
-            }
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "OTP sent successfully"
-        });
-
-    } catch (err) {
-        console.error("API signup error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
-    }
-});
-
-// Verify Otp Route
-app.post('/api/auth/verify-otp', async (req, res) => {
-    try {
-        const { otp } = req.body;
-        const data = req.session.pendingUser;
-
-        if (!data) {
-            return res.status(400).json({
-                success: false,
-                message: "No pending signup found"
-            });
-        }
-
-        if (Date.now() > data.expires) {
-            delete req.session.pendingUser;
-            return res.status(400).json({
-                success: false,
-                message: "OTP expired. Please sign up again."
-            });
-        }
-
-        if (String(otp) !== String(data.otp)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid OTP"
-            });
-        }
-
-        const alreadyExists = await user_profile.findOne({ email: data.email });
-        if (alreadyExists) {
-            delete req.session.pendingUser;
-            return res.status(409).json({
-                success: false,
-                message: "Account already exists"
-            });
-        }
-
-        const newUser = await user_profile.create({
-            name: data.name,
-            email: data.email,
-            password: data.password,
-            google_auth: false
-        });
-
+    socket.on("join_college_room", async ({ roomId, collegeName }) => {
         try {
-            await sendWelcomeEmail(newUser.email, newUser.name);
-        } catch (mailErr) {
-            console.error("Welcome email failed:", mailErr.message);
-        }
-
-        delete req.session.pendingUser;
-
-        return res.status(201).json({
-            success: true,
-            message: "Account created successfully"
-        });
-
-    } catch (err) {
-        console.error("API verify otp error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
-    }
-});
-
-// Sign In Route
-app.post('/api/auth/signin', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        const normalizedEmail = (email || "").trim().toLowerCase();
-
-        if (!normalizedEmail || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required"
-            });
-        }
-
-        const user = await user_profile.findOne({ email: normalizedEmail });
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "No account found with this email"
-            });
-        }
-
-        if (password !== user.password) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid credentials"
-            });
-        }
-
-        req.session.email = normalizedEmail;
-
-        return res.status(200).json({
-            success: true,
-            message: "Signed in successfully",
-            user: {
-                name: user.name,
-                email: user.email,
-                docScore: user.Doc_score,
-                avatar: user.avatar_img_path
+            if (!session?.email) {
+                return socket.emit("chat_error", "Please sign in first.");
             }
-        });
 
-    } catch (err) {
-        console.error("API signin error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
-    }
+            if (!roomId || !collegeName) {
+                return socket.emit("chat_error", "Invalid room.");
+            }
+
+            const user = await user_profile.findOne({ email: session.email });
+
+            if (!user) {
+                return socket.emit("chat_error", "User not found.");
+            }
+
+            socket.join(roomId);
+
+            socket.data.roomId = roomId;
+            socket.data.userEmail = user.email;
+            socket.data.userName = user.name;
+            socket.data.userProfilePic = user.profile_pic || "";
+            socket.data.collegeName = collegeName;
+
+            socket.to(roomId).emit("user_joined", {
+                name: user.name
+            });
+
+        } catch (err) {
+            console.log("join room error:", err);
+            socket.emit("chat_error", "Could not join room.");
+        }
+    });
+
+    socket.on("send_message", async (payload) => {
+        try {
+            if (!socket.data.roomId || !socket.data.userEmail) {
+                return socket.emit("chat_error", "Join a room first.");
+            }
+
+            const message = payload?.message?.trim();
+
+            if (!message) return;
+
+            if (message.length > 1000) {
+                return socket.emit("chat_error", "Message too long.");
+            }
+
+            const savedMessage = await ChatMessage.create({
+                room_id: socket.data.roomId,
+                college: socket.data.collegeName,
+                sender_email: socket.data.userEmail,
+                sender_name: socket.data.userName,
+                sender_profile_pic: socket.data.userProfilePic,
+                message
+            });
+
+            io.to(socket.data.roomId).emit("receive_message", {
+                _id: savedMessage._id,
+                sender_name: savedMessage.sender_name,
+                sender_profile_pic: savedMessage.sender_profile_pic,
+                message: savedMessage.message,
+                createdAt: savedMessage.createdAt
+            });
+
+        } catch (err) {
+            console.log("send_message error:", err);
+            socket.emit("chat_error", "Failed to send message.");
+        }
+    });
+
+    socket.on("disconnect", () => {
+        if (socket.data?.roomId && socket.data?.userName) {
+            socket.to(socket.data.roomId).emit("user_left", {
+                name: socket.data.userName
+            });
+        }
+    });
 });
 
-// Dashboard route
-app.get('/api/auth/me', async (req, res) => {
+app.get("/college_chat/:collegeName", async (req, res) => {
     try {
         if (!req.session.email) {
-            return res.status(401).json({
-                success: false,
-                message: "Not logged in"
-            });
+            return res.redirect("/signin");
         }
+
+        const collegeName = decodeURIComponent(req.params.collegeName).trim();
+        const roomId = `college_${collegeName.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`;
 
         const user = await user_profile.findOne({ email: req.session.email });
 
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
+            return res.redirect("/signin");
         }
 
-        return res.json({
-            success: true,
-            user: {
-                name: user.name,
+        const oldMessages = await ChatMessage.find({ room_id: roomId })
+            .sort({ createdAt: 1 })
+            .limit(100)
+            .lean();
+
+        return res.render("college_chat", {
+            collegeName,
+            roomId,
+            currentUser: {
                 email: user.email,
-                docScore: user.Doc_score,
-                avatar: user.avatar_img_path
-            }
+                name: user.name,
+                profile_pic: user.profile_pic || ""
+            },
+            oldMessages
         });
     } catch (err) {
-        console.error("API me error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        console.log("college chat route error:", err);
+        return res.status(500).send("Server error");
     }
 });
