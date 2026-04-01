@@ -2276,11 +2276,15 @@ Chat Rooms
  Chat Rooms
  ******************************/
 io.on("connection", (socket) => {
+    console.log("socket connected:", socket.id);
+
     const req = socket.request;
     const session = req.session;
 
     socket.on("join_college_room", async ({ roomId, collegeName }) => {
         try {
+            console.log("join room request:", roomId, collegeName, session?.email);
+
             if (!session?.email) {
                 return socket.emit("chat_error", "Please sign in first.");
             }
@@ -2292,6 +2296,7 @@ io.on("connection", (socket) => {
             }
 
             socket.join(roomId);
+            console.log("joined room:", roomId);
 
             socket.data.roomId = roomId;
             socket.data.userEmail = user.email;
@@ -2306,6 +2311,9 @@ io.on("connection", (socket) => {
 
     socket.on("send_message", async (payload) => {
         try {
+            console.log("send_message payload:", payload);
+            console.log("socket room/user:", socket.data.roomId, socket.data.userEmail);
+
             if (!socket.data.roomId || !socket.data.userEmail) {
                 return socket.emit("chat_error", "Join a room first.");
             }
@@ -2321,6 +2329,8 @@ io.on("connection", (socket) => {
                 sender_profile_pic: socket.data.userProfilePic,
                 message
             });
+
+            console.log("emitting receive_message to room:", socket.data.roomId);
 
             io.to(socket.data.roomId).emit("receive_message", {
                 _id: savedMessage._id,
@@ -2339,6 +2349,8 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        console.log("socket disconnected:", socket.id);
+
         if (socket.data?.roomId && socket.data?.userName) {
             socket.to(socket.data.roomId).emit("user_left", {
                 name: socket.data.userName

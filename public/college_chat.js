@@ -1,6 +1,26 @@
 document.addEventListener("DOMContentLoaded", () => {
     const socket = io();
+    console.log("CHAT CONFIG:", window.CHAT_CONFIG);
 
+    socket.on("connect", () => {
+        console.log("socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("socket disconnected");
+    });
+
+    socket.on("connect_error", (err) => {
+        console.log("connect error:", err.message);
+    });
+
+    socket.on("receive_message", (messageData) => {
+        console.log("received live message:", messageData);
+    });
+
+    socket.on("chat_error", (message) => {
+        console.log("chat error:", message);
+    });
     const form = document.getElementById("chat-form");
     const input = document.getElementById("chat-input");
     const messagesContainer = document.getElementById("chat-messages");
