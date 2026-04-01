@@ -2212,18 +2212,6 @@ app.get("/save_profile/:email", async (req, res) => {
             }
         }
     );
-    await user_profile.updateOne(
-        { email: req.params.email },
-        {
-            $push:{
-                notifications: {
-                    email: req.params.email,
-                    content:`${user_data.name} saved your profile`
-                }
-            }
-
-        }
-    )
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });
 

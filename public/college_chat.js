@@ -93,26 +93,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const safeName = escapeHTML(messageData.sender_name || "User");
         const safeMessage = escapeHTML(messageData.message || "");
+        const encodedEmail = encodeURIComponent(messageData.sender_email || "");
+
+        const leftAvatar = !isMine ? `
+        <a
+            class="chat-avatar-link"
+            href="/show_other_user_profile/${encodedEmail}"
+            title="View ${safeName}'s profile"
+        >
+            <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
+        </a>
+    ` : "";
+
+        const rightAvatar = isMine ? `
+        <a
+            class="chat-avatar-link"
+            href="/show_other_user_profile/${encodedEmail}"
+            title="View ${safeName}'s profile"
+        >
+            <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
+        </a>
+    ` : "";
 
         const messageHTML = `
-            <div class="message-row ${isMine ? "mine" : "other"}">
-                ${!isMine ? `
-                    <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
-                ` : ""}
+        <div class="message-row ${isMine ? "mine" : "other"}">
+            ${leftAvatar}
 
-                <div class="message-bubble">
-                    <div class="message-meta">
-                        <span class="message-name">${safeName}</span>
-                        <span class="message-time">${time}</span>
-                    </div>
-                    <div class="message-text">${safeMessage}</div>
+            <div class="message-bubble">
+                <div class="message-meta">
+                    <span class="message-name">${safeName}</span>
+                    <span class="message-time">${time}</span>
                 </div>
-
-                ${isMine ? `
-                    <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
-                ` : ""}
+                <div class="message-text">${safeMessage}</div>
             </div>
-        `;
+
+            ${rightAvatar}
+        </div>
+    `;
 
         messagesContainer.insertAdjacentHTML("beforeend", messageHTML);
         scrollToBottom();
