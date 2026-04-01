@@ -4,39 +4,71 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DocUp | <%= collegeName %> Chat</title>
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Raleway:wght@400;500;600;700;800&family=Saira:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/college_chat.css" />
 </head>
 <body>
+<div class="topbar">
+    <a href="/dashboard" class="logo-wrap">
+        <div class="logo-circle">D</div>
+        <div class="logo-text-wrap">
+            <div class="logo-text">DocUp</div>
+            <div class="logo-subtext">College Community</div>
+        </div>
+    </a>
+
+    <div class="topbar-actions">
+        <a href="/college/<%= encodeURIComponent(collegeName) %>" class="top-btn secondary">College Page</a>
+        <a href="/dashboard" class="top-btn">Dashboard</a>
+    </div>
+</div>
+
 <div class="chat-page">
     <div class="chat-shell">
-        <div class="chat-topbar">
-            <div class="chat-topbar-left">
-                <div class="chat-badge">DocUp Community</div>
-                <h1><%= collegeName %> Chat Room</h1>
-                <p>Connect with students from your college in real time.</p>
+        <div class="page-head">
+            <div class="page-head-left">
+                <div class="chat-badge">LIVE COLLEGE ROOM</div>
+                <h1><%= collegeName %></h1>
+                <p>Ask, discuss, and connect with students from your college on DocUp.</p>
             </div>
-            <a href="/" class="back-btn">Back</a>
+
+            <div class="room-status-card">
+                <div class="status-row">
+                    <span class="live-dot"></span>
+                    <span class="status-label">Room Status</span>
+                </div>
+                <div id="status-text" class="status-value">Connected</div>
+            </div>
         </div>
 
         <div class="chat-room-card">
             <div class="chat-room-header">
-                <div>
-                    <span class="live-dot"></span>
-                    <span class="live-text">Live Room</span>
+                <div class="room-title-wrap">
+                    <h2>College Chat</h2>
+                    <span class="room-subtitle">Real-time student discussion space</span>
                 </div>
-                <div id="status-text">Connected</div>
             </div>
 
             <div id="chat-messages" class="chat-messages">
+                <% if (!oldMessages || oldMessages.length === 0) { %>
+                <div class="empty-chat-state">
+                    <div class="empty-chat-icon">💬</div>
+                    <h3>No messages yet</h3>
+                    <p>Be the first one to start the conversation in this college room.</p>
+                </div>
+                <% } %>
+
                 <% oldMessages.forEach(msg => { %>
                 <div class="message-row <%= msg.sender_email === currentUser.email ? 'mine' : 'other' %>">
                     <div class="message-bubble">
                         <div class="message-meta">
                             <span class="message-name"><%= msg.sender_name %></span>
-                            <span class="message-time"><%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %></span>
+                            <span class="message-time">
+                                    <%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                                </span>
                         </div>
                         <div class="message-text"><%= msg.message %></div>
                     </div>
@@ -51,7 +83,7 @@
                         id="chat-input"
                         type="text"
                         maxlength="1000"
-                        placeholder="Type your message..."
+                        placeholder="Type your message to the college room..."
                         autocomplete="off"
                 />
                 <button type="submit">Send</button>

@@ -10,11 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const { roomId, collegeName, currentUser } = window.CHAT_CONFIG;
 
     function escapeHTML(str) {
-        return str
+        return String(str)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
+            .replace(/\"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
 
@@ -25,29 +25,41 @@ document.addEventListener("DOMContentLoaded", () => {
     function showSystemMessage(text) {
         systemMessage.textContent = text;
         systemMessage.classList.add("show");
+
         setTimeout(() => {
             systemMessage.classList.remove("show");
         }, 2500);
     }
 
+    function removeEmptyState() {
+        const emptyState = messagesContainer.querySelector(".empty-chat-state");
+        if (emptyState) {
+            emptyState.remove();
+        }
+    }
+
     function addMessage(messageData) {
-        const isMine = messageData.sender_email === currentUser.email;
+        removeEmptyState();
+
+        const isMine = String(messageData.sender_email || "").trim().toLowerCase() ===
+            String(currentUser.email || "").trim().toLowerCase();
+
         const time = new Date(messageData.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
-            minute: "2-digit",
+            minute: "2-digit"
         });
 
         const messageHTML = `
-      <div class="message-row ${isMine ? "mine" : "other"}">
-        <div class="message-bubble">
-          <div class="message-meta">
-            <span class="message-name">${escapeHTML(messageData.sender_name)}</span>
-            <span class="message-time">${time}</span>
-          </div>
-          <div class="message-text">${escapeHTML(messageData.message)}</div>
-        </div>
-      </div>
-    `;
+            <div class="message-row ${isMine ? "mine" : "other"}">
+                <div class="message-bubble">
+                    <div class="message-meta">
+                        <span class="message-name">${escapeHTML(messageData.sender_name || "User")}</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-text">${escapeHTML(messageData.message || "")}</div>
+                </div>
+            </div>
+        `;
 
         messagesContainer.insertAdjacentHTML("beforeend", messageHTML);
         scrollToBottom();
@@ -80,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
+
         const message = input.value.trim();
         if (!message) return;
 

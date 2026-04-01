@@ -2338,6 +2338,9 @@ io.on("connection", (socket) => {
 
             io.to(socket.data.roomId).emit("receive_message", {
                 _id: savedMessage._id,
+                room_id: savedMessage.room_id,
+                college: savedMessage.college,
+                sender_email: savedMessage.sender_email,
                 sender_name: savedMessage.sender_name,
                 sender_profile_pic: savedMessage.sender_profile_pic,
                 message: savedMessage.message,
