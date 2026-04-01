@@ -296,7 +296,7 @@ a {
 
 .message-bubble {
     max-width: min(76%, 700px);
-    padding: 14px 16px;
+    padding: 10px 10px;
     border-radius: 18px;
     border: 1px solid rgba(255,255,255,0.08);
     box-shadow: 0 10px 22px rgba(0,0,0,0.16);
