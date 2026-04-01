@@ -2285,10 +2285,6 @@ io.on("connection", (socket) => {
                 return socket.emit("chat_error", "Please sign in first.");
             }
 
-            if (!roomId || !collegeName) {
-                return socket.emit("chat_error", "Invalid room.");
-            }
-
             const user = await user_profile.findOne({ email: session.email });
 
             if (!user) {
@@ -2302,11 +2298,6 @@ io.on("connection", (socket) => {
             socket.data.userName = user.name;
             socket.data.userProfilePic = user.profile_pic || "";
             socket.data.collegeName = collegeName;
-
-            socket.to(roomId).emit("user_joined", {
-                name: user.name
-            });
-
         } catch (err) {
             console.log("join room error:", err);
             socket.emit("chat_error", "Could not join room.");
@@ -2320,12 +2311,7 @@ io.on("connection", (socket) => {
             }
 
             const message = payload?.message?.trim();
-
             if (!message) return;
-
-            if (message.length > 1000) {
-                return socket.emit("chat_error", "Message too long.");
-            }
 
             const savedMessage = await ChatMessage.create({
                 room_id: socket.data.roomId,
@@ -2346,7 +2332,6 @@ io.on("connection", (socket) => {
                 message: savedMessage.message,
                 createdAt: savedMessage.createdAt
             });
-
         } catch (err) {
             console.log("send_message error:", err);
             socket.emit("chat_error", "Failed to send message.");
