@@ -16,6 +16,7 @@
     "axios": "^1.13.6",
     "cloudinary": "^1.41.3",
     "connect-mongo": "^6.0.0",
+    "cors": "^2.8.6",
     "csv-parser": "^3.2.0",
     "dotenv": "^17.3.1",
     "ejs": "^5.0.1",

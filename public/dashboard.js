@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const yearSelect = document.querySelector('select[name="year"]');
     const collegeResultsStrip = document.getElementById("college-results-strip");
     const collegeResultsStripInner = document.getElementById("college-results-strip-inner");
+    const searchBtn = document.querySelector(".search-btn");
+
     const colleges = JSON.parse(
         document.getElementById("colleges-data").textContent
     );
@@ -87,11 +89,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function hideSuggestions() {
+        if (!suggestionsBox) return;
         suggestionsBox.style.display = "none";
         suggestionsBox.innerHTML = "";
     }
 
     function showSuggestions(matches) {
+        if (!suggestionsBox) return;
+
         suggestionsBox.innerHTML = "";
 
         if (!matches || matches.length === 0) {
@@ -134,6 +139,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function populateBranches(stream) {
+        if (!branchSelect) return;
+
         branchSelect.innerHTML = `<option value="all">All Branches</option>`;
 
         if (!branchData[stream]) return;
@@ -146,27 +153,121 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    function setSearchButtonLoading(isLoading) {
+        if (!searchBtn) return;
+
+        if (isLoading) {
+            searchBtn.disabled = true;
+            searchBtn.style.opacity = "0.7";
+            searchBtn.style.cursor = "not-allowed";
+            searchBtn.textContent = "Searching...";
+        } else {
+            searchBtn.disabled = false;
+            searchBtn.style.opacity = "1";
+            searchBtn.style.cursor = "pointer";
+            searchBtn.textContent = "Search";
+        }
+    }
+
     function showLoading() {
         if (collegeResultsStrip) {
             collegeResultsStrip.style.display = "none";
         }
 
+        setSearchButtonLoading(true);
+
         resultsContainer.innerHTML = `
-            <p style="color:white; opacity:.7; margin-top:40px; font-size:1.4rem;">
-                Searching...
-            </p>
+            <div class="search-ui-state search-loader-state">
+                <div class="search-ui-glow"></div>
+
+                <div class="search-loader-orb">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+
+                <p class="search-ui-eyebrow">DocUp Search</p>
+                <h2>Searching through documents</h2>
+                <p class="search-ui-text">
+                    Finding notes, PYQs, semester material and useful docs for you...
+                </p>
+            </div>
         `;
+    }
+
+    function showInputHintState() {
+        setSearchButtonLoading(false);
+
+        if (collegeResultsStrip) {
+            collegeResultsStrip.style.display = "none";
+        }
+
+        resultsContainer.innerHTML = `
+            <div class="search-ui-state no-results-state">
+                <div class="search-ui-glow"></div>
+
+                <div class="no-results-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none">
+                        <path d="M10 17a7 7 0 1 1 4.95-2.05L21 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8V12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
+                    </svg>
+                </div>
+
+                <p class="search-ui-eyebrow">Search Required</p>
+                <h2>Enter a search parameter first</h2>
+                <p class="search-ui-text">
+                    Use a college name, subject name, chapter name, or refine using filters.
+                </p>
+
+                <div class="no-results-tips">
+                    <div class="no-results-tip"><span>/c</span> College Name</div>
+                    <div class="no-results-tip"><span>/s</span> Subject Name</div>
+                    <div class="no-results-tip"><span>/ch</span> Chapter Name</div>
+                </div>
+            </div>
+        `;
+
+        saveDashboardState();
+    }
+
+    function showErrorState(title, text) {
+        setSearchButtonLoading(false);
+
+        if (collegeResultsStrip) {
+            collegeResultsStrip.style.display = "none";
+        }
+
+        resultsContainer.innerHTML = `
+            <div class="search-ui-state no-results-state">
+                <div class="search-ui-glow"></div>
+
+                <div class="no-results-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M12 8V13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        <circle cx="12" cy="16.5" r="0.8" fill="currentColor"/>
+                    </svg>
+                </div>
+
+                <p class="search-ui-eyebrow">Search Error</p>
+                <h2>${escapeHTML(title)}</h2>
+                <p class="search-ui-text">${escapeHTML(text)}</p>
+            </div>
+        `;
+
+        saveDashboardState();
     }
 
     function saveDashboardState() {
         const state = {
-            resultsHTML: resultsContainer.innerHTML,
+            resultsHTML: resultsContainer ? resultsContainer.innerHTML : "",
             collegeStripHTML: collegeResultsStripInner ? collegeResultsStripInner.innerHTML : "",
             collegeStripVisible: collegeResultsStrip ? collegeResultsStrip.style.display : "none",
-            searchValue: searchInput.value,
-            selectedYear: yearSelect.value,
-            selectedStream: streamSelect.value,
-            selectedBranch: branchSelect.value
+            searchValue: searchInput ? searchInput.value : "",
+            selectedYear: yearSelect ? yearSelect.value : "all",
+            selectedStream: streamSelect ? streamSelect.value : "all",
+            selectedBranch: branchSelect ? branchSelect.value : "all"
         };
 
         sessionStorage.setItem("dashboardState", JSON.stringify(state));
@@ -179,20 +280,20 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const state = JSON.parse(rawState);
 
-            if (typeof state.searchValue === "string") {
+            if (typeof state.searchValue === "string" && searchInput) {
                 searchInput.value = state.searchValue;
             }
 
-            if (typeof state.selectedYear === "string") {
+            if (typeof state.selectedYear === "string" && yearSelect) {
                 yearSelect.value = state.selectedYear;
             }
 
-            if (typeof state.selectedStream === "string") {
+            if (typeof state.selectedStream === "string" && streamSelect) {
                 streamSelect.value = state.selectedStream;
                 populateBranches(state.selectedStream);
             }
 
-            if (typeof state.selectedBranch === "string") {
+            if (typeof state.selectedBranch === "string" && branchSelect) {
                 branchSelect.value = state.selectedBranch;
             }
 
@@ -204,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 collegeResultsStrip.style.display = state.collegeStripVisible || "none";
             }
 
-            if (state.resultsHTML) {
+            if (state.resultsHTML && resultsContainer) {
                 resultsContainer.innerHTML = state.resultsHTML;
             }
         } catch (err) {
@@ -227,6 +328,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("Failed to refresh DocScore:", err);
         }
     }
+
     function renderCollegeCards(results) {
         if (!collegeResultsStrip || !collegeResultsStripInner) return;
 
@@ -285,9 +387,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         collegeResultsStrip.style.display = "block";
     }
+
     function renderResults(results) {
         const collegeLogoMap = getCollegeLogoMap(collegeSpecificData);
         resultsContainer.innerHTML = "";
+        setSearchButtonLoading(false);
 
         renderCollegeCards(results);
 
@@ -297,10 +401,30 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             resultsContainer.innerHTML = `
-            <p style="color:rgba(255,255,255,0.18); opacity:.6; margin-top:40px;font-size:2rem">
-                No results found
-            </p>
-        `;
+                <div class="search-ui-state no-results-state">
+                    <div class="search-ui-glow"></div>
+
+                    <div class="no-results-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none">
+                            <path d="M10 17a7 7 0 1 1 4.95-2.05L21 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 9h2v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                            <circle cx="10" cy="7" r="0.8" fill="currentColor"/>
+                        </svg>
+                    </div>
+
+                    <p class="search-ui-eyebrow">No Match Found</p>
+                    <h2>Could not find any docs for this search</h2>
+                    <p class="search-ui-text">
+                        Try a college name, subject, chapter, or use filters to narrow things better.
+                    </p>
+
+                    <div class="no-results-tips">
+                        <div class="no-results-tip"><span>/c</span> College Name</div>
+                        <div class="no-results-tip"><span>/s</span> Subject Name</div>
+                        <div class="no-results-tip"><span>/ch</span> Chapter Name</div>
+                    </div>
+                </div>
+            `;
             saveDashboardState();
             return;
         }
@@ -314,67 +438,60 @@ document.addEventListener("DOMContentLoaded", function () {
             card.className = "result-tab-container";
 
             card.innerHTML = `
-<div class="result-tab">
+                <div class="result-tab">
+                    <div class="result-tab-top">
+                        <div class="result-tab-identity">
+                            <div class="college-logo">
+                                <img
+                                    src="${logoUrl}"
+                                    alt="${escapeHTML(doc.college || "College Logo")}"
+                                    onerror="this.onerror=null; this.src='/images/default.png';"
+                                >
+                            </div>
 
-    <div class="result-tab-top">
-        <div class="result-tab-identity">
-            <div class="college-logo">
-                <img src="${logoUrl}" alt="College Logo">
-            </div>
+                            <div class="result-tab-title-wrap">
+                                <p class="result-tab-label">Institution</p>
+                                <a href="/college/${encodeURIComponent(doc.college || "")}">
+                                    ${escapeHTML(doc.college || "")}
+                                </a>
+                            </div>
+                        </div>
 
-            <div class="result-tab-title-wrap">
-                <p class="result-tab-label">Institution</p>
-                <a href="/college/${encodeURIComponent(doc.college || "")}">
-                    ${escapeHTML(doc.college || "")}
-                </a>
-            </div>
-        </div>
+                        <div class="result-tab-badge">DOC</div>
+                    </div>
 
-        <div class="result-tab-badge">DOC</div>
-    </div>
+                    <div class="result-tab-body">
+                        <p class="result-tab-body-label">Open Document</p>
 
-    <div class="result-tab-body">
+                        <div class="file-link-result-tab">
+                            <a href="/view/${doc._id}" class="view-doc-link">
+                                Click here to view the doc on your browser
+                            </a>
+                        </div>
+                    </div>
 
-        <p class="result-tab-body-label">Open Document</p>
+                    <div class="result-tab-footer">
+                        <div class="tags-container">
+                            <div class="tags">${escapeHTML(doc.branch || "")}</div>
+                            <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
+                            <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
+                            <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
 
-        <div class="file-link-result-tab">
-            <a href="/view/${doc._id}" class="view-doc-link">
-                Click here to view the doc on your browser
-            </a>
-        </div>
-
-    </div>
-
-    <div class="result-tab-footer">
-        <div class="tags-container">
-
-            <div class="tags">${escapeHTML(doc.branch || "")}</div>
-            <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
-            <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
-            <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
-           ${doc.reviewed
+                            ${doc.reviewed
                 ? `<div class="verif-status verified">Verified</div>`
                 : `<div class="verif-status not-verified">To be Verified</div>`
             }
-            <div style="display:flex;align-items:center;gap:8px;" class="tags">
-                ${escapeHTML(String(doc.likes ?? 0))}
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
-                    <path d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5z"/>
-                </svg>
-            </div>
 
-            <div style="display:flex;align-items:center;gap:8px;" class="tags">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
-                    <path d="M8.1 19.5C8.1 21 9.582 22 10.74 22c.806 0 .869-.612.993-1.82.055-.53.121-1.174.267-1.93.386-2.002 1.72-4.56 2.996-5.325V7C15 4.75 14.25 4 11 4H7.227c-2.176 0-2.703 1.433-2.899 1.964l-.013.036c-.114.306-.358.547-.638.82-.31.306-.664.653-.927 1.18-.311.623-.27 1.177-.233 1.67.023.299.044.575-.017.83-.064.27-.146.475-.225.671-.143.356-.275.686-.275 1.329 0 1.5.748 2.498 2.315 2.498H8.5s-.4 3-.4 4.5z"/>
-                </svg>
-                ${escapeHTML(String(doc.dislikes ?? 0))}
-            </div>
-
-        </div>
-    </div>
-
-</div>
-`;
+                            <div style="display:flex;align-items:center;gap:8px;" class="tags">
+                                ${escapeHTML(String(doc.likes ?? 0))}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5z"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
 
             resultsContainer.appendChild(card);
         });
@@ -385,127 +502,140 @@ document.addEventListener("DOMContentLoaded", function () {
     restoreDashboardState();
     refreshDocScore();
 
-    filterBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        filterDropdown.style.display =
-            filterDropdown.style.display === "flex" ? "none" : "flex";
-    });
+    if (filterBtn && filterDropdown) {
+        filterBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            filterDropdown.style.display =
+                filterDropdown.style.display === "flex" ? "none" : "flex";
+        });
+    }
 
     document.addEventListener("click", (e) => {
-        if (!filterBtn.contains(e.target) && !filterDropdown.contains(e.target)) {
+        if (
+            filterBtn &&
+            filterDropdown &&
+            !filterBtn.contains(e.target) &&
+            !filterDropdown.contains(e.target)
+        ) {
             filterDropdown.style.display = "none";
         }
 
-        if (!suggestionsBox.contains(e.target) && e.target !== searchInput) {
-            hideSuggestions();
-        }
-    });
-
-    streamSelect.addEventListener("change", function () {
-        populateBranches(this.value);
-    });
-
-    searchInput.addEventListener("input", function () {
-        const value = this.value.trim();
-
-        if (value.startsWith("/s") || value.startsWith("/ch")) {
-            hideSuggestions();
-            return;
-        }
-
-        if (value.startsWith("/c")) {
-            const query = value.slice(2).trim().toLowerCase();
-
-            if (!query) {
-                showSuggestions(colleges.slice(0, 8));
-                return;
-            }
-
-            const matches = colleges
-                .filter(college => college.toLowerCase().includes(query))
-                .slice(0, 8);
-
-            showSuggestions(matches);
-            return;
-        }
-
-        hideSuggestions();
-    });
-
-    searchInput.addEventListener("focus", function () {
-        const value = this.value.trim();
-
-        if (value === "/c" || value === "/c ") {
-            showSuggestions(colleges.slice(0, 8));
-        }
-    });
-
-    resultsContainer.addEventListener("click", function (e) {
-        const link = e.target.closest(".view-doc-link");
-        if (!link) return;
-        saveDashboardState();
-    });
-
-    searchForm.addEventListener("submit", async function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(searchForm);
-
-        const payload = {
-            search_parameter_text: formData.get("search_parameter_text"),
-            year: formData.get("year"),
-            stream: formData.get("stream"),
-            branch: formData.get("branch")
-        };
-
-        const rawSearch = (formData.get("search_parameter_text") || "").trim();
-
         if (
-            rawSearch === "/c" || rawSearch === "/c " ||
-            rawSearch === "/s" || rawSearch === "/s " ||
-            rawSearch === "/ch" || rawSearch === "/ch "
+            suggestionsBox &&
+            searchInput &&
+            !suggestionsBox.contains(e.target) &&
+            e.target !== searchInput
         ) {
-            resultsContainer.innerText = "Enter a search parameter to get Results";
-            resultsContainer.style.color = "grey";
-            resultsContainer.style.fontFamily = "Saira, sans-serif";
-            saveDashboardState();
-            return;
-        }
-
-        try {
             hideSuggestions();
-            showLoading();
+        }
+    });
 
-            const response = await fetch("/api/dashboard-search", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
+    if (streamSelect) {
+        streamSelect.addEventListener("change", function () {
+            populateBranches(this.value);
+        });
+    }
 
-            const result = await response.json();
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            const value = this.value.trim();
 
-            if (!response.ok || !result.success) {
-                resultsContainer.innerHTML = `
-                    <p style="color:red; margin-top:40px; font-size:1.2rem;">
-                        Failed to fetch results
-                    </p>
-                `;
-                saveDashboardState();
+            if (value.startsWith("/s") || value.startsWith("/ch")) {
+                hideSuggestions();
                 return;
             }
 
-            renderResults(result.results);
+            if (value.startsWith("/c")) {
+                const query = value.slice(2).trim().toLowerCase();
 
-        } catch (err) {
-            console.log(err);
-            resultsContainer.innerHTML = `
-                <p style="color:red; margin-top:40px; font-size:1.2rem;">
-                    Something went wrong
-                </p>
-            `;
+                if (!query) {
+                    showSuggestions(colleges.slice(0, 8));
+                    return;
+                }
+
+                const matches = colleges
+                    .filter(college => college.toLowerCase().includes(query))
+                    .slice(0, 8);
+
+                showSuggestions(matches);
+                return;
+            }
+
+            hideSuggestions();
+        });
+
+        searchInput.addEventListener("focus", function () {
+            const value = this.value.trim();
+
+            if (value === "/c" || value === "/c ") {
+                showSuggestions(colleges.slice(0, 8));
+            }
+        });
+    }
+
+    if (resultsContainer) {
+        resultsContainer.addEventListener("click", function (e) {
+            const link = e.target.closest(".view-doc-link");
+            if (!link) return;
             saveDashboardState();
-        }
-    });
+        });
+    }
+
+    if (searchForm) {
+        searchForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(searchForm);
+
+            const payload = {
+                search_parameter_text: formData.get("search_parameter_text"),
+                year: formData.get("year"),
+                stream: formData.get("stream"),
+                branch: formData.get("branch")
+            };
+
+            const rawSearch = (formData.get("search_parameter_text") || "").trim();
+
+            if (
+                rawSearch === "/c" || rawSearch === "/c " ||
+                rawSearch === "/s" || rawSearch === "/s " ||
+                rawSearch === "/ch" || rawSearch === "/ch "
+            ) {
+                showInputHintState();
+                return;
+            }
+
+            try {
+                hideSuggestions();
+                showLoading();
+
+                const response = await fetch("/api/dashboard-search", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    showErrorState(
+                        "Failed to fetch results",
+                        "The search request could not be completed right now. Please try again."
+                    );
+                    return;
+                }
+
+                renderResults(result.results);
+
+            } catch (err) {
+                console.log(err);
+                showErrorState(
+                    "Something went wrong",
+                    "An unexpected error occurred while searching. Please try again."
+                );
+            }
+        });
+    }
 });

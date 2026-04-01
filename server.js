@@ -20,6 +20,7 @@ import crypto from "crypto";
 import Razorpay from "razorpay";
 import paymentOrder from "./models/paymentOrder.js";
 import passport from "passport";
+import cors from "cors";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Resend } from "resend";
 import { UAParser } from "ua-parser-js";
@@ -371,6 +372,10 @@ fs.createReadStream("College_data.csv")
         collegesList = [...new Set(collegesList)].sort();
         console.log("Colleges Loaded :", collegesList.length);
     });
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 /******************************
            Server Start
  ******************************/
@@ -2240,5 +2245,268 @@ app.get("/notifications", async (req, res) => {
     } catch (err) {
         console.log("Notifications page error:", err);
         res.status(500).send("Server Error");
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+/* ************************
+Mobile App Server Routes
+************************ */
+app.post('/api/auth/signup', async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        const normalizedEmail = (email || "").trim().toLowerCase();
+        const cleanName = (name || "").trim();
+
+        if (!cleanName || !normalizedEmail || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Please fill all fields"
+            });
+        }
+
+        const allowedDomains = new Set([
+            "gmail.com",
+            "outlook.com",
+            "hotmail.com",
+            "live.com",
+            "yahoo.com",
+            "icloud.com",
+            "me.com",
+            "mac.com",
+            "proton.me",
+            "protonmail.com",
+            "aol.com"
+        ]);
+
+        const emailParts = normalizedEmail.split("@");
+
+        if (emailParts.length !== 2) {
+            return res.status(400).json({
+                success: false,
+                message: "Please enter a valid email address"
+            });
+        }
+
+        const domain = emailParts[1];
+
+        if (!allowedDomains.has(domain)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please use a supported email provider"
+            });
+        }
+
+        const exists = await user_profile.findOne({ email: normalizedEmail });
+
+        if (exists) {
+            return res.status(409).json({
+                success: false,
+                message: "Account already exists"
+            });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        req.session.pendingUser = {
+            name: cleanName,
+            email: normalizedEmail,
+            password,
+            otp,
+            expires: Date.now() + 10 * 60 * 1000,
+            resendAllowedAt: Date.now() + 5 * 60 * 1000
+        };
+
+        await emailjs.send(
+            process.env.EMAILJS_SERVICE_ID,
+            process.env.EMAILJS_VERIF_TEMPLATE_ID,
+            {
+                email: normalizedEmail,
+                otp,
+                name: cleanName
+            },
+            {
+                publicKey: process.env.EMAILJS_PUBLIC_KEY,
+                privateKey: process.env.EMAILJS_PRIVATE_KEY
+            }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully"
+        });
+
+    } catch (err) {
+        console.error("API signup error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+});
+
+// Verify Otp Route
+app.post('/api/auth/verify-otp', async (req, res) => {
+    try {
+        const { otp } = req.body;
+        const data = req.session.pendingUser;
+
+        if (!data) {
+            return res.status(400).json({
+                success: false,
+                message: "No pending signup found"
+            });
+        }
+
+        if (Date.now() > data.expires) {
+            delete req.session.pendingUser;
+            return res.status(400).json({
+                success: false,
+                message: "OTP expired. Please sign up again."
+            });
+        }
+
+        if (String(otp) !== String(data.otp)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid OTP"
+            });
+        }
+
+        const alreadyExists = await user_profile.findOne({ email: data.email });
+        if (alreadyExists) {
+            delete req.session.pendingUser;
+            return res.status(409).json({
+                success: false,
+                message: "Account already exists"
+            });
+        }
+
+        const newUser = await user_profile.create({
+            name: data.name,
+            email: data.email,
+            password: data.password,
+            google_auth: false
+        });
+
+        try {
+            await sendWelcomeEmail(newUser.email, newUser.name);
+        } catch (mailErr) {
+            console.error("Welcome email failed:", mailErr.message);
+        }
+
+        delete req.session.pendingUser;
+
+        return res.status(201).json({
+            success: true,
+            message: "Account created successfully"
+        });
+
+    } catch (err) {
+        console.error("API verify otp error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+});
+
+// Sign In Route
+app.post('/api/auth/signin', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        const normalizedEmail = (email || "").trim().toLowerCase();
+
+        if (!normalizedEmail || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required"
+            });
+        }
+
+        const user = await user_profile.findOne({ email: normalizedEmail });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with this email"
+            });
+        }
+
+        if (password !== user.password) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        req.session.email = normalizedEmail;
+
+        return res.status(200).json({
+            success: true,
+            message: "Signed in successfully",
+            user: {
+                name: user.name,
+                email: user.email,
+                docScore: user.Doc_score,
+                avatar: user.avatar_img_path
+            }
+        });
+
+    } catch (err) {
+        console.error("API signin error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
+    }
+});
+
+// Dashboard route
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Not logged in"
+            });
+        }
+
+        const user = await user_profile.findOne({ email: req.session.email });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.json({
+            success: true,
+            user: {
+                name: user.name,
+                email: user.email,
+                docScore: user.Doc_score,
+                avatar: user.avatar_img_path
+            }
+        });
+    } catch (err) {
+        console.error("API me error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error"
+        });
     }
 });
