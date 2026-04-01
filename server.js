@@ -2277,7 +2277,7 @@ Chat Rooms
  ******************************/
 io.on("connection", (socket) => {
     console.log("socket connected:", socket.id);
-
+    const MESSAGE_COOLDOWN_MS = 10000;
     const req = socket.request;
     const session = req.session;
 
@@ -2319,8 +2319,22 @@ io.on("connection", (socket) => {
                 return socket.emit("chat_error", "Join a room first.");
             }
 
+            const now = Date.now();
+            const lastMessageAt = socket.data.lastMessageAt || 0;
+
+            if (now - lastMessageAt < MESSAGE_COOLDOWN_MS) {
+                const remaining = Math.ceil((MESSAGE_COOLDOWN_MS - (now - lastMessageAt)) / 1000);
+                return socket.emit("chat_error", `You're sending too fast. Wait ${remaining}s.`);
+            }
+
             const message = payload?.message?.trim();
             if (!message) return;
+
+            if (message.length > 1000) {
+                return socket.emit("chat_error", "Message too long.");
+            }
+
+            socket.data.lastMessageAt = now;
 
             const savedMessage = await ChatMessage.create({
                 room_id: socket.data.roomId,

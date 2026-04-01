@@ -497,3 +497,8 @@ a {
     background: rgba(255,255,255,0.06);
     box-shadow: 0 6px 16px rgba(0,0,0,0.18);
 }
+.chat-form button.cooldown-active {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none !important;
+}
