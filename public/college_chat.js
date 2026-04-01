@@ -61,7 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
     function addMessage(messageData) {
         removeEmptyState();
 
-        const isMine = String(messageData.sender_email || "").trim().toLowerCase() ===
+        const isMine =
+            String(messageData.sender_email || "").trim().toLowerCase() ===
             String(currentUser.email || "").trim().toLowerCase();
 
         const time = new Date(messageData.createdAt).toLocaleTimeString([], {
@@ -69,17 +70,32 @@ document.addEventListener("DOMContentLoaded", () => {
             minute: "2-digit"
         });
 
+        const profilePic = messageData.sender_profile_pic && messageData.sender_profile_pic.trim() !== ""
+            ? messageData.sender_profile_pic
+            : "/images/default-avatar.png";
+
+        const safeName = escapeHTML(messageData.sender_name || "User");
+        const safeMessage = escapeHTML(messageData.message || "");
+
         const messageHTML = `
-            <div class="message-row ${isMine ? "mine" : "other"}">
-                <div class="message-bubble">
-                    <div class="message-meta">
-                        <span class="message-name">${escapeHTML(messageData.sender_name || "User")}</span>
-                        <span class="message-time">${time}</span>
-                    </div>
-                    <div class="message-text">${escapeHTML(messageData.message || "")}</div>
+        <div class="message-row ${isMine ? "mine" : "other"}">
+            ${!isMine ? `
+                <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
+            ` : ""}
+
+            <div class="message-bubble">
+                <div class="message-meta">
+                    <span class="message-name">${safeName}</span>
+                    <span class="message-time">${time}</span>
                 </div>
+                <div class="message-text">${safeMessage}</div>
             </div>
-        `;
+
+            ${isMine ? `
+                <img class="chat-avatar" src="${profilePic}" alt="${safeName}" />
+            ` : ""}
+        </div>
+    `;
 
         messagesContainer.insertAdjacentHTML("beforeend", messageHTML);
         scrollToBottom();

@@ -63,15 +63,31 @@
 
                 <% oldMessages.forEach(msg => { %>
                 <div class="message-row <%= msg.sender_email === currentUser.email ? 'mine' : 'other' %>">
+                    <% if (msg.sender_email !== currentUser.email) { %>
+                    <img
+                            class="chat-avatar"
+                            src="<%= msg.sender_profile_pic && msg.sender_profile_pic.trim() !== '' ? msg.sender_profile_pic : '/images/default-avatar.png' %>"
+                            alt="<%= msg.sender_name %>"
+                    />
+                    <% } %>
+
                     <div class="message-bubble">
                         <div class="message-meta">
                             <span class="message-name"><%= msg.sender_name %></span>
                             <span class="message-time">
-                                    <%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
-                                </span>
+                <%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+            </span>
                         </div>
                         <div class="message-text"><%= msg.message %></div>
                     </div>
+
+                    <% if (msg.sender_email === currentUser.email) { %>
+                    <img
+                            class="chat-avatar"
+                            src="<%= msg.sender_profile_pic && msg.sender_profile_pic.trim() !== '' ? msg.sender_profile_pic : '/images/default-avatar.png' %>"
+                            alt="<%= msg.sender_name %>"
+                    />
+                    <% } %>
                 </div>
                 <% }) %>
             </div>

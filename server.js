@@ -2301,8 +2301,9 @@ io.on("connection", (socket) => {
             socket.data.roomId = roomId;
             socket.data.userEmail = user.email;
             socket.data.userName = user.name;
-            socket.data.userProfilePic = user.profile_pic || "";
+            socket.data.userProfilePic = user.avatar_img_path || "";
             socket.data.collegeName = collegeName;
+
         } catch (err) {
             console.log("join room error:", err);
             socket.emit("chat_error", "Could not join room.");
@@ -2385,7 +2386,7 @@ app.get("/college_chat/:collegeName", async (req, res) => {
             currentUser: {
                 email: user.email,
                 name: user.name,
-                profile_pic: user.profile_pic || ""
+                profile_pic: user.avatar_img_path || ""
             },
             oldMessages
         });

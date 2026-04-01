@@ -480,3 +480,20 @@ a {
         width: 100%;
     }
 }
+.message-row {
+    display: flex;
+    width: 100%;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.chat-avatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
