@@ -81,10 +81,39 @@
                         <div class="message-meta">
                             <span class="message-name"><%= msg.sender_name %></span>
                             <span class="message-time">
-                            <%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
-                        </span>
+            <%= new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+        </span>
                         </div>
+
+                        <% if (msg.message && msg.message.trim() !== "") { %>
                         <div class="message-text"><%= msg.message %></div>
+                        <% } %>
+
+                        <% if (msg.message_type === "doc_share" && msg.shared_doc && msg.shared_doc.doc_id) { %>
+                        <a href="/view/<%= msg.shared_doc.doc_id %>" class="shared-doc-card">
+                            <div class="shared-doc-top">
+                                <div class="shared-doc-badge">DocUp Document</div>
+
+                                <% if (msg.shared_doc.reviewed) { %>
+                                <div class="shared-doc-reviewed">Reviewed</div>
+                                <% } %>
+                            </div>
+
+                            <div class="shared-doc-title"><%= msg.shared_doc.subject || "Untitled Subject" %></div>
+
+                            <div class="shared-doc-subtitle">
+                                <%= msg.shared_doc.chapter || "No chapter" %>
+                            </div>
+
+                            <div class="shared-doc-meta">
+                                <span><strong>College:</strong> <%= msg.shared_doc.college || "Unknown college" %></span>
+                                <span><strong>Uploader:</strong> <%= msg.shared_doc.uploaded_by || "Unknown" %></span>
+                                <span><strong>Likes:</strong> <%= typeof msg.shared_doc.likes === "number" ? msg.shared_doc.likes : 0 %></span>
+                            </div>
+
+                            <div class="shared-doc-open">Open Document</div>
+                        </a>
+                        <% } %>
                     </div>
 
                     <% if (msg.sender_email === currentUser.email) { %>

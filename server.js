@@ -2350,7 +2350,70 @@ io.on("connection", (socket) => {
             socket.emit("chat_error", "Failed to send message.");
         }
     });
+    socket.on("share_document", async (payload) => {
+        try {
+            if (!socket.data.roomId || !socket.data.userEmail) {
+                return socket.emit("chat_error", "Join a room first.");
+            }
 
+            const docId = String(payload?.doc_id || "").trim();
+            const text = String(payload?.text || "").trim();
+
+            if (!docId) {
+                return socket.emit("chat_error", "Document not found.");
+            }
+
+            const doc = await Docs.findById(docId).lean();
+
+            if (!doc) {
+                return socket.emit("chat_error", "Document does not exist.");
+            }
+
+            const expectedRoomId = `college_${String(doc.college || "")
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "_")}`;
+
+            if (expectedRoomId !== socket.data.roomId) {
+                return socket.emit("chat_error", "This document belongs to a different college room.");
+            }
+
+            const savedMessage = await ChatMessage.create({
+                room_id: socket.data.roomId,
+                college: socket.data.collegeName,
+                sender_email: socket.data.userEmail,
+                sender_name: socket.data.userName,
+                sender_profile_pic: socket.data.userProfilePic,
+                message: text,
+                message_type: "doc_share",
+                shared_doc: {
+                    doc_id: doc._id,
+                    subject: doc.subject || "",
+                    chapter: doc.chapter || "",
+                    college: doc.college || "",
+                    reviewed: !!doc.reviewed,
+                    likes: typeof doc.likes === "number" ? doc.likes : 0,
+                    uploaded_by: doc.uploaded_by || ""
+                }
+            });
+
+            io.to(socket.data.roomId).emit("receive_message", {
+                _id: savedMessage._id,
+                room_id: savedMessage.room_id,
+                college: savedMessage.college,
+                sender_email: savedMessage.sender_email,
+                sender_name: savedMessage.sender_name,
+                sender_profile_pic: savedMessage.sender_profile_pic,
+                message: savedMessage.message,
+                message_type: savedMessage.message_type,
+                shared_doc: savedMessage.shared_doc,
+                createdAt: savedMessage.createdAt
+            });
+        } catch (err) {
+            console.log("share_document error:", err);
+            socket.emit("chat_error", "Failed to share document.");
+        }
+    });
     socket.on("disconnect", () => {
         console.log("socket disconnected:", socket.id);
 
@@ -2395,5 +2458,89 @@ app.get("/college_chat/:collegeName", async (req, res) => {
     } catch (err) {
         console.log("college chat route error:", err);
         return res.status(500).send("Server error");
+    }
+});
+
+app.post("/share_doc_to_chat", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first."
+            });
+        }
+
+        const { roomId, doc_id, text } = req.body;
+
+        if (!roomId || !doc_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing document data."
+            });
+        }
+
+        const user = await user_profile.findOne({ email: req.session.email });
+        const doc = await Docs.findById(doc_id).lean();
+
+        if (!user || !doc) {
+            return res.status(404).json({
+                success: false,
+                message: "User or document not found."
+            });
+        }
+
+        const expectedRoomId = `college_${String(doc.college || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "_")}`;
+
+        if (roomId !== expectedRoomId) {
+            return res.status(400).json({
+                success: false,
+                message: "This document belongs to a different college room."
+            });
+        }
+
+        const savedMessage = await ChatMessage.create({
+            room_id: roomId,
+            college: doc.college,
+            sender_email: user.email,
+            sender_name: user.name,
+            sender_profile_pic: user.avatar_img_path || "",
+            message: String(text || "").trim(),
+            message_type: "doc_share",
+            shared_doc: {
+                doc_id: doc._id,
+                subject: doc.subject || "",
+                chapter: doc.chapter || "",
+                college: doc.college || "",
+                reviewed: !!doc.reviewed,
+                likes: typeof doc.likes === "number" ? doc.likes : 0,
+                uploaded_by: doc.uploaded_by || ""
+            }
+        });
+
+        io.to(roomId).emit("receive_message", {
+            _id: savedMessage._id,
+            room_id: savedMessage.room_id,
+            college: savedMessage.college,
+            sender_email: savedMessage.sender_email,
+            sender_name: savedMessage.sender_name,
+            sender_profile_pic: savedMessage.sender_profile_pic,
+            message: savedMessage.message,
+            message_type: savedMessage.message_type,
+            shared_doc: savedMessage.shared_doc,
+            createdAt: savedMessage.createdAt
+        });
+
+        return res.json({
+            success: true
+        });
+    } catch (err) {
+        console.log("share_doc_to_chat route error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error."
+        });
     }
 });

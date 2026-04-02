@@ -33,6 +33,19 @@ const chatMessageSchema = new mongoose.Schema(
             trim: true,
             maxlength: 1000,
         },
+        message_type: { type: String, default: "text" },
+        shared_doc: {
+            doc_id: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Docs"
+            },
+            subject: String,
+            chapter: String,
+            college: String,
+            reviewed: Boolean,
+            likes: Number,
+            uploaded_by: String
+        }
     },
     { timestamps: true }
 );

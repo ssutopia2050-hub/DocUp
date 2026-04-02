@@ -149,6 +149,41 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>
     ` : "";
 
+        const sharedDocHTML =
+            messageData.message_type === "doc_share" &&
+            messageData.shared_doc &&
+            messageData.shared_doc.doc_id
+                ? `
+            <a href="/view/${messageData.shared_doc.doc_id}" class="shared-doc-card">
+                <div class="shared-doc-top">
+                    <div class="shared-doc-badge">DocUp Document</div>
+                    ${messageData.shared_doc.reviewed ? `<div class="shared-doc-reviewed">Reviewed</div>` : ""}
+                </div>
+
+                <div class="shared-doc-title">
+                    ${escapeHTML(messageData.shared_doc.subject || "Untitled Subject")}
+                </div>
+
+                <div class="shared-doc-subtitle">
+                    ${escapeHTML(messageData.shared_doc.chapter || "No chapter")}
+                </div>
+
+                <div class="shared-doc-meta">
+                    <span><strong>College:</strong> ${escapeHTML(messageData.shared_doc.college || "Unknown college")}</span>
+                    <span><strong>Uploader:</strong> ${escapeHTML(messageData.shared_doc.uploaded_by || "Unknown")}</span>
+                    <span><strong>Likes:</strong> ${typeof messageData.shared_doc.likes === "number" ? messageData.shared_doc.likes : 0}</span>
+                </div>
+
+                <div class="shared-doc-open">Open Document</div>
+            </a>
+        `
+                : "";
+
+        const messageTextHTML =
+            safeMessage.trim() !== ""
+                ? `<div class="message-text">${safeMessage}</div>`
+                : "";
+
         const messageHTML = `
         <div class="message-row ${isMine ? "mine" : "other"}">
             ${leftAvatar}
@@ -158,7 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     <span class="message-name">${safeName}</span>
                     <span class="message-time">${time}</span>
                 </div>
-                <div class="message-text">${safeMessage}</div>
+                ${messageTextHTML}
+                ${sharedDocHTML}
             </div>
 
             ${rightAvatar}

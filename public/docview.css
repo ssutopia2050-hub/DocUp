@@ -1079,3 +1079,279 @@ a:active{
     border: 1px dashed rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
 }
+.share-doc-btn {
+    height: 48px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff6a00, #ff9a00);
+    color: white;
+    font-family: 'Saira', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 22px rgba(255, 106, 0, 0.22);
+    width: fit-content;
+}
+
+.share-doc-modal.hidden {
+    display: none;
+}
+
+/* ===== FIXED DOC ACTION BUTTONS (Back / Share / Like / Dislike) ===== */
+
+.doc-actions {
+    display: flex;
+    align-items: center;
+    /*flex-wrap: wrap;*/
+    gap: 12px;
+}
+
+/* unify ALL buttons */
+.doc-actions a,
+.doc-actions button,
+.doc-actions .ghost-btn,
+.doc-actions .share-doc-btn {
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 14px;
+    font-family: 'Saira', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: 0.2s ease;
+}
+
+/* ===== BACK BUTTON ===== */
+.doc-actions .back-btn,
+.doc-actions a[href*="back"] {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.85);
+}
+
+.doc-actions .back-btn:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+/* ===== SHARE BUTTON ===== */
+.doc-actions .share-doc-btn {
+    background: linear-gradient(135deg, #ff6a00, #ff9a00);
+    border: none;
+    color: white;
+    box-shadow: 0 8px 20px rgba(255,106,0,0.25);
+}
+
+.doc-actions .share-doc-btn:hover {
+    transform: translateY(-1px);
+    opacity: 0.95;
+}
+
+/* ===== LIKE BUTTON ===== */
+.doc-actions .like-btn {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: #86efac;
+}
+
+.doc-actions .like-btn:hover {
+    background: rgba(34, 197, 94, 0.2);
+}
+
+/* ===== DISLIKE BUTTON ===== */
+.doc-actions .dislike-btn {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    color: #fca5a5;
+}
+
+.doc-actions .dislike-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ===== ICON FIX (if using svg inside buttons) ===== */
+.doc-actions button svg,
+.doc-actions a svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* ===== SMALL SCREEN FIX ===== */
+@media (max-width: 600px) {
+    .doc-actions {
+        width: 100%;
+    }
+
+    .doc-actions a,
+    .doc-actions button {
+        flex: 1;
+    }
+}
+
+.share-doc-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.share-doc-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 8, 12, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.share-doc-card {
+    position: relative;
+    width: min(620px, 100%);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(10, 23, 30, 0.96), rgba(7, 18, 24, 0.98));
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+    padding: 24px;
+}
+
+.share-doc-badge {
+    display: inline-flex;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(255, 106, 0, 0.12);
+    color: #ffb36b;
+    border: 1px solid rgba(255, 106, 0, 0.22);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    margin-bottom: 14px;
+}
+
+.share-doc-head h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.share-doc-head p {
+    color: rgba(255,255,255,0.62);
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.share-doc-preview {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.share-doc-preview-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+}
+
+.share-doc-preview-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.share-doc-preview-subtitle {
+    font-size: 14px;
+    color: rgba(255,255,255,0.62);
+}
+
+.share-doc-textarea {
+    width: 100%;
+    min-height: 110px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    resize: vertical;
+    outline: none;
+    font-family: 'Saira', sans-serif;
+    font-size: 14px;
+}
+
+.share-doc-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.share-doc-action-btn {
+    height: 48px;
+    padding: 0 18px;
+    border-radius: 14px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Saira', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.share-doc-action-btn.primary {
+    background: linear-gradient(135deg, #ff6a00, #ff9a00);
+    color: white;
+}
+
+.share-doc-action-btn.secondary {
+    background: rgba(255,255,255,0.05);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+.share-success-card {
+    text-align: center;
+}
+
+.share-success-icon {
+    width: 68px;
+    height: 68px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    font-size: 30px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 24px rgba(34, 197, 94, 0.24);
+}
+
+.share-success-card h2 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.share-success-card p {
+    color: rgba(255,255,255,0.62);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.share-doc-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
