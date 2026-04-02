@@ -116,11 +116,12 @@ document.addEventListener("DOMContentLoaded", () => {
             String(messageData.sender_email || "").trim().toLowerCase() ===
             String(currentUser.email || "").trim().toLowerCase();
 
-        const time = new Date(messageData.createdAt).toLocaleTimeString([], {
+        const time = new Date(messageData.createdAt).toLocaleTimeString("en-IN", {
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
+            hour12: true,
+            timeZone: "Asia/Kolkata"
         });
-
         const profilePic = messageData.sender_profile_pic && messageData.sender_profile_pic.trim() !== ""
             ? messageData.sender_profile_pic
             : "/images/default-avatar.png";
