@@ -150,15 +150,35 @@
             <div class="viewer-toolbar">
                 <div class="toolbar-left">
                     <button type="button" class="tool-btn" id="zoom-out">−</button>
+
+                    <div class="zoom-pill">
+                        <span id="zoom-percentage">115%</span>
+                    </div>
+
                     <button type="button" class="tool-btn" id="zoom-in">+</button>
                     <button type="button" class="tool-btn" id="fit-width">Fit Width</button>
                 </div>
 
                 <div class="toolbar-right">
+                    <div class="page-jump-box">
+                        <label for="page-jump-input">Page</label>
+                        <input
+                                id="page-jump-input"
+                                type="number"
+                                min="1"
+                                value="1"
+                        >
+                        <span id="page-jump-total">/ 0</span>
+                    </div>
+
                     <span id="page-status">Loading PDF...</span>
                 </div>
             </div>
-
+            <div class="pdf-page-indicator" id="pdf-page-indicator">
+                <span id="current-page-number">1</span>
+                /
+                <span id="total-page-number">0</span>
+            </div>
             <div class="pdf-scroll-area" id="pdf-scroll-area">
 
                 <div id="pdf-container"></div>
