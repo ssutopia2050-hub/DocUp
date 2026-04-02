@@ -119,7 +119,66 @@
         </div>
     </div>
 </div>
+<div id="chat-guidelines-modal" class="guidelines-modal hidden">
+    <div class="guidelines-backdrop"></div>
 
+    <div class="guidelines-card">
+        <div class="guidelines-top">
+            <div>
+                <div class="guidelines-badge">DocUp Community</div>
+                <h2>Chat Guidelines</h2>
+                <p>Please follow these rules to keep the college room helpful and respectful.</p>
+            </div>
+        </div>
+
+        <div class="guidelines-list">
+            <div class="guideline-item">
+                <div class="guideline-icon">1</div>
+                <div>
+                    <h3>Be respectful</h3>
+                    <p>No harassment, bullying, abusive language, or personal attacks.</p>
+                </div>
+            </div>
+
+            <div class="guideline-item">
+                <div class="guideline-icon">2</div>
+                <div>
+                    <h3>Keep it relevant</h3>
+                    <p>Use the room for college discussions, doubts, help, notes, and useful conversations.</p>
+                </div>
+            </div>
+
+            <div class="guideline-item">
+                <div class="guideline-icon">3</div>
+                <div>
+                    <h3>No spam</h3>
+                    <p>Do not flood the chat with repeated messages, ads, or meaningless text.</p>
+                </div>
+            </div>
+
+            <div class="guideline-item">
+                <div class="guideline-icon">4</div>
+                <div>
+                    <h3>Protect privacy</h3>
+                    <p>Do not share phone numbers, passwords, private files, or anyone’s personal info.</p>
+                </div>
+            </div>
+
+            <div class="guideline-item">
+                <div class="guideline-icon">5</div>
+                <div>
+                    <h3>Use DocUp properly</h3>
+                    <p>Any harmful, fake, offensive, or misleading behavior may lead to removal from the community.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="guidelines-actions">
+            <button id="guidelines-close-btn" class="guidelines-btn secondary" type="button">Close</button>
+            <button id="guidelines-accept-btn" class="guidelines-btn primary" type="button">I Understand</button>
+        </div>
+    </div>
+</div>
 <script>
     window.CHAT_CONFIG = {
         roomId: <%- JSON.stringify(roomId) %>,

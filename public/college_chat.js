@@ -1,6 +1,40 @@
 document.addEventListener("DOMContentLoaded", () => {
     const socket = io();
+    const { roomId, collegeName, currentUser } = window.CHAT_CONFIG;
+    const guidelinesModal = document.getElementById("chat-guidelines-modal");
+    const guidelinesAcceptBtn = document.getElementById("guidelines-accept-btn");
+    const guidelinesCloseBtn = document.getElementById("guidelines-close-btn");
 
+    const guidelinesKey = `docup_chat_guidelines_seen_${roomId}`;
+
+    function openGuidelinesModal() {
+        if (guidelinesModal) {
+            guidelinesModal.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+        }
+    }
+
+    function closeGuidelinesModal() {
+        if (guidelinesModal) {
+            guidelinesModal.classList.add("hidden");
+            document.body.style.overflow = "";
+        }
+    }
+        openGuidelinesModal();
+
+
+    if (guidelinesAcceptBtn) {
+        guidelinesAcceptBtn.addEventListener("click", () => {
+            localStorage.setItem(guidelinesKey, "true");
+            closeGuidelinesModal();
+        });
+    }
+
+    if (guidelinesCloseBtn) {
+        guidelinesCloseBtn.addEventListener("click", () => {
+            closeGuidelinesModal();
+        });
+    }
     const form = document.getElementById("chat-form");
     const input = document.getElementById("chat-input");
     const messagesContainer = document.getElementById("chat-messages");
@@ -8,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusText = document.getElementById("status-text");
     const sendButton = form.querySelector("button");
 
-    const { roomId, collegeName, currentUser } = window.CHAT_CONFIG;
+
 
     const MESSAGE_COOLDOWN_MS = 10000;
     let lastSentAt = 0;
