@@ -6,6 +6,7 @@ import Docs from "./models/Docs.js";
 import LoginData from "./models/login_data.js";
 import docs_view_data from "./models/docs_view_data.js";
 import ChatMessage from "./models/chatMessage.js";
+import DocAI from "./models/DocAI.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -26,10 +27,12 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Resend } from "resend";
 import http from "http";
 import { Server } from "socket.io";
+import OpenAI from "openai";
 import { UAParser } from "ua-parser-js";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
-const upload = multer({dest:"uploads/"});
+const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
+import os from "os";
 /******************************
            Middleware
  ******************************/
@@ -66,6 +69,9 @@ app.get("/health", (req, res) => {
 app.use(express.static("public", {
     maxAge: "7d"
 }));
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+});
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -381,6 +387,96 @@ app.use(cors({
     credentials: true
 }));
 const server = http.createServer(app);
+async function getAuthorizedDoc(req, docId) {
+    if (!req.session?.email) {
+        throw new Error("Unauthorized");
+    }
+
+    const doc = await Docs.findById(docId);
+    if (!doc) {
+        throw new Error("Document not found");
+    }
+
+    return doc;
+}
+async function getPdfBufferFromExistingUrl(doc) {
+    if (!doc?.file_url) {
+        throw new Error("PDF URL missing");
+    }
+
+    const response = await fetch(doc.file_url);
+    if (!response.ok) {
+        throw new Error("Failed to fetch PDF");
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+}
+function extractPagesWithPython(pdfBuffer) {
+    return new Promise((resolve, reject) => {
+        const tempPdfPath = path.join(os.tmpdir(), `docup-${Date.now()}.pdf`);
+        fs.writeFileSync(tempPdfPath, pdfBuffer);
+
+        execFile(
+            "python3",
+            ["extract_pdf_pages.py", tempPdfPath],
+            { maxBuffer: 25 * 1024 * 1024 },
+            (error, stdout, stderr) => {
+                try {
+                    fs.unlinkSync(tempPdfPath);
+                } catch {}
+
+                if (error) return reject(error);
+                if (stderr) console.log(stderr);
+
+                try {
+                    const parsed = JSON.parse(stdout);
+                    resolve(parsed.pages || []);
+                } catch (err) {
+                    reject(err);
+                }
+            }
+        );
+    });
+}
+async function ensureDocAiData(doc) {
+    let aiData = await DocAI.findOne({ doc_id: doc._id });
+
+    if (aiData && aiData.extracted_pages && aiData.extracted_pages.length > 0) {
+        return aiData;
+    }
+
+    const pdfBuffer = await getPdfBufferFromExistingUrl(doc);
+    const pages = await extractPagesWithPython(pdfBuffer);
+
+    aiData = await DocAI.findOneAndUpdate(
+        { doc_id: doc._id },
+        {
+            $set: {
+                extracted_pages: pages,
+                updated_at: new Date()
+            },
+            $setOnInsert: {
+                created_at: new Date()
+            }
+        },
+        {
+            upsert: true,
+            new: true
+        }
+    );
+
+    return aiData;
+}
+async function callAi(messages) {
+    const result = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages,
+        response_format: { type: "json_object" }
+    });
+
+    return result.choices[0].message.content;
+}
 const io = new Server(server, {
     cors: {
         origin: true,
@@ -2541,6 +2637,267 @@ app.post("/share_doc_to_chat", async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Server error."
+        });
+    }
+});
+/*
+OPEN AI EXPLAINER SETUP
+ */
+app.post("/ai/explain-page", async (req, res) => {
+    try {
+        const { docId, page } = req.body;
+
+        const doc = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        const pageNumber = Number(page);
+        const pageData = aiData.extracted_pages.find(p => p.page === pageNumber);
+
+        if (!pageData) {
+            return res.status(404).json({
+                success: false,
+                message: "Page not found"
+            });
+        }
+
+        const prompt = `
+You are an academic PDF explainer.
+
+Answer ONLY using the provided page text.
+
+Return valid JSON with this exact shape:
+{
+  "short_summary": "string",
+  "detailed_explanation": "string",
+  "key_points": ["string"],
+  "difficult_terms": ["string"]
+}
+
+Page number: ${pageNumber}
+
+Page text:
+${pageData.text}
+`;
+
+        const raw = await callAi([
+            {
+                role: "system",
+                content: "You explain academic PDF pages clearly and accurately."
+            },
+            {
+                role: "user",
+                content: prompt
+            }
+        ]);
+
+        const parsed = JSON.parse(raw);
+
+        const existingIndex = aiData.page_summaries.findIndex(p => p.page === pageNumber);
+
+        if (existingIndex >= 0) {
+            aiData.page_summaries[existingIndex] = {
+                page: pageNumber,
+                short_summary: parsed.short_summary || "",
+                detailed_explanation: parsed.detailed_explanation || "",
+                key_points: parsed.key_points || [],
+                difficult_terms: parsed.difficult_terms || []
+            };
+        } else {
+            aiData.page_summaries.push({
+                page: pageNumber,
+                short_summary: parsed.short_summary || "",
+                detailed_explanation: parsed.detailed_explanation || "",
+                key_points: parsed.key_points || [],
+                difficult_terms: parsed.difficult_terms || []
+            });
+        }
+
+        aiData.updated_at = new Date();
+        await aiData.save();
+
+        return res.json({
+            success: true,
+            page: pageNumber,
+            result: parsed
+        });
+    } catch (err) {
+        console.error("Explain page error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to explain page"
+        });
+    }
+});
+
+app.post("/ai/summarize-doc", async (req, res) => {
+    try {
+        const { docId } = req.body;
+
+        const doc = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        const pageSummaries = [];
+
+        for (const pageData of aiData.extracted_pages) {
+            const prompt = `
+You are summarizing one PDF page for a student.
+
+Answer ONLY using the provided page text.
+
+Return valid JSON with this exact shape:
+{
+  "short_summary": "string",
+  "detailed_explanation": "string",
+  "key_points": ["string"],
+  "difficult_terms": ["string"]
+}
+
+Page number: ${pageData.page}
+
+Page text:
+${pageData.text}
+`;
+
+            const raw = await callAi([
+                {
+                    role: "system",
+                    content: "You explain academic PDF pages clearly and accurately."
+                },
+                {
+                    role: "user",
+                    content: prompt
+                }
+            ]);
+
+            const parsed = JSON.parse(raw);
+
+            pageSummaries.push({
+                page: pageData.page,
+                short_summary: parsed.short_summary || "",
+                detailed_explanation: parsed.detailed_explanation || "",
+                key_points: parsed.key_points || [],
+                difficult_terms: parsed.difficult_terms || []
+            });
+        }
+
+        const combinedText = pageSummaries
+            .map(p => `Page ${p.page}: ${p.short_summary}`)
+            .join("\n");
+
+        const fullSummaryRaw = await callAi([
+            {
+                role: "system",
+                content: "Create one clear document-level summary from page summaries."
+            },
+            {
+                role: "user",
+                content: `
+Return valid JSON:
+{
+  "full_summary": "string"
+}
+
+Page summaries:
+${combinedText}
+`
+            }
+        ]);
+
+        const fullSummaryParsed = JSON.parse(fullSummaryRaw);
+
+        aiData.page_summaries = pageSummaries;
+        aiData.full_summary = fullSummaryParsed.full_summary || "";
+        aiData.updated_at = new Date();
+        await aiData.save();
+
+        return res.json({
+            success: true,
+            full_summary: aiData.full_summary,
+            page_summaries: aiData.page_summaries
+        });
+    } catch (err) {
+        console.error("Summarize doc error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to summarize document"
+        });
+    }
+});
+
+function rankPagesByQuestion(question, extractedPages) {
+    const words = String(question || "")
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 2);
+
+    return extractedPages
+        .map(page => {
+            const text = (page.text || "").toLowerCase();
+            let score = 0;
+
+            for (const word of words) {
+                if (text.includes(word)) score += 1;
+            }
+
+            return { ...page, score };
+        })
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4);
+}
+app.post("/ai/ask-doc", async (req, res) => {
+    try {
+        const { docId, question } = req.body;
+
+        if (!question || !String(question).trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Question is required"
+            });
+        }
+
+        const doc = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        const topPages = rankPagesByQuestion(question, aiData.extracted_pages);
+
+        const context = topPages
+            .map(p => `Page ${p.page}:\n${p.text}`)
+            .join("\n\n");
+
+        const raw = await callAi([
+            {
+                role: "system",
+                content: "Answer only from the PDF context. If unclear, say it is not clearly found in the PDF."
+            },
+            {
+                role: "user",
+                content: `
+Return valid JSON:
+{
+  "answer": "string",
+  "cited_pages": [1]
+}
+
+Question:
+${question}
+
+PDF context:
+${context}
+`
+            }
+        ]);
+
+        const parsed = JSON.parse(raw);
+
+        return res.json({
+            success: true,
+            result: parsed
+        });
+    } catch (err) {
+        console.error("Ask doc error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to answer question"
         });
     }
 });

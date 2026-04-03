@@ -18,6 +18,7 @@ let currentScale = 1.15;
 let renderVersion = 0;
 let pageElements = [];
 let visibleRenderScheduled = false;
+window.currentPdfPage = 1;
 
 const PRELOAD_PAGE_BUFFER = 2; // render 2 pages before and after visible range
 
@@ -54,6 +55,7 @@ function updateCurrentPageOnScroll() {
     });
 
     currentPageNumberEl.textContent = closestPage;
+    window.currentPdfPage = closestPage;
 
     if (pageJumpInput && document.activeElement !== pageJumpInput) {
         pageJumpInput.value = closestPage;
@@ -421,6 +423,10 @@ window.addEventListener("scroll", () => {
 window.addEventListener("resize", () => {
     updateCurrentPageOnScroll();
     scheduleVisibleRender();
+});
+document.addEventListener("mousemove", (e) => {
+    document.documentElement.style.setProperty("--mx", `${e.clientX}px`);
+    document.documentElement.style.setProperty("--my", `${e.clientY}px`);
 });
 
 loadPdf();

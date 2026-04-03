@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DocUp |  ViewDoc</title>
+    <title>DocUp | ViewDoc</title>
     <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
     <link rel="stylesheet" href="/docview.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,14 +10,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
-<div class="topbar">
-    <div class="logo-text-container">DocUp</div>
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="logo-text-container">DocUp</div>
+    </div>
 
     <div class="pg-links">
-        <a style="display: flex;justify-content: center;align-items:center " href="/dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
-        </svg>
-            <span style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;">FindDocs</span></a>
+        <a class="topbar-link active-link" href="/dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+
         <div class="notification-wrap">
             <div class="notification-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
@@ -35,9 +40,7 @@
 
                 <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
                 <% if (unreadCount > 0) { %>
-                <span class="notification-badge">
-                <%= unreadCount > 9 ? "9+" : unreadCount %>
-            </span>
+                <span class="notification-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
                 <% } %>
             </div>
 
@@ -60,13 +63,13 @@
                             </div>
 
                             <span class="notification-meta">
-            <%= item.createdAt
-                ? new Date(item.createdAt).toLocaleString("en-IN", {
-                    dateStyle: "medium",
-                    timeStyle: "short"
-                })
-                : "Just now" %>
-        </span>
+                                <%= item.createdAt
+                                ? new Date(item.createdAt).toLocaleString("en-IN", {
+                                    dateStyle: "medium",
+                                    timeStyle: "short"
+                                })
+                                : "Just now" %>
+                            </span>
                         </div>
 
                         <div class="notification-content">
@@ -82,6 +85,7 @@
                 </div>
             </div>
         </div>
+
         <div class="profile-btn">
             <% if (user.avatar_img_path) { %>
             <img src="<%= user.avatar_img_path %>" alt="">
@@ -90,182 +94,236 @@
             <% } %>
         </div>
     </div>
-</div>
+</header>
+
 <div class="profile-btn-dropdown">
-    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+    <a href="/profile">Profile</a>
     <a href="/pricing">Recharge DocScore</a>
 </div>
+
 <main class="viewer-page">
-    <section class="doc-hero-card">
-        <div class="doc-left">
-            <div class="college-logo hero-logo">
-                <img
-                        src="<%= college_data && college_data.image ? college_data.image : '/images/default.png' %>"
-                        alt="college logo"
-                        onerror="this.onerror=null; this.src='/images/default.png';"
-                >
-            </div>
-
-            <div class="doc-meta">
-                <h1><%= doc.title %></h1>
-                <div class="doc-tags">
-                    <span class="doc-tag"><%= doc.subject %></span>
-                    <span class="doc-tag"><%= doc.branch %></span>
-                    <span class="doc-tag"><%= doc.year %></span>
-                    <% if (doc.reviewed) { %>
-                    <span class=" verif-status verified">Verified</span>
-                    <% } else { %>
-                    <span class=" verif-status not-verified">To be reviewed</span>
-                    <% } %>
-                </div>
-            </div>
-        </div>
-
-        <div class="doc-actions">
-            <a href="/college/<%= encodeURIComponent(doc.college) %>" class="ghost-btn">Back</a>
-            <button
-                    type="button"
-                    id="open-share-doc-modal"
-                    class="share-doc-btn"
-                    data-doc-id="<%= doc._id %>"
-                    data-doc-college="<%= doc.college %>"
-                    data-doc-subject="<%= doc.subject %>"
-                    data-doc-chapter="<%= doc.chapter %>"
-            >
-                Share to College Chat
-            </button>
-            <div >
-                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%;" href="/update_likes/<%= doc._id %>" class="ghost-btn"><p style="color: orangered"><%= doc.likes %></p><svg width="22px" height="22px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF" transform="rotate(0)"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path fill-rule="evenodd" clip-rule="evenodd" d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5zM5.5 10A1.5 1.5 0 0 0 4 11.5v7a1.5 1.5 0 0 0 3 0v-7A1.5 1.5 0 0 0 5.5 10z" fill="#FF4500FF"></path></g></svg></a>
-            </div>
-            <div>
-                <a style="display: flex;justify-content: space-between;align-items: center;gap:10%" href="/update_dislikes/<%= doc._id %>" class="ghost-btn"><svg width="20px" height="20px" viewBox="0 -0.5 21 21" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#FF4500FF" stroke="#FF4500FF"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <title>dislike [#FF4500FF]</title> <desc>Created with Sketch.</desc> <defs> </defs> <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"> <g id="Dribbble-Light-Preview" transform="translate(-139.000000, -760.000000)" fill="#FF4500FF"> <g id="icons" transform="translate(56.000000, 160.000000)"> <path d="M101.900089,600 L99.8000892,600 L99.8000892,611.987622 L101.900089,611.987622 C103.060339,611.987622 104.000088,611.093545 104.000088,609.989685 L104.000088,601.997937 C104.000088,600.894077 103.060339,600 101.900089,600 M87.6977917,600 L97.7000896,600 L97.7000896,611.987622 L95.89514,618.176232 C95.6819901,619.491874 94.2455904,620.374962 92.7902907,619.842512 C91.9198408,619.52484 91.400091,618.66273 91.400091,617.774647 L91.400091,612.986591 C91.400091,612.43516 90.9296911,611.987622 90.3500912,611.987622 L85.8728921,611.987622 C84.0259425,611.987622 82.6598928,610.35331 83.0746427,608.641078 L84.8995423,602.117813 C85.1998423,600.878093 86.360092,600 87.6977917,600" id="dislike-[#FF4500FF]"> </path> </g> </g> </g> </g></svg><p style="color: orangered"><%= doc.dislikes %></p></a>
-            </div>
-            <a href="/save/<%= doc._id %>" class="ghost-btn"><svg width="25px" height="25px" viewBox="0 0 24.00 24.00" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#000000" stroke-width="0.00024000000000000003"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g><g id="SVGRepo_iconCarrier"> <path fill-rule="evenodd" clip-rule="evenodd" d="M6.75 6L7.5 5.25H16.5L17.25 6V19.3162L12 16.2051L6.75 19.3162V6ZM8.25 6.75V16.6838L12 14.4615L15.75 16.6838V6.75H8.25Z" fill="#FF4500FF"></path> </g></svg></a>
-
-        </div>
-    </section>
-
-    <section class="viewer-layout">
-        <div class="pdf-panel">
-            <div class="viewer-toolbar">
-                <div class="toolbar-left">
-                    <button type="button" class="tool-btn" id="zoom-out">−</button>
-
-                    <div class="zoom-pill">
-                        <span id="zoom-percentage">115%</span>
-                    </div>
-
-                    <button type="button" class="tool-btn" id="zoom-in">+</button>
-                    <button type="button" class="tool-btn" id="fit-width">Fit Width</button>
+    <section class="doc-shell">
+        <div class="doc-summary-card">
+            <div class="doc-summary-left">
+                <div class="hero-logo">
+                    <img
+                            src="<%= college_data && college_data.image ? college_data.image : '/images/default.png' %>"
+                            alt="college logo"
+                            onerror="this.onerror=null; this.src='/images/default.png';"
+                    >
                 </div>
 
-                <div class="toolbar-right">
-                    <div class="page-jump-box">
-                        <label for="page-jump-input">Page</label>
-                        <input
-                                id="page-jump-input"
-                                type="number"
-                                min="1"
-                                value="1"
-                        >
-                        <span id="page-jump-total">/ 0</span>
-                    </div>
-
-                    <span id="page-status">Loading PDF...</span>
-                </div>
-            </div>
-            <div class="pdf-page-indicator" id="pdf-page-indicator">
-                <span id="current-page-number">1</span>
-                /
-                <span id="total-page-number">0</span>
-            </div>
-            <div class="pdf-scroll-area" id="pdf-scroll-area">
-
-                <div id="pdf-container"></div>
-            </div>
-        </div>
-        <aside class="side-panel">
-            <div class="side-card">
-                <h2>Document Info</h2>
-                <div class="info-list">
-                    <p><span>College:</span>
-                        <a style="font-family: Saira, sans-serif" href="/college/<%= encodeURIComponent(doc.college) %>">
-                            <%= doc.college %>
-                        </a>
-                    </p>
-                    <p><span>Subject:</span> <%= doc.subject %></p>
-                    <p><span>Semester:</span> <%= doc.semester %></p>
-                    <p><span>Branch:</span> <%= doc.branch %></p>
-                    <p><span>Chapter:</span> <%= doc.chapter %></p>
-                </div>
-            </div>
-            <div class="side-card">
-                <h2 style="color:white" class="discussion-panel-title">Discussion</h2>
-
-                <div class="discussion-panel">
-                    <div class="comment-input-panel">
-                        <input class="comment-input-container" type="text" placeholder="Form a discussion...">
-                        <svg class="comment-send-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF">
-                            <g id="SVGRepo_iconCarrier">
-                                <path d="M10.3009 13.6949L20.102 3.89742M10.5795 14.1355L12.8019 18.5804C13.339 19.6545 13.6075 20.1916 13.9458 20.3356C14.2394 20.4606 14.575 20.4379 14.8492 20.2747C15.1651 20.0866 15.3591 19.5183 15.7472 18.3818L19.9463 6.08434C20.2845 5.09409 20.4535 4.59896 20.3378 4.27142C20.2371 3.98648 20.013 3.76234 19.7281 3.66167C19.4005 3.54595 18.9054 3.71502 17.9151 4.05315L5.61763 8.2523C4.48114 8.64037 3.91289 8.83441 3.72478 9.15032C3.56153 9.42447 3.53891 9.76007 3.66389 10.0536C3.80791 10.3919 4.34498 10.6605 5.41912 11.1975L9.86397 13.42C10.041 13.5085 10.1295 13.5527 10.2061 13.6118C10.2742 13.6643 10.3352 13.7253 10.3876 13.7933C10.4468 13.87 10.491 13.9585 10.5795 14.1355Z"
-                                      stroke="#FF4500FF"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"></path>
-                            </g>
-                        </svg>
-                    </div>
-
-                    <div class="comments-container-panel">
-                        <% if (doc.comment_section && doc.comment_section.length > 0) { %>
-                        <% doc.comment_section.forEach((item) => { %>
-                        <div class="comment">
-                            <div class="comment-avatar">
-                                <img
-                                        src="<%= item.user_id && item.user_id.avatar_img_path ? item.user_id.avatar_img_path : '/images/default-avatar.png' %>"
-                                        alt="avatar">
-                            </div>
-
-                            <div class="comment-body">
-                                <div class="comment-name" style="display: flex;flex-direction: row;gap:2vw;justify-content:center;align-items: center;flex-wrap:wrap">
-                                    <a href="/show_other_user_profile/<%= encodeURIComponent(item.user_id.email) %>">
-                                        <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
-                                    </a>
-
-                                    <div
-                                            class="reply-btn"
-                                            data-reply-name="<%= item.user_id && item.user_id.name ? item.user_id.name : 'DocUp User' %>"
-                                            data-reply-email="<%= item.user_id && item.user_id.email ? item.user_id.email : '' %>"
-                                            style="font-size:0.8rem;font-family: Saira, sans-serif;color:grey;border:1px solid rgba(128,128,128,0.4); border-radius:10px;padding:5px 20px;cursor:pointer;"
-                                    >
-                                        Reply
-                                    </div>
-                                </div>
-                                <div class="comment-time">
-                                    <%= new Date(item.createdAt).toLocaleString() %>
-                                </div>
-                                <div class="comment-text">
-                                    <%= item.comment %>
-                                </div>
-                            </div>
-                        </div>
-                        <% }) %>
+                <div class="doc-summary-meta">
+                    <div class="doc-summary-topline">
+                        <span class="doc-pill subtle-pill"><%= doc.college %></span>
+                        <% if (doc.reviewed) { %>
+                        <span class="verif-status verified">Verified</span>
                         <% } else { %>
-                        <div class="comment">
-                            <div class="comment-text">No comments yet. Be the first to comment.</div>
-                        </div>
+                        <span class="verif-status not-verified">To be reviewed</span>
                         <% } %>
                     </div>
+
+                    <h1><%= doc.title || doc.chapter %></h1>
+
+                    <p class="doc-subtitle">
+                        <%= doc.subject %> • <%= doc.branch %> • <%= doc.year %> • Semester <%= doc.semester %>
+                    </p>
+
+                    <div class="doc-tags">
+                        <span class="doc-tag"><%= doc.subject %></span>
+                        <span class="doc-tag"><%= doc.branch %></span>
+                        <span class="doc-tag"><%= doc.year %></span>
+                        <span class="doc-tag"><%= doc.chapter %></span>
+                    </div>
                 </div>
             </div>
 
+            <div class="doc-actions">
+                <a href="/college/<%= encodeURIComponent(doc.college) %>" class="ghost-btn">Back</a>
 
-            <div class="side-card scroll-top-card">
-                <button id="scrollTopBtn" class="scroll-top-btn">
-                    ↑ Back To Top
+                <button
+                        type="button"
+                        id="open-share-doc-modal"
+                        class="share-doc-btn"
+                        data-doc-id="<%= doc._id %>"
+                        data-doc-college="<%= doc.college %>"
+                        data-doc-subject="<%= doc.subject %>"
+                        data-doc-chapter="<%= doc.chapter %>"
+                >
+                    Share to College Chat
                 </button>
+
+                <a href="/update_likes/<%= doc._id %>" class="ghost-btn stat-btn">
+                    <span class="stat-count"><%= doc.likes %></span>
+                    <span>Like</span>
+                </a>
+
+                <a href="/update_dislikes/<%= doc._id %>" class="ghost-btn stat-btn">
+                    <span>Dislike</span>
+                    <span class="stat-count"><%= doc.dislikes %></span>
+                </a>
+
+                <a href="/save/<%= doc._id %>" class="ghost-btn save-btn">Save</a>
             </div>
-        </aside>
+        </div>
+
+        <section class="viewer-layout">
+            <div class="pdf-panel">
+                <div class="viewer-toolbar">
+                    <div class="toolbar-left">
+                        <div class="toolbar-group">
+                            <button type="button" class="tool-btn" id="zoom-out">−</button>
+
+                            <div class="zoom-pill">
+                                <span id="zoom-percentage">115%</span>
+                            </div>
+
+                            <button type="button" class="tool-btn" id="zoom-in">+</button>
+                            <button type="button" class="tool-btn" id="fit-width">Fit Width</button>
+                        </div>
+
+                        <div class="toolbar-group toolbar-ai-actions">
+                            <button type="button" class="tool-btn ai-tool-btn" id="ask-pdf-btn">Ask PDF</button>
+                            <button type="button" class="tool-btn ai-tool-btn" id="explain-page-btn">Explain This Page</button>
+                            <button type="button" class="tool-btn ai-tool-btn" id="summarize-doc-btn">Summarize Document</button>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-right">
+                        <div class="page-jump-box">
+                            <label for="page-jump-input">Page</label>
+                            <input id="page-jump-input" type="number" min="1" value="1">
+                            <span id="page-jump-total">/ 0</span>
+                        </div>
+
+                        <span id="page-status">Loading PDF...</span>
+                    </div>
+                </div>
+
+                <div class="pdf-stage-topline">
+                    <div class="pdf-page-indicator" id="pdf-page-indicator">
+                        <span id="current-page-number">1</span>
+                        /
+                        <span id="total-page-number">0</span>
+                    </div>
+                </div>
+
+                <div class="pdf-scroll-area" id="pdf-scroll-area">
+                    <div class="reader-watermark-shell">
+                        <div id="pdf-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="side-panel">
+                <div class="side-card ai-explainer-card primary-side-card">
+                    <div class="ai-card-header">
+                        <h2>AI Explainer</h2>
+                        <span id="ai-status-badge">Still in Development</span>
+                    </div>
+
+                    <div class="ai-quick-question">
+                        <input
+                                type="text"
+                                id="ask-pdf-input"
+                                placeholder="Ask something from this PDF..."
+                        >
+                        <button type="button" id="ask-pdf-send-btn">Ask</button>
+                    </div>
+
+                    <div class="ai-suggestion-row">
+                        <button type="button" class="mini-suggestion" id="mini-explain-trigger">Explain this page</button>
+                        <button type="button" class="mini-suggestion" id="mini-summary-trigger">Summarize doc</button>
+                    </div>
+
+                    <div id="ai-panel-content" class="ai-panel-content">
+                        <p class="ai-placeholder">
+                            Use Ask PDF, Explain This Page, or Summarize Document.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="side-card">
+                    <h2>Document Info</h2>
+                    <div class="info-list info-grid">
+                        <p><span>College</span><strong><a href="/college/<%= encodeURIComponent(doc.college) %>"><%= doc.college %></a></strong></p>
+                        <p><span>Subject</span><strong><%= doc.subject %></strong></p>
+                        <p><span>Semester</span><strong><%= doc.semester %></strong></p>
+                        <p><span>Branch</span><strong><%= doc.branch %></strong></p>
+                        <p><span>Chapter</span><strong><%= doc.chapter %></strong></p>
+                        <p><span>Uploader</span><strong><%= doc.uploaded_by || "DocUp User" %></strong></p>
+                    </div>
+                </div>
+
+                <div class="side-card discussion-card">
+                    <div class="side-card-topline">
+                        <h2 class="discussion-panel-title">Discussion</h2>
+                        <span class="discussion-count"><%= doc.comment_section ? doc.comment_section.length : 0 %> comments</span>
+                    </div>
+
+                    <div class="discussion-panel">
+                        <div class="comment-input-panel">
+                            <input class="comment-input-container" type="text" placeholder="Form a discussion...">
+                            <svg class="comment-send-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#FF4500FF">
+                                <g id="SVGRepo_iconCarrier">
+                                    <path d="M10.3009 13.6949L20.102 3.89742M10.5795 14.1355L12.8019 18.5804C13.339 19.6545 13.6075 20.1916 13.9458 20.3356C14.2394 20.4606 14.575 20.4379 14.8492 20.2747C15.1651 20.0866 15.3591 19.5183 15.7472 18.3818L19.9463 6.08434C20.2845 5.09409 20.4535 4.59896 20.3378 4.27142C20.2371 3.98648 20.013 3.76234 19.7281 3.66167C19.4005 3.54595 18.9054 3.71502 17.9151 4.05315L5.61763 8.2523C4.48114 8.64037 3.91289 8.83441 3.72478 9.15032C3.56153 9.42447 3.53891 9.76007 3.66389 10.0536C3.80791 10.3919 4.34498 10.6605 5.41912 11.1975L9.86397 13.42C10.041 13.5085 10.1295 13.5527 10.2061 13.6118C10.2742 13.6643 10.3352 13.7253 10.3876 13.7933C10.4468 13.87 10.491 13.9585 10.5795 14.1355Z"
+                                          stroke="#FF4500FF"
+                                          stroke-width="2"
+                                          stroke-linecap="round"
+                                          stroke-linejoin="round"></path>
+                                </g>
+                            </svg>
+                        </div>
+
+                        <div class="comments-container-panel">
+                            <% if (doc.comment_section && doc.comment_section.length > 0) { %>
+                            <% doc.comment_section.forEach((item) => { %>
+                            <div class="comment">
+                                <div class="comment-avatar">
+                                    <img
+                                            src="<%= item.user_id && item.user_id.avatar_img_path ? item.user_id.avatar_img_path : '/images/default-avatar.png' %>"
+                                            alt="avatar">
+                                </div>
+
+                                <div class="comment-body">
+                                    <div class="comment-head">
+                                        <a class="comment-name" href="/show_other_user_profile/<%= encodeURIComponent(item.user_id.email) %>">
+                                            <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
+                                        </a>
+
+                                        <div
+                                                class="reply-btn"
+                                                data-reply-name="<%= item.user_id && item.user_id.name ? item.user_id.name : 'DocUp User' %>"
+                                                data-reply-email="<%= item.user_id && item.user_id.email ? item.user_id.email : '' %>"
+                                        >
+                                            Reply
+                                        </div>
+                                    </div>
+
+                                    <div class="comment-time">
+                                        <%= new Date(item.createdAt).toLocaleString() %>
+                                    </div>
+
+                                    <div class="comment-text">
+                                        <%= item.comment %>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }) %>
+                            <% } else { %>
+                            <div class="comment empty-comment">
+                                <div class="comment-text">No comments yet. Be the first to comment.</div>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="side-card scroll-top-card">
+                    <button id="scrollTopBtn" class="scroll-top-btn">↑ Back To Top</button>
+                </div>
+            </aside>
+        </section>
     </section>
 </main>
 
@@ -300,6 +358,7 @@
         </div>
     </div>
 </div>
+
 <div id="share-success-modal" class="share-doc-modal hidden">
     <div class="share-doc-backdrop"></div>
 
@@ -322,40 +381,60 @@
         </div>
     </div>
 </div>
+
 <script>
     window.DOC_SHARE_CONFIG = {
         docId: <%- JSON.stringify(String(doc._id)) %>,
         collegeName: <%- JSON.stringify(doc.college) %>
     };
 </script>
+
 <script src="/doc_share.js"></script>
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const input = document.querySelector(".comment-input-container");
         const replyButtons = document.querySelectorAll(".reply-btn");
+        const miniExplain = document.getElementById("mini-explain-trigger");
+        const miniSummary = document.getElementById("mini-summary-trigger");
 
         replyButtons.forEach((btn) => {
             btn.addEventListener("click", () => {
-                const name = btn.dataset.replyName || "DocUp User";
                 const email = btn.dataset.replyEmail || "";
-
                 input.value = `@$${email}# : `;
                 input.focus();
             });
         });
+
+        if (miniExplain) {
+            miniExplain.addEventListener("click", () => {
+                const trigger = document.getElementById("explain-page-btn");
+                if (trigger) trigger.click();
+            });
+        }
+
+        if (miniSummary) {
+            miniSummary.addEventListener("click", () => {
+                const trigger = document.getElementById("summarize-doc-btn");
+                if (trigger) trigger.click();
+            });
+        }
     });
 </script>
 
 <script src="/dashboard2.js"></script>
+
 <script>
     const DOC_ID = "<%= doc._id %>";
 </script>
+
+<script src="/doc_ai.js"></script>
 <script src="/comments.js"></script>
+
 <script>
     const scrollBtn = document.getElementById("scrollTopBtn");
 
     window.addEventListener("scroll", () => {
-
         if (window.scrollY > 400) {
             scrollBtn.style.opacity = "1";
             scrollBtn.style.pointerEvents = "auto";
@@ -363,61 +442,55 @@
             scrollBtn.style.opacity = "0";
             scrollBtn.style.pointerEvents = "none";
         }
-
     });
 
     scrollBtn.addEventListener("click", () => {
-
         window.scrollTo({
             top: 0,
             behavior: "smooth"
         });
-
     });
+
     const pdfUrl = "<%= doc.file_url %>";
+
     document.addEventListener("contextmenu", function(e){
         e.preventDefault();
         alert("Printing and saving are disabled on DocUp.");
     });
-    document.addEventListener("keydown", function(e) {
 
-        // Save page
+    document.addEventListener("keydown", function(e) {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
 
-        // Print
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
 
-        // View source
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "u") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
 
-        // DevTools (Ctrl+Shift+I / Cmd+Option+I)
         if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "i") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
 
-        // F12
         if (e.key === "F12") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
+
         if ((e.command || e.metaKey) && e.shiftKey && e.code === "Digit3") {
             e.preventDefault();
             alert("Printing and saving are disabled on DocUp.");
         }
-
-
     });
 </script>
+
 <script>
     window.addEventListener("pageshow", function (event) {
         if (event.persisted) {
@@ -427,6 +500,12 @@
 
     window.addEventListener("popstate", function () {
         window.location.reload();
+    });
+</script>
+<script>
+    document.addEventListener("mousemove", (e) => {
+        document.documentElement.style.setProperty("--mx", `${e.clientX}px`);
+        document.documentElement.style.setProperty("--my", `${e.clientY}px`);
     });
 </script>
 <script src="/docview.js"></script>
