@@ -1040,9 +1040,9 @@ a.view-doc-link:hover {
     transition:opacity 0.15s ease;
 }
 
-.profile-btn-dropdown a[href="/profile"]::before{
-    content:"◎";
-}
+/*.profile-btn-dropdown a[href="/profile"]::before{*/
+/*    content:"◎";*/
+/*}*/
 
 .profile-btn-dropdown a[href="/pricing"]::before{
     content:"⚡";
