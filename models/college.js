@@ -19,7 +19,7 @@ const college = new mongoose.Schema({
     image: {
         type:String,
         trim:true,
-    }
+    },
 });
 
 export default mongoose.model("college", college);
