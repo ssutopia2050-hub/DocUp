@@ -23,6 +23,7 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "fs": "^0.0.1-security",
+    "fuse.js": "^7.2.0",
     "google-auth-library": "^10.6.1",
     "mongoose": "^9.2.4",
     "mongosh": "^2.7.0",

@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const collegeResultsStripInner = document.getElementById("college-results-strip-inner");
     const searchBtn = document.querySelector(".search-btn");
 
+    const suggestionBar = document.getElementById("search-suggestion-bar");
+    const suggestionBtn = document.getElementById("search-suggestion-btn");
+
     const colleges = JSON.parse(
         document.getElementById("colleges-data").textContent
     );
@@ -129,6 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
             item.addEventListener("click", () => {
                 searchInput.value = `/c ${college}`;
                 hideSuggestions();
+                hideSearchSuggestion();
                 searchInput.focus();
             });
 
@@ -136,6 +140,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         suggestionsBox.style.display = "block";
+    }
+
+    function hideSearchSuggestion() {
+        if (!suggestionBar || !suggestionBtn) return;
+        suggestionBar.style.display = "none";
+        suggestionBtn.textContent = "";
+        suggestionBtn.dataset.value = "";
+    }
+
+    function showSearchSuggestion(value) {
+        if (!suggestionBar || !suggestionBtn || !value) return;
+        suggestionBtn.textContent = value;
+        suggestionBtn.dataset.value = value;
+        suggestionBar.style.display = "flex";
     }
 
     function populateBranches(stream) {
@@ -267,7 +285,9 @@ document.addEventListener("DOMContentLoaded", function () {
             searchValue: searchInput ? searchInput.value : "",
             selectedYear: yearSelect ? yearSelect.value : "all",
             selectedStream: streamSelect ? streamSelect.value : "all",
-            selectedBranch: branchSelect ? branchSelect.value : "all"
+            selectedBranch: branchSelect ? branchSelect.value : "all",
+            suggestionVisible: suggestionBar ? suggestionBar.style.display : "none",
+            suggestionText: suggestionBtn ? suggestionBtn.textContent : ""
         };
 
         sessionStorage.setItem("dashboardState", JSON.stringify(state));
@@ -307,6 +327,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (state.resultsHTML && resultsContainer) {
                 resultsContainer.innerHTML = state.resultsHTML;
+            }
+
+            if (state.suggestionVisible === "flex" && state.suggestionText) {
+                showSearchSuggestion(state.suggestionText);
+            } else {
+                hideSearchSuggestion();
             }
         } catch (err) {
             console.log("Failed to restore dashboard state:", err);
@@ -478,9 +504,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
 
                             ${doc.reviewed
-                ? `<div class="verif-status verified">Verified</div>`
-                : `<div class="verif-status not-verified">To be Verified</div>`
-            }
+                                ? `<div class="verif-status verified">Verified</div>`
+                                : `<div class="verif-status not-verified">To be Verified</div>`
+                            }
 
                             <div style="display:flex;align-items:center;gap:8px;" class="tags">
                                 ${escapeHTML(String(doc.likes ?? 0))}
@@ -540,6 +566,8 @@ document.addEventListener("DOMContentLoaded", function () {
         searchInput.addEventListener("input", function () {
             const value = this.value.trim();
 
+            hideSearchSuggestion();
+
             if (value.startsWith("/s") || value.startsWith("/ch")) {
                 hideSuggestions();
                 return;
@@ -573,6 +601,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    if (suggestionBtn) {
+        suggestionBtn.addEventListener("click", () => {
+            const suggestedValue = suggestionBtn.dataset.value;
+            if (!suggestedValue) return;
+
+            searchInput.value = suggestedValue;
+            hideSearchSuggestion();
+
+            if (searchForm) {
+                searchForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+            }
+        });
+    }
+
     if (resultsContainer) {
         resultsContainer.addEventListener("click", function (e) {
             const link = e.target.closest(".view-doc-link");
@@ -602,11 +644,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 rawSearch === "/ch" || rawSearch === "/ch "
             ) {
                 showInputHintState();
+                hideSearchSuggestion();
                 return;
             }
 
             try {
                 hideSuggestions();
+                hideSearchSuggestion();
                 showLoading();
 
                 const response = await fetch("/api/dashboard-search", {
@@ -624,13 +668,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         "Failed to fetch results",
                         "The search request could not be completed right now. Please try again."
                     );
+                    hideSearchSuggestion();
                     return;
+                }
+
+                if (result.suggestion) {
+                    showSearchSuggestion(result.suggestion);
+                } else {
+                    hideSearchSuggestion();
                 }
 
                 renderResults(result.results);
 
             } catch (err) {
                 console.log(err);
+                hideSearchSuggestion();
                 showErrorState(
                     "Something went wrong",
                     "An unexpected error occurred while searching. Please try again."

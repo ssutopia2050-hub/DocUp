@@ -30,6 +30,7 @@ import http from "http";
 import { Server } from "socket.io";
 import OpenAI from "openai";
 import { UAParser } from "ua-parser-js";
+import Fuse from "fuse.js";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
@@ -478,12 +479,140 @@ async function callAi(messages) {
 
     return result.choices[0].message.content;
 }
+function normalizeSearchText(text = "") {
+    return String(text)
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+function expandAliases(text = "") {
+    const aliases = {
+        os: "operating system",
+        oop: "object oriented programming",
+        oops: "object oriented programming",
+        dbms: "database management system",
+        dsa: "data structures and algorithms",
+        cn: "computer networks",
+        coa: "computer organization and architecture",
+        toc: "theory of computation",
+        se: "software engineering",
+        ai: "artificial intelligence",
+        ml: "machine learning",
+        dl: "deep learning",
+        em: "engineering mathematics",
+        maths: "mathematics",
+        math: "mathematics",
+        phy: "physics",
+        chem: "chemistry"
+    };
+
+    const words = normalizeSearchText(text).split(" ");
+    return words.map(word => aliases[word] || word).join(" ");
+}
+
+function buildSearchDoc(doc) {
+    return {
+        ...doc,
+        college_normalized: normalizeSearchText(doc.college),
+        subject_normalized: normalizeSearchText(doc.subject),
+        chapter_normalized: normalizeSearchText(doc.chapter),
+        branch_normalized: normalizeSearchText(doc.branch),
+        uploaded_by_normalized: normalizeSearchText(doc.uploaded_by),
+        search_blob: normalizeSearchText([
+            doc.college,
+            doc.subject,
+            doc.chapter,
+            doc.branch,
+            doc.uploaded_by,
+            doc.year,
+            doc.semester
+        ].filter(Boolean).join(" "))
+    };
+}
+
+function getFuseKeys(searchType = "") {
+    if (searchType === "college") {
+        return [
+            { name: "college_normalized", weight: 0.85 },
+            { name: "search_blob", weight: 0.15 }
+        ];
+    }
+
+    if (searchType === "subject") {
+        return [
+            { name: "subject_normalized", weight: 0.8 },
+            { name: "chapter_normalized", weight: 0.15 },
+            { name: "search_blob", weight: 0.05 }
+        ];
+    }
+
+    if (searchType === "chapter") {
+        return [
+            { name: "chapter_normalized", weight: 0.8 },
+            { name: "subject_normalized", weight: 0.15 },
+            { name: "search_blob", weight: 0.05 }
+        ];
+    }
+
+    return [
+        { name: "chapter_normalized", weight: 0.34 },
+        { name: "subject_normalized", weight: 0.28 },
+        { name: "college_normalized", weight: 0.2 },
+        { name: "branch_normalized", weight: 0.1 },
+        { name: "uploaded_by_normalized", weight: 0.08 }
+    ];
+}
+
+function getSuggestion(searchValue, docs, searchType = "") {
+    const pool = new Set();
+
+    for (const doc of docs) {
+        if (searchType === "college") {
+            if (doc.college) pool.add(doc.college);
+        } else if (searchType === "subject") {
+            if (doc.subject) pool.add(doc.subject);
+        } else if (searchType === "chapter") {
+            if (doc.chapter) pool.add(doc.chapter);
+        } else {
+            if (doc.college) pool.add(doc.college);
+            if (doc.subject) pool.add(doc.subject);
+            if (doc.chapter) pool.add(doc.chapter);
+        }
+    }
+
+    const values = Array.from(pool).map(value => ({
+        original: value,
+        normalized: normalizeSearchText(value)
+    }));
+
+    const fuse = new Fuse(values, {
+        includeScore: true,
+        threshold: 0.32,
+        ignoreLocation: true,
+        minMatchCharLength: 2,
+        keys: ["normalized"]
+    });
+
+    const result = fuse.search(normalizeSearchText(searchValue))[0];
+
+    if (!result) return null;
+    if (typeof result.score !== "number") return null;
+
+    // only return suggestion if match is reasonably close
+    if (result.score > 0.32) return null;
+
+    return result.item.original || null;
+}
 const io = new Server(server, {
     cors: {
         origin: true,
         credentials: true
     }
 });
+
 io.engine.use(sessionMiddleware);
 /******************************
            Server Start
@@ -915,9 +1044,6 @@ app.post("/api/dashboard-search", async (req, res) => {
 
         const { search_parameter_text, year, branch } = req.body;
 
-        let searchType = "";
-        let searchValue = "";
-
         if (!search_parameter_text || !search_parameter_text.trim()) {
             return res.status(400).json({
                 success: false,
@@ -925,21 +1051,24 @@ app.post("/api/dashboard-search", async (req, res) => {
             });
         }
 
-        const trimmedSearch = search_parameter_text.trim();
+        const rawSearch = String(search_parameter_text).trim();
+        const normalizedRaw = normalizeSearchText(rawSearch);
 
-        if (trimmedSearch.startsWith("/ch")) {
+        let searchType = "";
+        let searchValue = normalizedRaw;
+
+        if (normalizedRaw.startsWith("/ch")) {
             searchType = "chapter";
-            searchValue = trimmedSearch.slice(3).trim();
-        } else if (trimmedSearch.startsWith("/c")) {
+            searchValue = normalizeSearchText(normalizedRaw.slice(3));
+        } else if (normalizedRaw.startsWith("/c")) {
             searchType = "college";
-            searchValue = trimmedSearch.slice(2).trim();
-        } else if (trimmedSearch.startsWith("/s")) {
+            searchValue = normalizeSearchText(normalizedRaw.slice(2));
+        } else if (normalizedRaw.startsWith("/s")) {
             searchType = "subject";
-            searchValue = trimmedSearch.slice(2).trim();
-        } else {
-            searchType = "";
-            searchValue = trimmedSearch;
+            searchValue = normalizeSearchText(normalizedRaw.slice(2));
         }
+
+        searchValue = expandAliases(searchValue);
 
         if (!searchValue) {
             return res.status(400).json({
@@ -948,154 +1077,108 @@ app.post("/api/dashboard-search", async (req, res) => {
             });
         }
 
-        const resultsMap = new Map();
+        const mongoFilter = {
+            ...(year && year !== "all" ? { year } : {}),
+            ...(branch && branch !== "all" ? { branch } : {})
+        };
 
-        function addResults(docs, scoreToAdd) {
-            docs.forEach(doc => {
-                const id = doc._id.toString();
+        const docs = await Docs.find(mongoFilter).lean();
 
-                if (!resultsMap.has(id)) {
-                    resultsMap.set(id, {
-                        ...doc.toObject(),
-                        _score: 0
-                    });
-                }
-
-                resultsMap.get(id)._score += scoreToAdd;
+        if (!docs.length) {
+            return res.json({
+                success: true,
+                results: [],
+                suggestion: null
             });
         }
 
-        if (searchType === "college") {
-            const s1 = await Docs.find({
-                college: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s1, 100);
+        const searchableDocs = docs.map(buildSearchDoc);
 
-            const s2 = await Docs.find({
-                college: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s2, 70);
-
-            if (branch !== "all") {
-                const s3 = await Docs.find({ branch });
-                addResults(s3, 20);
-            }
-
-            if (year !== "all") {
-                const s4 = await Docs.find({ year });
-                addResults(s4, 15);
-            }
-        }
-
-        else if (searchType === "subject") {
-            const s1 = await Docs.find({
-                subject: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s1, 100);
-
-            const s2 = await Docs.find({
-                subject: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s2, 75);
-
-            if (branch !== "all") {
-                const s3 = await Docs.find({ branch });
-                addResults(s3, 20);
-            }
-
-            if (year !== "all") {
-                const s4 = await Docs.find({ year });
-                addResults(s4, 15);
-            }
-        }
-
-        else if (searchType === "chapter") {
-            const s1 = await Docs.find({
-                chapter: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s1, 110);
-
-            const s2 = await Docs.find({
-                chapter: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s2, 85);
-
-            const s3 = await Docs.find({
-                subject: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s3, 25);
-
-            if (branch !== "all") {
-                const s4 = await Docs.find({ branch });
-                addResults(s4, 20);
-            }
-
-            if (year !== "all") {
-                const s5 = await Docs.find({ year });
-                addResults(s5, 15);
-            }
-        }
-
-        else {
-            const s1 = await Docs.find({
-                college: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s1, 80);
-
-            const s2 = await Docs.find({
-                subject: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s2, 80);
-
-            const s3 = await Docs.find({
-                chapter: { $regex: searchValue, $options: "i" },
-                ...(year !== "all" ? { year } : {}),
-                ...(branch !== "all" ? { branch } : {})
-            });
-            addResults(s3, 95);
-
-            const s4 = await Docs.find({
-                branch: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s4, 60);
-
-            const s5 = await Docs.find({
-                uploaded_by: { $regex: searchValue, $options: "i" }
-            });
-            addResults(s5, 40);
-
-            if (branch !== "all") {
-                const s6 = await Docs.find({ branch });
-                addResults(s6, 20);
-            }
-
-            if (year !== "all") {
-                const s7 = await Docs.find({ year });
-                addResults(s7, 15);
-            }
-        }
-
-        let results_after_search = Array.from(resultsMap.values());
-        results_after_search.sort((a, b) => b._score - a._score);
-
-        res.json({
-            success: true,
-            results: results_after_search
+        const fuse = new Fuse(searchableDocs, {
+            includeScore: true,
+            threshold: 0.4,
+            ignoreLocation: true,
+            minMatchCharLength: 2,
+            keys: getFuseKeys(searchType)
         });
 
+        let results = fuse.search(searchValue).map(({ item, score }) => {
+            let finalScore = Math.round((1 - (score ?? 1)) * 1000);
+
+            if (item.reviewed) finalScore += 80;
+            if (typeof item.likes === "number") finalScore += item.likes * 4;
+            if (typeof item.dislikes === "number") finalScore -= item.dislikes * 2;
+
+            if (searchType === "college" && item.college_normalized.includes(searchValue)) {
+                finalScore += 120;
+            }
+
+            if (searchType === "subject" && item.subject_normalized.includes(searchValue)) {
+                finalScore += 120;
+            }
+
+            if (searchType === "chapter" && item.chapter_normalized.includes(searchValue)) {
+                finalScore += 140;
+            }
+
+            if (!searchType) {
+                if (item.chapter_normalized.includes(searchValue)) finalScore += 90;
+                if (item.subject_normalized.includes(searchValue)) finalScore += 70;
+                if (item.college_normalized.includes(searchValue)) finalScore += 50;
+            }
+
+            return {
+                ...item,
+                _score: finalScore
+            };
+        });
+
+        results.sort((a, b) => b._score - a._score);
+
+        const cleanedResults = results.map(doc => {
+            const {
+                college_normalized,
+                subject_normalized,
+                chapter_normalized,
+                branch_normalized,
+                uploaded_by_normalized,
+                search_blob,
+                ...rest
+            } = doc;
+            return rest;
+        });
+
+        let suggestion = null;
+
+        const rawTypedValue = searchType
+            ? normalizeSearchText(rawSearch.replace(/^\/(c|s|ch)\s*/i, ""))
+            : normalizeSearchText(rawSearch);
+
+        const bestSuggestion = getSuggestion(searchValue, docs, searchType);
+
+        if (
+            bestSuggestion &&
+            normalizeSearchText(bestSuggestion) !== rawTypedValue
+        ) {
+            if (searchType === "college") {
+                suggestion = `/c ${bestSuggestion}`;
+            } else if (searchType === "subject") {
+                suggestion = `/s ${bestSuggestion}`;
+            } else if (searchType === "chapter") {
+                suggestion = `/ch ${bestSuggestion}`;
+            } else {
+                suggestion = bestSuggestion;
+            }
+        }
+
+        return res.json({
+            success: true,
+            results: cleanedResults,
+            suggestion
+        });
     } catch (err) {
-        console.log(err);
-        res.status(500).json({
+        console.log("dashboard search error:", err);
+        return res.status(500).json({
             success: false,
             message: "Server error"
         });
