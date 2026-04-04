@@ -143,7 +143,12 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Back
             </a>
-
+            <button type="button" class="ha-btn ghost report-trigger" id="open-report-modal">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 21V5M5 5h10l-1.6 3L15 11H5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Report
+            </button>
             <button type="button" id="open-share-doc-modal" class="ha-btn accent"
                     data-doc-id="<%= doc._id %>"
                     data-doc-college="<%= doc.college %>"
@@ -406,6 +411,93 @@
     </div>
 </div>
 
+<div class="report-overlay" id="report-overlay">
+    <div class="report-modal">
+        <button class="report-close" id="close-report-modal" aria-label="Close report modal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="report-modal-top">
+            <div class="report-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 21V5M5 5h10l-1.6 3L15 11H5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="report-title">Report this doc</h3>
+                <p class="report-subtitle">
+<!--                    Help us keep DocUp clean and useful. Tell us what’s wrong with this document.-->
+                </p>
+            </div>
+        </div>
+
+        <form id="report-form" class="report-form">
+            <div class="report-reason-grid">
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Wrong content">
+                    <span>Wrong content</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Poor quality">
+                    <span>Poor quality</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Spam or irrelevant">
+                    <span>Spam or irrelevant</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Duplicate upload">
+                    <span>Duplicate upload</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Misleading title">
+                    <span>Misleading title</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Other">
+                    <span>Other</span>
+                </label>
+            </div>
+
+            <div class="report-textarea-wrap">
+                <label for="report-message" class="report-label">More details</label>
+                <textarea
+                        id="report-message"
+                        name="report_message"
+                        placeholder="Explain the issue in a few words..."
+                        maxlength="500"
+                ></textarea>
+                <div class="report-meta-row">
+                    <span class="report-hint">Be clear and short.</span>
+                    <span class="report-count" id="report-count">0 / 500</span>
+                </div>
+            </div>
+
+            <div class="report-actions">
+                <button type="button" class="report-btn ghost" id="cancel-report-modal">Cancel</button>
+                <button type="submit" class="report-btn accent" id="submit-report-btn">Submit Report</button>
+            </div>
+        </form>
+
+        <div class="report-success" id="report-success">
+            <div class="report-success-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h4>Report submitted</h4>
+            <p>Thanks. We’ll review this document soon.</p>
+            <button type="button" class="report-btn accent" id="done-report-modal">Done</button>
+        </div>
+    </div>
+</div>
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script>
     window.DOC_SHARE_CONFIG = {
@@ -414,7 +506,109 @@
     };
 </script>
 <script src="/doc_share.js"></script>
+<script>
+    const reportOverlay = document.getElementById("report-overlay");
+    const openReportModalBtn = document.getElementById("open-report-modal");
+    const closeReportModalBtn = document.getElementById("close-report-modal");
+    const cancelReportModalBtn = document.getElementById("cancel-report-modal");
+    const doneReportModalBtn = document.getElementById("done-report-modal");
+    const reportForm = document.getElementById("report-form");
+    const reportSuccess = document.getElementById("report-success");
+    const reportMessage = document.getElementById("report-message");
+    const reportCount = document.getElementById("report-count");
+    const submitReportBtn = document.getElementById("submit-report-btn");
 
+    function openReportModal() {
+        reportOverlay.classList.add("active");
+        document.body.classList.add("report-modal-open");
+    }
+
+    function closeReportModal() {
+        reportOverlay.classList.remove("active");
+        document.body.classList.remove("report-modal-open");
+
+        setTimeout(() => {
+            reportForm.style.display = "flex";
+            reportSuccess.classList.remove("active");
+            reportForm.reset();
+            reportCount.textContent = "0 / 500";
+            submitReportBtn.disabled = false;
+            submitReportBtn.textContent = "Submit Report";
+        }, 180);
+    }
+
+    if (openReportModalBtn) {
+        openReportModalBtn.addEventListener("click", openReportModal);
+    }
+
+    [closeReportModalBtn, cancelReportModalBtn, doneReportModalBtn].forEach((btn) => {
+        if (btn) btn.addEventListener("click", closeReportModal);
+    });
+
+    if (reportOverlay) {
+        reportOverlay.addEventListener("click", (e) => {
+            if (e.target === reportOverlay) {
+                closeReportModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && reportOverlay.classList.contains("active")) {
+            closeReportModal();
+        }
+    });
+
+    if (reportMessage) {
+        reportMessage.addEventListener("input", () => {
+            reportCount.textContent = `${reportMessage.value.length} / 500`;
+        });
+    }
+
+    if (reportForm) {
+        reportForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const selectedReason = document.querySelector('input[name="report_reason"]:checked');
+            const details = reportMessage.value.trim();
+
+            if (!selectedReason) {
+                alert("Please select a reason.");
+                return;
+            }
+
+            submitReportBtn.disabled = true;
+            submitReportBtn.textContent = "Submitting...";
+
+            try {
+                const response = await fetch("/report_doc", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: "<%= user.email %>",
+                        report_text: `${selectedReason.value}${details ? " — " + details : ""}`,
+                        doc_new_id: "<%= doc._id %>"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Failed to submit report.");
+                }
+
+                reportForm.style.display = "none";
+                reportSuccess.classList.add("active");
+            } catch (err) {
+                alert(err.message || "Something went wrong.");
+                submitReportBtn.disabled = false;
+                submitReportBtn.textContent = "Submit Report";
+            }
+        });
+    }
+</script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const input = document.querySelector(".comment-input-container");

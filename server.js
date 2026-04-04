@@ -7,6 +7,7 @@ import LoginData from "./models/login_data.js";
 import docs_view_data from "./models/docs_view_data.js";
 import ChatMessage from "./models/chatMessage.js";
 import DocAI from "./models/DocAI.js";
+import reports from "./models/Reports.js"
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -2898,6 +2899,38 @@ ${context}
         return res.status(500).json({
             success: false,
             message: "Failed to answer question"
+        });
+    }
+});
+
+
+app.post("/report_doc", async (req, res) => {
+    if (!req.session.email) {
+        return res.status(401).json({
+            success: false,
+            message: "Please sign in first."
+        });
+    }
+
+    try {
+        const { email, report_text, doc_new_id } = req.body;
+
+        await reports.create({
+            reported_by_email: email,
+            report: report_text,
+            doc_id: doc_new_id
+        });
+
+        return res.status(200).json({
+            success: true,
+            message: "Report submitted successfully."
+        });
+
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            success: false,
+            message: "Server Error"
         });
     }
 });
