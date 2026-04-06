@@ -255,7 +255,7 @@
                     </span>
                     <h2>AI Explainer</h2>
                 </div>
-                <span id="ai-status-badge" class="ai-badge">Beta</span>
+                <span id="ai-status-badge" class="ai-badge">In Development</span>
             </div>
 
             <div class="ai-input-row">
@@ -271,7 +271,7 @@
             </div>
 
             <div id="ai-panel-content" class="ai-output">
-                <p class="ai-placeholder">Use Ask PDF, Explain This Page, or Summarize Document to get started.</p>
+                <p class="ai-placeholder">Use Control + G (Mac) or Ctrl + G (Windows) to launch Gemini  instantly on the lastest version of Chrome to explain this page or summarize the document. More built-in AI features are coming soon 🚀</p>
             </div>
         </div>
 
@@ -649,11 +649,17 @@
     document.addEventListener("contextmenu", e => { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); });
     document.addEventListener("keydown", e => {
         const ctrl = e.ctrlKey || e.metaKey;
-        const blocked = ["s","p","u"].includes(e.key.toLowerCase()) && ctrl
+        const blocked = ["s","p","u","g"].includes(e.key.toLowerCase()) && ctrl
             || (ctrl && e.shiftKey && e.key.toLowerCase() === "i")
             || e.key === "F12";
         if (blocked) { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); }
     });
+    document.addEventListener("keydown", e => {
+              if((e.ctrlKey || e.metaKey)  && (e.key ==="G" || e.key ==="g") ) {
+                  e.preventDefault();
+                  alert("Printing and saving are disabled on DocUp.");
+              }
+    })
 
     // Back/forward cache
     window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
