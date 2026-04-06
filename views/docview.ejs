@@ -649,17 +649,17 @@
     document.addEventListener("contextmenu", e => { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); });
     document.addEventListener("keydown", e => {
         const ctrl = e.ctrlKey || e.metaKey;
-        const blocked = ["s","p","u","g"].includes(e.key.toLowerCase()) && ctrl
+        const blocked = ["s","p","u"].includes(e.key.toLowerCase()) && ctrl
             || (ctrl && e.shiftKey && e.key.toLowerCase() === "i")
             || e.key === "F12";
         if (blocked) { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); }
     });
-    document.addEventListener("keydown", e => {
-              if((e.ctrlKey || e.metaKey)  && (e.key ==="G" || e.key ==="g") ) {
-                  e.preventDefault();
-                  alert("Printing and saving are disabled on DocUp.");
-              }
-    })
+    // document.addEventListener("keydown", e => {
+    //           if((e.ctrlKey || e.metaKey)  && (e.key ==="G" || e.key ==="g") ) {
+    //               e.preventDefault();
+    //               alert("Printing and saving are disabled on DocUp.");
+    //           }
+    // })
 
     // Back/forward cache
     window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
