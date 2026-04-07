@@ -194,6 +194,22 @@ cursor:crosshair;">
         <p>Uploading file, please wait...</p>
     </div>
 </div>
+<div id="upload-status-popup" class="upload-status-popup">
+    <div class="upload-status-card">
+        <div id="upload-status-icon" class="upload-status-icon success">
+            ✓
+        </div>
+
+        <h3 id="upload-status-title">Upload Complete</h3>
+        <p id="upload-status-message">Your document was uploaded successfully.</p>
+
+        <div class="upload-status-actions">
+            <button type="button" id="upload-status-close" class="upload-status-btn primary">
+                Okay
+            </button>
+        </div>
+    </div>
+</div>
 <div class="footer">
     <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
         DocUp
@@ -224,7 +240,31 @@ cursor:crosshair;">
 
     const collegeInput = document.getElementById("college");
     const suggestionsBox = document.getElementById("college-suggestions");
+    const uploadStatusPopup = document.getElementById("upload-status-popup");
+    const uploadStatusIcon = document.getElementById("upload-status-icon");
+    const uploadStatusTitle = document.getElementById("upload-status-title");
+    const uploadStatusMessage = document.getElementById("upload-status-message");
+    const uploadStatusClose = document.getElementById("upload-status-close");
 
+    function showUploadPopup(type, title, message) {
+        uploadStatusIcon.className = "upload-status-icon " + type;
+        uploadStatusIcon.textContent = type === "success" ? "✓" : "!";
+        uploadStatusTitle.textContent = title;
+        uploadStatusMessage.textContent = message;
+        uploadStatusPopup.classList.add("active");
+    }
+
+    function hideUploadPopup() {
+        uploadStatusPopup.classList.remove("active");
+    }
+
+    uploadStatusClose.addEventListener("click", hideUploadPopup);
+
+    uploadStatusPopup.addEventListener("click", (e) => {
+        if (e.target === uploadStatusPopup) {
+            hideUploadPopup();
+        }
+    });
     let selectedFile = null;
     let activeSuggestionIndex = -1;
 
@@ -465,8 +505,6 @@ cursor:crosshair;">
     }
 //TODO:Moderator
     uploadBtn.addEventListener("click", async () => {
-
-
         const collegeRaw = collegeInput.value.trim();
         const year = document.getElementById("year").value;
         const semester = document.getElementById("semester").value;
@@ -475,18 +513,19 @@ cursor:crosshair;">
         const chapter = document.getElementById("chapter").value.trim();
 
         if (!selectedFile) {
-            alert("Please select a file");
+            showUploadPopup("error", "No File Selected", "Please choose a file before uploading.");
             return;
         }
+
         if (!collegeRaw || !isValidCollege(collegeRaw)) {
             collegeInput.classList.add("college-invalid");
             collegeInput.focus();
-            alert("Please select a valid college from the suggestions");
+            showUploadPopup("error", "Invalid College", "Please select a valid college from the suggestions.");
             return;
         }
 
         if (!year || !semester || !branch || !subject || !chapter) {
-            alert("Please fill all metadata fields");
+            showUploadPopup("error", "Missing Details", "Please fill all metadata fields before uploading.");
             return;
         }
 
@@ -522,7 +561,12 @@ cursor:crosshair;">
                 body: formData
             });
 
-            if (res.ok) {
+            const data = await res.json().catch(() => ({}));
+
+            hideLoader();
+            uploadBtn.disabled = false;
+
+            if (res.ok && data.success) {
                 collegeInput.value = "";
                 collegeInput.dataset.selected = "false";
                 collegeInput.classList.remove("college-invalid");
@@ -542,18 +586,27 @@ cursor:crosshair;">
                 form.style.display = "none";
                 uploadBtn.style.display = "none";
 
-                hideLoader();
-                uploadBtn.disabled = false;
-                alert("Upload Complete");
+                showUploadPopup(
+                    "success",
+                    "Upload Complete",
+                    "Your document has been uploaded successfully and is now under review."
+                );
             } else {
-                hideLoader();
-                uploadBtn.disabled = false;
-                alert("Upload failed");
+                showUploadPopup(
+                    "error",
+                    "Upload Failed",
+                    data.message || "Something went wrong while uploading your document."
+                );
             }
         } catch (err) {
             hideLoader();
             uploadBtn.disabled = false;
-            alert("Network error");
+
+            showUploadPopup(
+                "error",
+                "Network Error",
+                "Could not connect to the server. Please try again."
+            );
         }
     });
 </script>

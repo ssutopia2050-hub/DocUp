@@ -806,3 +806,114 @@ a:active {
     border: 1px dashed rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
 }
+
+.upload-status-popup{
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.58);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+    z-index: 9999;
+}
+
+.upload-status-popup.active{
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.upload-status-card{
+    width: min(92vw, 430px);
+    background: linear-gradient(180deg, #08202b 0%, #05161f 100%);
+    border: 1px solid rgba(255, 106, 0, 0.22);
+    border-radius: 24px;
+    box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    padding: 34px 26px 24px;
+    text-align: center;
+    transform: translateY(18px) scale(0.97);
+    transition: transform 0.25s ease;
+}
+
+.upload-status-popup.active .upload-status-card{
+    transform: translateY(0) scale(1);
+}
+
+.upload-status-icon{
+    width: 74px;
+    height: 74px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 2rem;
+    line-height: 1;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.upload-status-icon.success{
+    background: radial-gradient(circle at top, rgba(255,106,0,0.35), rgba(255,106,0,0.12));
+    color: #ff8c3a;
+    box-shadow: 0 0 30px rgba(255,106,0,0.18);
+}
+
+.upload-status-icon.error{
+    background: radial-gradient(circle at top, rgba(255,70,70,0.30), rgba(255,70,70,0.10));
+    color: #ff6b6b;
+    box-shadow: 0 0 30px rgba(255,70,70,0.16);
+}
+
+#upload-status-title{
+    color: white;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.35rem;
+    margin: 0 0 10px;
+    letter-spacing: 0.4px;
+}
+
+#upload-status-message{
+    color: rgba(255,255,255,0.72);
+    font-family: 'Saira', sans-serif;
+    font-size: 0.98rem;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.upload-status-actions{
+    margin-top: 24px;
+    display: flex;
+    justify-content: center;
+}
+
+.upload-status-btn{
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 12px 22px;
+    min-width: 120px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 0.92rem;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.upload-status-btn:hover{
+    transform: translateY(-1px);
+}
+
+.upload-status-btn.primary{
+    background: linear-gradient(90deg, #ff5a00 0%, #ff8a00 100%);
+    color: white;
+    box-shadow: 0 12px 28px rgba(255,106,0,0.28);
+}

@@ -428,7 +428,7 @@
             <div>
                 <h3 class="report-title">Report this doc</h3>
                 <p class="report-subtitle">
-<!--                    Help us keep DocUp clean and useful. Tell us what’s wrong with this document.-->
+                    <!--                    Help us keep DocUp clean and useful. Tell us what’s wrong with this document.-->
                 </p>
             </div>
         </div>
@@ -498,7 +498,67 @@
         </div>
     </div>
 </div>
+
+<!-- Global overlay popup -->
+<div id="docup-popup" class="docup-popup-overlay">
+    <div class="docup-popup-card">
+        <button type="button" class="docup-popup-close" id="docup-popup-close" aria-label="Close popup">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="docup-popup-icon" id="docup-popup-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <h3 id="docup-popup-title">Notice</h3>
+        <p id="docup-popup-message">This action is disabled on DocUp.</p>
+
+        <div class="docup-popup-actions">
+            <button type="button" class="docup-popup-btn" id="docup-popup-ok">Okay</button>
+        </div>
+    </div>
+</div>
+
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
+
+<script>
+    const docupPopup = document.getElementById("docup-popup");
+    const docupPopupTitle = document.getElementById("docup-popup-title");
+    const docupPopupMessage = document.getElementById("docup-popup-message");
+    const docupPopupClose = document.getElementById("docup-popup-close");
+    const docupPopupOk = document.getElementById("docup-popup-ok");
+
+    function showDocupPopup(title, message) {
+        docupPopupTitle.textContent = title || "Notice";
+        docupPopupMessage.textContent = message || "This action is disabled on DocUp.";
+        docupPopup.classList.add("active");
+        document.body.classList.add("report-modal-open");
+    }
+
+    function hideDocupPopup() {
+        docupPopup.classList.remove("active");
+        document.body.classList.remove("report-modal-open");
+    }
+
+    docupPopupClose?.addEventListener("click", hideDocupPopup);
+    docupPopupOk?.addEventListener("click", hideDocupPopup);
+
+    docupPopup?.addEventListener("click", (e) => {
+        if (e.target === docupPopup) hideDocupPopup();
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && docupPopup.classList.contains("active")) {
+            hideDocupPopup();
+        }
+    });
+</script>
+
 <script>
     window.DOC_SHARE_CONFIG = {
         docId: <%- JSON.stringify(String(doc._id)) %>,
@@ -573,7 +633,7 @@
             const details = reportMessage.value.trim();
 
             if (!selectedReason) {
-                alert("Please select a reason.");
+                showDocupPopup("Select a Reason", "Please choose a report reason before submitting.");
                 return;
             }
 
@@ -602,7 +662,7 @@
                 reportForm.style.display = "none";
                 reportSuccess.classList.add("active");
             } catch (err) {
-                alert(err.message || "Something went wrong.");
+                showDocupPopup("Submission Failed", err.message || "Something went wrong.");
                 submitReportBtn.disabled = false;
                 submitReportBtn.textContent = "Submit Report";
             }
@@ -645,22 +705,6 @@
     // PDF URL
     const pdfUrl = "<%= doc.file_url %>";
 
-    // Security
-    document.addEventListener("contextmenu", e => { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); });
-    document.addEventListener("keydown", e => {
-        const ctrl = e.ctrlKey || e.metaKey;
-        const blocked = ["s","p","u"].includes(e.key.toLowerCase()) && ctrl
-            || (ctrl && e.shiftKey && e.key.toLowerCase() === "i")
-            || e.key === "F12";
-        if (blocked) { e.preventDefault(); alert("Printing and saving are disabled on DocUp."); }
-    });
-    // document.addEventListener("keydown", e => {
-    //           if((e.ctrlKey || e.metaKey)  && (e.key ==="G" || e.key ==="g") ) {
-    //               e.preventDefault();
-    //               alert("Printing and saving are disabled on DocUp.");
-    //           }
-    // })
-
     // Back/forward cache
     window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
     window.addEventListener("popstate", () => window.location.reload());
@@ -671,6 +715,29 @@
         document.documentElement.style.setProperty("--my", `${e.clientY}px`);
     });
 </script>
+
+<script>
+    document.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        showDocupPopup("Action Blocked", "Printing, saving, and right-click actions are disabled on DocUp.");
+    });
+
+    document.addEventListener("keydown", e => {
+        const ctrl = e.ctrlKey || e.metaKey;
+        const key = e.key.toLowerCase();
+
+        const blocked =
+            (ctrl && ["s", "p", "u"].includes(key)) ||
+            (ctrl && e.shiftKey && key === "i") ||
+            e.key === "F12";
+
+        if (blocked) {
+            e.preventDefault();
+            showDocupPopup("Action Blocked", "Printing, saving, and developer shortcuts are disabled on DocUp.");
+        }
+    });
+</script>
+
 <script src="/dashboard3.js"></script>
 <script src="/docview.js"></script>
 </body>
