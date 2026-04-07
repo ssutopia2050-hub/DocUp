@@ -1670,7 +1670,7 @@ body.report-modal-open {
     letter-spacing: 0.9px;
     text-transform: uppercase;
     white-space: nowrap;
-    color: rgba(255, 106, 0, 0.04);
+    color: rgba(255, 106, 0, 0.09);
     transform: rotate(-28deg);
     text-shadow: 0 0 1px rgba(0,0,0,0.03);
 }
