@@ -238,6 +238,12 @@
         <!-- PDF Canvas area -->
         <div class="pdf-canvas-area" id="pdf-scroll-area">
             <div class="reader-watermark-shell">
+                <div
+                        class="reader-watermark-layer"
+                        id="reader-watermark-layer"
+                        aria-hidden="true"
+                        data-watermark="DocUp • <%= user.email %> • Private View"
+                ></div>
                 <div id="pdf-container"></div>
             </div>
         </div>
@@ -271,7 +277,7 @@
             </div>
 
             <div id="ai-panel-content" class="ai-output">
-                <p class="ai-placeholder">Use Control + G (Mac) or Ctrl + G (Windows) to launch Gemini  instantly on the lastest version of Chrome to explain this page or summarize the document. More built-in AI features are coming soon 🚀</p>
+                <p class="ai-placeholder">Use Control + G (Mac) or Ctrl + G (Windows) to launch Gemini instantly on the latest version of Chrome to explain this page or summarize the document. More built-in AI features are coming soon 🚀</p>
             </div>
         </div>
 
@@ -525,7 +531,6 @@
 </div>
 
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
-
 <script>
     const docupPopup = document.getElementById("docup-popup");
     const docupPopupTitle = document.getElementById("docup-popup-title");
@@ -669,6 +674,7 @@
         });
     }
 </script>
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const input = document.querySelector(".comment-input-container");
@@ -726,18 +732,58 @@
         const ctrl = e.ctrlKey || e.metaKey;
         const key = e.key.toLowerCase();
 
-        const blocked =
+        const blockedBrowserShortcuts =
             (ctrl && ["s", "p", "u"].includes(key)) ||
             (ctrl && e.shiftKey && key === "i") ||
             e.key === "F12";
 
-        if (blocked) {
+        const screenshotShortcuts =
+            (e.metaKey && e.shiftKey && (key === "3" || key === "4")) ||
+            (e.ctrlKey && e.shiftKey && key === "s") ||
+            (key === "printscreen");
+
+        if (blockedBrowserShortcuts) {
             e.preventDefault();
             showDocupPopup("Action Blocked", "Printing, saving, and developer shortcuts are disabled on DocUp.");
+            return;
+        }
+
+        if (screenshotShortcuts) {
+            e.preventDefault();
+            showDocupPopup("Screenshot Shortcut Detected", "System screenshot shortcuts cannot be fully blocked on web pages.");
         }
     });
 </script>
+<script>
+    (function () {
+        const wmLayer = document.getElementById("reader-watermark-layer");
+        if (!wmLayer) return;
 
+        const text = wmLayer.dataset.watermark || "DocUp • Private View";
+
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="420" height="220" viewBox="0 0 420 220">
+                <g transform="rotate(-28 210 110)">
+                    <text
+                        x="20"
+                        y="110"
+                        fill="rgba(255,106,0,0.10)"
+                        font-size="16"
+                        font-family="Arial, sans-serif"
+                        font-weight="700"
+                        letter-spacing="1"
+                    >${text}</text>
+                </g>
+            </svg>
+        `;
+
+        const encoded = encodeURIComponent(svg)
+            .replace(/'/g, "%27")
+            .replace(/"/g, "%22");
+
+        wmLayer.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encoded}")`;
+    })();
+</script>
 <script src="/dashboard3.js"></script>
 <script src="/docview.js"></script>
 </body>

@@ -1644,3 +1644,55 @@ body.report-modal-open {
     transform: translateY(-1px);
     box-shadow: 0 16px 34px rgba(255,106,0,0.30);
 }
+.reader-watermark-layer{
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 56px 18px;
+    padding: 36px 18px 48px;
+    overflow: hidden;
+}
+
+.reader-watermark-item{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 74px;
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 13px;
+    line-height: 1.35;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: rgba(255, 106, 0, 0.04);
+    transform: rotate(-28deg);
+    text-shadow: 0 0 1px rgba(0,0,0,0.03);
+}
+.reader-watermark-shell{
+    position: relative;
+    min-height: 100%;
+}
+
+#pdf-container{
+    position: relative;
+    z-index: 1;
+}
+
+.reader-watermark-layer{
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+    background-repeat: repeat;
+    background-position: 0 0;
+    background-size: 320px 180px;
+}
