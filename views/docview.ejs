@@ -980,7 +980,7 @@
     }
 
     (function initDocThemes() {
-        const savedTheme = localStorage.getItem("docup-theme") || "theme-light";
+        const savedTheme = localStorage.getItem("docup-theme") || "theme-dark";
         applyTheme(savedTheme, { persist: false, animated: false });
 
         if (localStorage.getItem("docup-reading-mode") === "true") {
