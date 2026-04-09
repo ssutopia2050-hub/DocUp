@@ -132,7 +132,7 @@
                 <div class="hero-tags">
                     <span class="htag"><%= doc.subject %></span>
                     <span class="htag"><%= doc.branch %></span>
-                    <span class="htag">Year <%= doc.year %></span>
+                    <span class="htag"><%= doc.year %></span>
                     <span class="htag"><%= doc.chapter %></span>
                 </div>
             </div>
@@ -305,7 +305,7 @@
         </div>
 
         <!-- Page counter bubble -->
-        <div class="page-bubble-wrap">
+        <div style="display:none;" class="page-bubble-wrap">
             <div class="page-bubble" id="pdf-page-indicator">
                 <span id="current-page-number">1</span>
                 <span class="pb-sep">/</span>

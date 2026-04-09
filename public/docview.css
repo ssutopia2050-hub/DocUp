@@ -3000,3 +3000,18 @@ body.reading-mode .hero-actions {
     position: relative;
     z-index: 10 !important;
 }
+
+/* Keep like/dislike hover colors in all themes */
+body.light-mode .vote-btn.like:hover,
+body.theme-sepia.light-mode .vote-btn.like:hover,
+body.theme-contrast.light-mode .vote-btn.like:hover {
+    color: rgba(34, 197, 94, 0.65);
+    /*background: rgba(34, 197, 94, 0.08);*/
+}
+
+body.light-mode .vote-btn.dislike:hover,
+body.theme-sepia.light-mode .vote-btn.dislike:hover,
+body.theme-contrast.light-mode .vote-btn.dislike:hover {
+    color: #ef4444;
+    /*background: rgba(239, 68, 68, 0.08);*/
+}
