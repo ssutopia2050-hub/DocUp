@@ -614,12 +614,12 @@ const io = new Server(server, {
 });
 
 io.engine.use(sessionMiddleware);
-/******************************
-           Server Start
- ******************************/
-server.listen(port, () => {
-    console.log(`Server running on url: http://localhost:${port}/`);
-});
+// /******************************
+//            Server Start
+//  ******************************/
+// server.listen(port, () => {
+//     console.log(`Server running on url: http://localhost:${port}/`);
+// });
 app.get("/sitemap.xml", (req, res) => {
     res.header("Content-Type", "application/xml");
     res.send(`
@@ -637,16 +637,23 @@ app.get("/sitemap.xml", (req, res) => {
     `);
 });
 /******************************
-           Database
+ Database + Server Start
  ******************************/
-(async () => {
+async function startServer() {
     try {
         await connectDB();
         console.log("Mongo Ready");
+
+        server.listen(port, () => {
+            console.log(`Server running on url: http://localhost:${port}/`);
+        });
     } catch (err) {
-        console.warn("Mongo unavailable");
+        console.error("MongoDB connection failed ❌", err);
+        process.exit(1);
     }
-})();
+}
+
+startServer();
 /******************************
            Routes
  ******************************/
