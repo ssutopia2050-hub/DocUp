@@ -1,112 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>DocUp | Upload</title>
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+    <link rel="stylesheet" href="/uploads.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/uploads.css">
-    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
-    <meta charset="UTF-8">
-    <title>DocUp |  Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
-<div class="topbar">
-    <div class="logo-text-container">
-        DocUp
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <span class="topbar-breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="breadcrumb-current">Upload</span>
+        </span>
     </div>
-    <div class="pg-links">
-        <a href="/dashboard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+
+    <div class="topbar-right">
+        <a href="/dashboard" class="topbar-pill topbar-search-link">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"/>
             </svg>
             <span>FindDocs</span>
         </a>
-        <p style="border:1px solid orangered;
-               padding:15px 25px;
-               border-radius:30px;
-               display:flex;
-               gap:10px;
-               align-items:center;
-               white-space:nowrap;
-cursor:crosshair;">
-            <span style="color:orangered">DocScore :</span>
-            <span style="color:white"><%= data.Doc_score %></span>
-            <img style="height:20px;" src="/fire.png" alt="">
-        </p>
-        <a href="/uploads">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
-            </svg>
-            <span style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;">Upload</span>
-        </a>
+
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= data.Doc_score %></span>
+            <img src="/fire.png" alt="">
+        </div>
+
         <div class="notification-wrap">
-            <div class="notification-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
+            <button type="button" class="icon-btn notification-btn" aria-label="Notifications">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
 
                 <% const unreadCount = (data.notifications || []).filter(n => !n.isRead).length; %>
                 <% if (unreadCount > 0) { %>
-                <span class="notification-badge">
-                <%= unreadCount > 9 ? "9+" : unreadCount %>
-            </span>
+                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
                 <% } %>
-            </div>
+            </button>
 
             <div class="notification-dropdown">
-                <div class="notification-dropdown-header">
-                    <span>Notifications</span>
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
                     <% if (data.notifications && data.notifications.length > 0) { %>
-                    <a href="/notifications" class="notification-view-all">View all</a>
+                    <a href="/notifications" class="nd-view-all">See all</a>
                     <% } %>
                 </div>
 
-                <div class="notification-list">
+                <div class="nd-list">
                     <% if (data.notifications && data.notifications.length > 0) { %>
                     <% data.notifications.slice().reverse().forEach((item) => { %>
-                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
-                        <div class="notification-item-top">
-                            <div class="notification-item-top-left">
-                                <span class="notification-dot"></span>
-                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
-                            </div>
-
-                            <span class="notification-meta">
-            <%= item.createdAt
-                ? new Date(item.createdAt).toLocaleString("en-IN", {
-                    dateStyle: "medium",
-                    timeStyle: "short"
-                })
-                : "Just now" %>
-        </span>
+                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="nd-item-row">
+                            <span class="nd-dot"></span>
+                            <span class="nd-when">
+                                <%= item.createdAt ? new Date(item.createdAt).toLocaleString("en-IN", { dateStyle:"medium", timeStyle:"short" }) : "Just now" %>
+                            </span>
                         </div>
-
-                        <div class="notification-content">
-                            <%= item.content %>
-                        </div>
+                        <p class="nd-text"><%= item.content %></p>
                     </div>
                     <% }) %>
                     <% } else { %>
-                    <div class="notification-empty">
-                        No notifications yet.
-                    </div>
+                    <div class="nd-empty">No notifications yet.</div>
                     <% } %>
                 </div>
             </div>
         </div>
-        <div class="profile-btn">
+
+        <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
             <img src="<%= data.avatar_img_path %>" alt="">
             <% } else { %>
@@ -114,120 +89,381 @@ cursor:crosshair;">
             <% } %>
         </div>
     </div>
+</header>
+
+<div class="avatar-dropdown">
+    <a href="/profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Profile
+    </a>
+    <a href="/pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Recharge DocScore
+    </a>
 </div>
-<div class="profile-btn-dropdown">
-    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
-    <a href="/pricing">Recharge DocScore</a>
-</div>
-<div class="upload-wrapper">
 
-    <div class="upload-drop-area" id="drop-area">
-
-        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="rgba(255, 69, 0, 0.48)" viewBox="0 0 24 24">
-            <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
-        </svg>
-
-        <p>Drag & Drop File Here</p>
-        <p>or</p>
-
-        <input type="file" id="file-input" hidden>
-        <button type="button" id="choose-btn">Choose File</button>
-        <p style="color:orangered;font-size: 1.2rem">Uploading One Doc Will increase your DocScore by +1</p>
-        <p style="color:rgba(128,128,128,0.53);font-size: 1rem">All Files uploaded will be reviewed for authenticity....This is not A personal Storage app </p>
-        <p style="color:rgba(128,128,128,0.53);font-size: 1rem">Any attempt to Spam upload or duplicate upload one file or Invalid Branch or Stream information might lead to <span style="color:rgba(255,69,0,0.68);font-family: Saira, sans-serif">permanent banning</span> of your account</p>
-        <p style="color:orangered;font-size: 1rem">File Upload Criteria: File Type : <span style="color:rgb(255,210,12);font-family: Saira, sans-serif" >pdf </span> | Max-File size : <span style="color:rgb(255,210,12);font-family: Saira, sans-serif" >50 MB</span> <span style="color:rgba(255,69,0,0.44);font-family:Saira, sans-serif">[We are requesting more funds from sponsors to increase storage capacity very soon]</span> </p>
-        <a style="color:rgba(128,128,128,0.78);font-size: 1rem;font-family:Saira , sans-serif" href="/privacy_policy" target="_blank">Terms and Conditions*</a></p>
-
-    </div>
-
-    <!-- File name -->
-    <div id="file-preview"></div>
-
-    <!-- Metadata form -->
-    <div class="doc-form" id="doc-form">
-
-        <div class="college-autocomplete">
-            <input
-                    type="text"
-                    id="college"
-                    placeholder="Type college name"
-                    autocomplete="off"
-                    required
-            >
-            <div id="college-suggestions" class="college-suggestions"></div>
+<section class="hero-strip">
+    <div class="hero-strip-inner">
+        <div class="hero-copy">
+            <div class="hero-kicker">Upload Flow</div>
+            <h1>Upload smarter, not louder.</h1>
+            <p>
+                Add clean metadata, preview the first page before submitting, and keep your document library polished for everyone.
+            </p>
         </div>
 
-        <select id="year" required>
-            <option value="">Year</option>
-            <option>year1</option>
-            <option>year2</option>
-            <option>year3</option>
-            <option>year4</option>
-        </select>
+        <div class="hero-sidecard">
+            <div class="hero-sidecard-row">
+                <span class="hero-sidecard-label">Accepted</span>
+                <span class="hero-sidecard-value">PDF only</span>
+            </div>
+            <div class="hero-sidecard-row">
+                <span class="hero-sidecard-label">Max size</span>
+                <span class="hero-sidecard-value">50 MB</span>
+            </div>
+            <div class="hero-sidecard-row">
+                <span class="hero-sidecard-label">Reward</span>
+                <span class="hero-sidecard-value accent">+1 DocScore</span>
+            </div>
+        </div>
+    </div>
+</section>
 
-        <select id="semester" required>
-            <option value="">Semester</option>
-            <option>Sem 1</option>
-            <option>Sem 2</option>
-            <option>Sem 3</option>
-            <option>Sem 4</option>
-            <option>Sem 5</option>
-            <option>Sem 6</option>
-            <option>Sem 7</option>
-            <option>Sem 8</option>
-        </select>
-
-        <input type="text" placeholder="Branch" id="branch" required>
-
-        <input type="text" placeholder="Subject" id="subject" required>
-
-        <input type="text" placeholder="Chapter Name" id="chapter" required>
-
+<main class="upload-shell">
+    <div class="upload-steps-bar">
+        <div class="upload-step active" id="step-1">
+            <div class="step-num">1</div>
+            <span>Choose PDF</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="upload-step" id="step-2">
+            <div class="step-num">2</div>
+            <span>Add Details</span>
+        </div>
+        <div class="step-connector"></div>
+        <div class="upload-step" id="step-3">
+            <div class="step-num">3</div>
+            <span>Publish</span>
+        </div>
     </div>
 
-    <button class="upload-btn" id="upload-btn">Upload File</button>
+    <section class="upload-layout">
+        <div class="upload-left">
+            <div class="upload-drop-area" id="drop-area">
+                <div class="drop-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" viewBox="0 0 24 24">
+                        <path d="M12 16V4M12 4l-4 4M12 4l4 4M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
 
-</div>
+                <div class="drop-copy">
+                    <h2>Drop your PDF here</h2>
+                    <p>Preview the first page, verify the details, then publish it to DocUp.</p>
+                </div>
+
+                <div class="drop-actions">
+                    <input type="file" id="file-input" accept="application/pdf" style="display:none;">
+
+                    <label for="file-input" id="choose-btn" class="choose-btn" aria-label="Choose PDF file">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+                            <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5 18.5h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Choose PDF
+                    </label>
+
+                    <span class="drop-note">Only authentic academic documents should be uploaded.</span>
+                </div>
+            </div>
+
+            <div class="upload-guidelines">
+                <div class="guide-pill">
+                    <span class="guide-dot"></span>
+                    <span>Every upload is reviewed for authenticity.</span>
+                </div>
+                <div class="guide-pill">
+                    <span class="guide-dot"></span>
+                    <span>Spam, duplicates, or wrong metadata may lead to account restrictions.</span>
+                </div>
+                <a class="guide-link" href="/privacy_policy" target="_blank">Terms & Conditions</a>
+            </div>
+
+            <div class="file-preview-card" id="file-preview">
+                <div class="file-preview-empty">
+                    <div class="file-preview-empty-icon">PDF</div>
+                    <h3>No document selected</h3>
+                    <p>Pick a PDF to see its first-page preview and document summary here.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="upload-right">
+            <div class="doc-form-card">
+                <div class="doc-form-header">
+                    <div class="doc-form-kicker">Document Details</div>
+                    <h2>Prepare your upload</h2>
+                    <p>Keep the metadata precise so students can actually find and trust this document.</p>
+                </div>
+
+                <div class="doc-form" id="doc-form">
+                    <div class="form-field form-field-full college-autocomplete">
+                        <label for="college" class="required">College</label>
+                        <input
+                                type="text"
+                                id="college"
+                                placeholder="Type college name"
+                                autocomplete="off"
+                                required
+                        >
+                        <div id="college-suggestions" class="college-suggestions"></div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="year" class="required">Year</label>
+                            <select id="year" required>
+                                <option value="">Select year</option>
+                                <option>year1</option>
+                                <option>year2</option>
+                                <option>year3</option>
+                                <option>year4</option>
+                            </select>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="semester" class="required">Semester</label>
+                            <select id="semester" required>
+                                <option value="">Select semester</option>
+                                <option>Sem 1</option>
+                                <option>Sem 2</option>
+                                <option>Sem 3</option>
+                                <option>Sem 4</option>
+                                <option>Sem 5</option>
+                                <option>Sem 6</option>
+                                <option>Sem 7</option>
+                                <option>Sem 8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-field branch-autocomplete">
+                            <label for="branch" class="required">Branch</label>
+                            <input
+                                    type="text"
+                                    placeholder="e.g. Computer Science / Mechanical"
+                                    id="branch"
+                                    autocomplete="off"
+                                    required
+                            >
+                            <div id="branch-suggestions" class="college-suggestions"></div>
+                        </div>
+
+                        <div class="form-field">
+                            <label for="subject" class="required">Subject</label>
+                            <input type="text" placeholder="e.g. Data Structures" id="subject" required>
+                        </div>
+                    </div>
+
+                    <div class="form-field form-field-full">
+                        <label for="chapter" class="required">Chapter / Topic</label>
+                        <input type="text" placeholder="e.g. Unit 3 Notes / Mid Sem / Trees" id="chapter" required>
+                    </div>
+                </div>
+
+                <button class="upload-btn" id="upload-btn" aria-label="Upload document">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 15V3M12 3l-4 4M12 3l4 4M3 17v1a3 3 0 003 3h12a3 3 0 003-3v-1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Upload Document
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+
 <div id="upload-loader" class="upload-loader-overlay">
     <div class="upload-loader-box">
         <div class="upload-spinner"></div>
         <p>Uploading file, please wait...</p>
     </div>
 </div>
+
 <div id="upload-status-popup" class="upload-status-popup">
     <div class="upload-status-card">
-        <div id="upload-status-icon" class="upload-status-icon success">
-            ✓
-        </div>
-
+        <div id="upload-status-icon" class="upload-status-icon success">✓</div>
         <h3 id="upload-status-title">Upload Complete</h3>
         <p id="upload-status-message">Your document was uploaded successfully.</p>
-
         <div class="upload-status-actions">
-            <button type="button" id="upload-status-close" class="upload-status-btn primary">
-                Okay
-            </button>
+            <button type="button" id="upload-status-close" class="upload-status-btn primary">Okay</button>
         </div>
     </div>
 </div>
-<div class="footer">
-    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+
+<footer class="footer">
+    <div class="footer-left">
         DocUp
-        <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></a>
+        <a href="/version_report" class="version-link">v<%= process.env.VERSION %></a>
     </div>
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
         <a href="/uploads">Upload</a>
         <a href="/profile">Profile</a>
-        <a href="/contact">ContactUs</a> 
+        <a href="/contact">ContactUs</a>
         <a href="/privacy_policy">Privacy Policy</a>
         <a href="/logout">Logout</a>
     </div>
-</div>
-</body>
+</footer>
+
 <script src="/dashboard2.js"></script>
 <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
     const colleges = <%- JSON.stringify(colleges) %>;
+
+    const branches = [
+        "Computer Science",
+        "Information Technology",
+        "Artificial Intelligence",
+        "Artificial Intelligence and Data Science",
+        "Data Science",
+        "Electronics and Communication Engineering",
+        "Electrical Engineering",
+        "Electrical and Electronics Engineering",
+        "Mechanical Engineering",
+        "Civil Engineering",
+        "Chemical Engineering",
+        "Biotechnology",
+        "Aerospace Engineering",
+        "Aeronautical Engineering",
+        "Automobile Engineering",
+        "Production Engineering",
+        "Industrial Engineering",
+        "Manufacturing Engineering",
+        "Metallurgical Engineering",
+        "Materials Science Engineering",
+        "Mechatronics",
+        "Robotics Engineering",
+        "Instrumentation Engineering",
+        "Electronics Engineering",
+        "Mining Engineering",
+        "Petroleum Engineering",
+        "Environmental Engineering",
+        "Agricultural Engineering",
+        "Textile Engineering",
+        "Food Technology",
+        "Marine Engineering",
+        "Naval Architecture",
+
+        "MBBS",
+        "BDS",
+        "BAMS",
+        "BHMS",
+        "BUMS",
+        "Nursing",
+        "BSc Nursing",
+        "Pharmacy",
+        "BPharm",
+        "DPharm",
+        "Physiotherapy",
+        "BPT",
+        "Occupational Therapy",
+        "Medical Laboratory Technology",
+        "Radiology",
+        "Radiography",
+        "Public Health",
+        "Biomedical Science",
+        "Biochemistry",
+        "Microbiology",
+        "Nutrition and Dietetics",
+        "Veterinary Science",
+        "Ayurveda",
+        "Homeopathy",
+        "Dentistry",
+
+        "BBA",
+        "MBA",
+        "Business Administration",
+        "Commerce",
+        "BCom",
+        "Accounting",
+        "Finance",
+        "Marketing",
+        "Human Resource Management",
+        "HR",
+        "International Business",
+        "Entrepreneurship",
+        "Operations Management",
+        "Supply Chain Management",
+        "Economics",
+        "Banking and Insurance",
+        "Hospitality Management",
+        "Hotel Management",
+        "Retail Management",
+
+        "LLB",
+        "BA LLB",
+        "BBA LLB",
+        "BCom LLB",
+        "LLM",
+        "Corporate Law",
+        "Criminal Law",
+        "Constitutional Law",
+        "International Law",
+        "Business Law",
+        "Civil Law",
+
+        "Physics",
+        "Chemistry",
+        "Mathematics",
+        "Statistics",
+        "Biology",
+        "Zoology",
+        "Botany",
+        "Environmental Science",
+        "Geology",
+        "Forensic Science",
+        "Computer Science",
+        "Biochemistry",
+        "Microbiology",
+
+        "English",
+        "History",
+        "Political Science",
+        "Sociology",
+        "Psychology",
+        "Philosophy",
+        "Geography",
+        "Public Administration",
+        "Journalism",
+        "Mass Communication",
+        "Media Studies",
+        "Fine Arts",
+        "Performing Arts",
+        "Education",
+        "Social Work",
+
+        "Architecture",
+        "BArch",
+        "Interior Design",
+        "Fashion Design",
+        "Graphic Design",
+        "Product Design",
+        "UI UX Design",
+        "Animation",
+        "Multimedia",
+        "Urban Planning",
+
+        "CA",
+        "CS",
+        "CMA",
+        "Aviation",
+        "Pilot Training",
+        "Fire and Safety",
+        "Library Science",
+        "Travel and Tourism",
+        "Agriculture",
+        "Forestry"
+    ];
 
     const dropArea = document.getElementById("drop-area");
     const fileInput = document.getElementById("file-input");
@@ -236,15 +472,29 @@ cursor:crosshair;">
     const form = document.getElementById("doc-form");
     const uploadBtn = document.getElementById("upload-btn");
     const uploadLoader = document.getElementById("upload-loader");
-    const homeBtn = document.querySelector(".logo-text-container");
+    const homeBtn = document.querySelector(".logo-wordmark");
 
     const collegeInput = document.getElementById("college");
     const suggestionsBox = document.getElementById("college-suggestions");
+
+    const branchInput = document.getElementById("branch");
+    const branchSuggestionsBox = document.getElementById("branch-suggestions");
+
     const uploadStatusPopup = document.getElementById("upload-status-popup");
     const uploadStatusIcon = document.getElementById("upload-status-icon");
     const uploadStatusTitle = document.getElementById("upload-status-title");
     const uploadStatusMessage = document.getElementById("upload-status-message");
     const uploadStatusClose = document.getElementById("upload-status-close");
+
+    const avatarBtn = document.querySelector(".avatar-btn");
+    const avatarDropdown = document.querySelector(".avatar-dropdown");
+    const notificationBtn = document.querySelector(".notification-btn");
+    const notificationDropdown = document.querySelector(".notification-dropdown");
+
+    let selectedFile = null;
+    let activeSuggestionIndex = -1;
+    let activeBranchSuggestionIndex = -1;
+    let currentPreviewObjectUrl = null;
 
     function showUploadPopup(type, title, message) {
         uploadStatusIcon.className = "upload-status-icon " + type;
@@ -259,17 +509,40 @@ cursor:crosshair;">
     }
 
     uploadStatusClose.addEventListener("click", hideUploadPopup);
-
     uploadStatusPopup.addEventListener("click", (e) => {
-        if (e.target === uploadStatusPopup) {
-            hideUploadPopup();
-        }
+        if (e.target === uploadStatusPopup) hideUploadPopup();
     });
-    let selectedFile = null;
-    let activeSuggestionIndex = -1;
 
-    homeBtn.addEventListener("click", () => {
+    homeBtn?.addEventListener("click", (e) => {
+        e.preventDefault();
         window.location.href = "/dashboard";
+    });
+
+    avatarBtn?.addEventListener("mouseenter", () => avatarDropdown?.classList.add("active"));
+    avatarBtn?.addEventListener("mouseleave", () => {
+        setTimeout(() => {
+            if (!avatarDropdown?.matches(":hover")) avatarDropdown?.classList.remove("active");
+        }, 120);
+    });
+    avatarDropdown?.addEventListener("mouseenter", () => avatarDropdown.classList.add("active"));
+    avatarDropdown?.addEventListener("mouseleave", () => avatarDropdown.classList.remove("active"));
+
+    notificationBtn?.addEventListener("mouseenter", () => notificationDropdown?.classList.add("active"));
+    notificationBtn?.addEventListener("mouseleave", () => {
+        setTimeout(() => {
+            if (!notificationDropdown?.matches(":hover")) notificationDropdown?.classList.remove("active");
+        }, 120);
+    });
+    notificationDropdown?.addEventListener("mouseenter", () => notificationDropdown.classList.add("active"));
+    notificationDropdown?.addEventListener("mouseleave", () => notificationDropdown.classList.remove("active"));
+
+    document.addEventListener("click", (e) => {
+        if (!avatarBtn?.contains(e.target) && !avatarDropdown?.contains(e.target)) {
+            avatarDropdown?.classList.remove("active");
+        }
+        if (!notificationBtn?.contains(e.target) && !notificationDropdown?.contains(e.target)) {
+            notificationDropdown?.classList.remove("active");
+        }
     });
 
     function showLoader() {
@@ -293,9 +566,9 @@ cursor:crosshair;">
         return div.innerHTML;
     }
 
-    function scoreCollegeMatch(input, collegeName) {
+    function scoreSuggestionMatch(input, itemName) {
         const q = normalizeText(input);
-        const c = normalizeText(collegeName);
+        const c = normalizeText(itemName);
 
         if (!q) return 0;
         if (c === q) return 1000;
@@ -324,7 +597,28 @@ cursor:crosshair;">
         return colleges
             .map(college => ({
                 name: college,
-                score: scoreCollegeMatch(cleanedQuery, college)
+                score: scoreSuggestionMatch(cleanedQuery, college)
+            }))
+            .filter(item => item.score > 0)
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return a.name.localeCompare(b.name);
+            })
+            .slice(0, 8)
+            .map(item => item.name);
+    }
+
+    function getMatchingBranches(query) {
+        const cleanedQuery = normalizeText(query);
+
+        if (!cleanedQuery) {
+            return branches.slice(0, 8);
+        }
+
+        return branches
+            .map(branch => ({
+                name: branch,
+                score: scoreSuggestionMatch(cleanedQuery, branch)
             }))
             .filter(item => item.score > 0)
             .sort((a, b) => {
@@ -341,11 +635,25 @@ cursor:crosshair;">
         activeSuggestionIndex = -1;
     }
 
+    function closeBranchSuggestions() {
+        if (!branchSuggestionsBox) return;
+        branchSuggestionsBox.innerHTML = "";
+        branchSuggestionsBox.style.display = "none";
+        activeBranchSuggestionIndex = -1;
+    }
+
     function selectCollege(collegeName) {
         collegeInput.value = collegeName;
         collegeInput.dataset.selected = "true";
         collegeInput.classList.remove("college-invalid");
         closeSuggestions();
+    }
+
+    function selectBranch(branchName) {
+        branchInput.value = branchName;
+        branchInput.dataset.selected = "true";
+        branchInput.classList.remove("college-invalid");
+        closeBranchSuggestions();
     }
 
     function renderSuggestions(matches) {
@@ -357,7 +665,7 @@ cursor:crosshair;">
             return;
         }
 
-        matches.forEach((college, index) => {
+        matches.forEach((college) => {
             const item = document.createElement("div");
             item.className = "college-suggestion-item";
             item.innerHTML = escapeHTML(college);
@@ -373,50 +681,48 @@ cursor:crosshair;">
         suggestionsBox.style.display = "block";
     }
 
-    function updateActiveSuggestion(items) {
-        items.forEach(item => item.classList.remove("active"));
+    function renderBranchSuggestions(matches) {
+        if (!branchSuggestionsBox) return;
 
-        if (activeSuggestionIndex >= 0 && items[activeSuggestionIndex]) {
-            items[activeSuggestionIndex].classList.add("active");
-            items[activeSuggestionIndex].scrollIntoView({
-                block: "nearest"
-            });
+        branchSuggestionsBox.innerHTML = "";
+        activeBranchSuggestionIndex = -1;
+
+        if (!matches.length) {
+            branchSuggestionsBox.style.display = "none";
+            return;
         }
+
+        matches.forEach((branch) => {
+            const item = document.createElement("div");
+            item.className = "college-suggestion-item";
+            item.innerHTML = escapeHTML(branch);
+
+            item.addEventListener("mousedown", (e) => {
+                e.preventDefault();
+                selectBranch(branch);
+            });
+
+            branchSuggestionsBox.appendChild(item);
+        });
+
+        branchSuggestionsBox.style.display = "block";
     }
 
-    function isValidCollege(value) {
-        const normalizedValue = normalizeText(value);
-        return colleges.some(college => normalizeText(college) === normalizedValue);
+    function syncActiveSuggestion() {
+        const items = [...suggestionsBox.querySelectorAll(".college-suggestion-item")];
+        items.forEach((item, index) => item.classList.toggle("active", index === activeSuggestionIndex));
     }
 
-    function getCanonicalCollege(value) {
-        const normalizedValue = normalizeText(value);
-        return colleges.find(college => normalizeText(college) === normalizedValue) || "";
+    function syncActiveBranchSuggestion() {
+        if (!branchSuggestionsBox) return;
+        const items = [...branchSuggestionsBox.querySelectorAll(".college-suggestion-item")];
+        items.forEach((item, index) => item.classList.toggle("active", index === activeBranchSuggestionIndex));
     }
-
-    chooseBtn.onclick = () => fileInput.click();
-
-    fileInput.addEventListener("change", (e) => {
-        if (!e.target.files[0]) return;
-        handleFile(e.target.files[0]);
-    });
-
-    dropArea.addEventListener("dragover", (e) => {
-        e.preventDefault();
-    });
-
-    dropArea.addEventListener("drop", (e) => {
-        e.preventDefault();
-        if (!e.dataTransfer.files[0]) return;
-        handleFile(e.dataTransfer.files[0]);
-    });
 
     collegeInput.addEventListener("input", () => {
         collegeInput.dataset.selected = "false";
         collegeInput.classList.remove("college-invalid");
-
-        const query = collegeInput.value;
-        const matches = getMatchingColleges(query);
+        const matches = getMatchingColleges(collegeInput.value);
         renderSuggestions(matches);
     });
 
@@ -426,119 +732,272 @@ cursor:crosshair;">
     });
 
     collegeInput.addEventListener("keydown", (e) => {
-        const items = suggestionsBox.querySelectorAll(".college-suggestion-item");
+        const items = [...suggestionsBox.querySelectorAll(".college-suggestion-item")];
+        if (!items.length) return;
 
         if (e.key === "ArrowDown") {
-            if (suggestionsBox.style.display === "none") {
-                const matches = getMatchingColleges(collegeInput.value);
-                renderSuggestions(matches);
-            }
-
-            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
-            if (!refreshedItems.length) return;
-
             e.preventDefault();
-            activeSuggestionIndex = (activeSuggestionIndex + 1) % refreshedItems.length;
-            updateActiveSuggestion(refreshedItems);
+            activeSuggestionIndex = (activeSuggestionIndex + 1) % items.length;
+            syncActiveSuggestion();
         } else if (e.key === "ArrowUp") {
-            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
-            if (!refreshedItems.length) return;
-
             e.preventDefault();
-            activeSuggestionIndex =
-                (activeSuggestionIndex - 1 + refreshedItems.length) % refreshedItems.length;
-            updateActiveSuggestion(refreshedItems);
-        } else if (e.key === "Enter") {
-            const refreshedItems = suggestionsBox.querySelectorAll(".college-suggestion-item");
-
-            if (suggestionsBox.style.display !== "none" && activeSuggestionIndex >= 0 && refreshedItems[activeSuggestionIndex]) {
-                e.preventDefault();
-                selectCollege(refreshedItems[activeSuggestionIndex].textContent);
-            } else if (!isValidCollege(collegeInput.value)) {
-                e.preventDefault();
-            }
+            activeSuggestionIndex = (activeSuggestionIndex - 1 + items.length) % items.length;
+            syncActiveSuggestion();
+        } else if (e.key === "Enter" && activeSuggestionIndex >= 0) {
+            e.preventDefault();
+            selectCollege(items[activeSuggestionIndex].textContent.trim());
         } else if (e.key === "Escape") {
             closeSuggestions();
         }
     });
 
-    collegeInput.addEventListener("blur", () => {
-        setTimeout(() => {
-            if (!isValidCollege(collegeInput.value)) {
-                collegeInput.dataset.selected = "false";
-            }
-            closeSuggestions();
-        }, 120);
+    branchInput?.addEventListener("input", () => {
+        branchInput.dataset.selected = "false";
+        branchInput.classList.remove("college-invalid");
+        const matches = getMatchingBranches(branchInput.value);
+        renderBranchSuggestions(matches);
+    });
+
+    branchInput?.addEventListener("focus", () => {
+        const matches = getMatchingBranches(branchInput.value);
+        renderBranchSuggestions(matches);
+    });
+
+    branchInput?.addEventListener("keydown", (e) => {
+        const items = [...branchSuggestionsBox.querySelectorAll(".college-suggestion-item")];
+        if (!items.length) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeBranchSuggestionIndex = (activeBranchSuggestionIndex + 1) % items.length;
+            syncActiveBranchSuggestion();
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeBranchSuggestionIndex = (activeBranchSuggestionIndex - 1 + items.length) % items.length;
+            syncActiveBranchSuggestion();
+        } else if (e.key === "Enter" && activeBranchSuggestionIndex >= 0) {
+            e.preventDefault();
+            selectBranch(items[activeBranchSuggestionIndex].textContent.trim());
+        } else if (e.key === "Escape") {
+            closeBranchSuggestions();
+        }
     });
 
     document.addEventListener("click", (e) => {
         if (!e.target.closest(".college-autocomplete")) {
             closeSuggestions();
         }
+
+        if (!e.target.closest(".branch-autocomplete")) {
+            closeBranchSuggestions();
+        }
     });
 
-    function handleFile(file) {
-        selectedFile = file;
-        preview.textContent = file.name;
+    function formatFileSize(bytes) {
+        if (!bytes && bytes !== 0) return "Unknown size";
+        const units = ["B", "KB", "MB", "GB"];
+        let size = bytes;
+        let unitIndex = 0;
 
-        collegeInput.value = "";
-        collegeInput.dataset.selected = "false";
-        collegeInput.classList.remove("college-invalid");
+        while (size >= 1024 && unitIndex < units.length - 1) {
+            size /= 1024;
+            unitIndex++;
+        }
 
-        document.getElementById("year").value = "";
-        document.getElementById("semester").value = "";
-        document.getElementById("branch").value = "";
-        document.getElementById("subject").value = "";
-        document.getElementById("chapter").value = "";
-
-        closeSuggestions();
-
-        form.style.display = "flex";
-        uploadBtn.style.display = "block";
-
-        setTimeout(() => {
-            preview.scrollIntoView({
-                behavior: "smooth",
-                block: "center"
-            });
-        }, 100);
+        return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
     }
-//TODO:Moderator
+
+    function resetPreviewCard() {
+        if (currentPreviewObjectUrl) {
+            URL.revokeObjectURL(currentPreviewObjectUrl);
+            currentPreviewObjectUrl = null;
+        }
+
+        preview.innerHTML = `
+            <div class="file-preview-empty">
+                <div class="file-preview-empty-icon">PDF</div>
+                <h3>No document selected</h3>
+                <p>Pick a PDF to see its first-page preview and document summary here.</p>
+            </div>
+        `;
+    }
+
+    async function renderFilePreview(file) {
+        if (!file) {
+            resetPreviewCard();
+            return;
+        }
+
+        if (currentPreviewObjectUrl) {
+            URL.revokeObjectURL(currentPreviewObjectUrl);
+            currentPreviewObjectUrl = null;
+        }
+
+        const objectUrl = URL.createObjectURL(file);
+        currentPreviewObjectUrl = objectUrl;
+
+        preview.innerHTML = `
+            <div class="file-preview-shell">
+                <div class="file-preview-top">
+                    <div class="file-preview-meta">
+                        <span class="file-preview-badge">Selected document</span>
+                        <div class="file-preview-name">${escapeHTML(file.name)}</div>
+                        <div class="file-preview-sub">${formatFileSize(file.size)} • PDF • First-page preview</div>
+                    </div>
+                </div>
+
+                <div class="pdf-preview-stage">
+                    <div class="pdf-preview-canvas-wrap">
+                        <canvas id="pdf-preview-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const canvas = document.getElementById("pdf-preview-canvas");
+        const ctx = canvas.getContext("2d");
+
+        try {
+            const loadingTask = pdfjsLib.getDocument(objectUrl);
+            const pdf = await loadingTask.promise;
+            const page = await pdf.getPage(1);
+
+            const containerWidth = Math.min(520, preview.clientWidth - 44);
+            const unscaledViewport = page.getViewport({ scale: 1 });
+            const scale = containerWidth / unscaledViewport.width;
+            const viewport = page.getViewport({ scale });
+
+            const outputScale = window.devicePixelRatio || 1;
+            canvas.width = Math.floor(viewport.width * outputScale);
+            canvas.height = Math.floor(viewport.height * outputScale);
+            canvas.style.width = `${viewport.width}px`;
+            canvas.style.height = `${viewport.height}px`;
+
+            ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
+            await page.render({
+                canvasContext: ctx,
+                viewport
+            }).promise;
+        } catch (error) {
+            preview.innerHTML = `
+                <div class="file-preview-empty">
+                    <div class="file-preview-empty-icon">PDF</div>
+                    <h3>Preview unavailable</h3>
+                    <p>The file is selected, but the first-page preview could not be rendered.</p>
+                </div>
+            `;
+        }
+    }
+
+    function handleSelectedFile(file) {
+        if (!file) return;
+
+        if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+            showUploadPopup("error", "Invalid File", "Please choose a PDF document only.");
+            return;
+        }
+
+        if (file.size > 50 * 1024 * 1024) {
+            showUploadPopup("error", "File Too Large", "Please upload a PDF smaller than 50 MB.");
+            return;
+        }
+
+        selectedFile = file;
+        renderFilePreview(file);
+        form.style.display = "flex";
+        uploadBtn.style.display = "inline-flex";
+
+        document.getElementById("step-1")?.classList.remove("active");
+        document.getElementById("step-1")?.classList.add("done");
+        document.getElementById("step-2")?.classList.add("active");
+        document.getElementById("step-3")?.classList.remove("active");
+    }
+
+    fileInput.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        handleSelectedFile(file);
+    });
+
+    ["dragenter", "dragover"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.add("dragover");
+        });
+    });
+
+    ["dragleave", "dragend", "drop"].forEach((eventName) => {
+        dropArea.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropArea.classList.remove("dragover");
+        });
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+        const file = e.dataTransfer.files?.[0];
+        handleSelectedFile(file);
+    });
+
+    function getCanonicalCollege(rawValue) {
+        const normalizedRaw = normalizeText(rawValue);
+        const exact = colleges.find(college => normalizeText(college) === normalizedRaw);
+        return exact || rawValue.trim();
+    }
+
     uploadBtn.addEventListener("click", async () => {
+        if (!selectedFile) {
+            showUploadPopup("error", "No File Selected", "Please choose a PDF before uploading.");
+            return;
+        }
+
         const collegeRaw = collegeInput.value.trim();
-        const year = document.getElementById("year").value;
-        const semester = document.getElementById("semester").value;
+        const year = document.getElementById("year").value.trim();
+        const semester = document.getElementById("semester").value.trim();
         const branch = document.getElementById("branch").value.trim();
         const subject = document.getElementById("subject").value.trim();
         const chapter = document.getElementById("chapter").value.trim();
 
-        if (!selectedFile) {
-            showUploadPopup("error", "No File Selected", "Please choose a file before uploading.");
-            return;
-        }
-
-        if (!collegeRaw || !isValidCollege(collegeRaw)) {
-            collegeInput.classList.add("college-invalid");
-            collegeInput.focus();
-            showUploadPopup("error", "Invalid College", "Please select a valid college from the suggestions.");
-            return;
-        }
-
-        if (!year || !semester || !branch || !subject || !chapter) {
+        if (!collegeRaw || !year || !semester || !branch || !subject || !chapter) {
             showUploadPopup("error", "Missing Details", "Please fill all metadata fields before uploading.");
             return;
         }
 
-        const college = getCanonicalCollege(collegeRaw);
+        const canonicalCollege = getCanonicalCollege(collegeRaw);
+        const isKnownCollege = colleges.some(college => normalizeText(college) === normalizeText(canonicalCollege));
+
+        if (!isKnownCollege) {
+            collegeInput.classList.add("college-invalid");
+            showUploadPopup("error", "Invalid College", "Please select a valid college from the suggestions.");
+            return;
+        }
+
+        const isKnownBranch = branches.some(item => normalizeText(item) === normalizeText(branch));
+
+        if (!isKnownBranch) {
+            branchInput.classList.add("college-invalid");
+            showUploadPopup("error", "Invalid Branch", "Please select a valid branch from the suggestions.");
+            return;
+        }
 
         uploadBtn.disabled = true;
         showLoader();
 
+        document.getElementById("step-2")?.classList.remove("active");
+        document.getElementById("step-2")?.classList.add("done");
+        document.getElementById("step-3")?.classList.add("active");
+
         const extension = selectedFile.name.split(".").pop();
         const timestamp = Date.now();
 
+        const safeBranch = branch.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+        const safeSubject = subject.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+        const safeChapter = chapter.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+        const safeCollege = canonicalCollege.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+
         const newFileName =
-            `${college}_${branch}_${subject}_${chapter}_${semester}_${timestamp}.${extension}`;
+            `${safeCollege}_${safeBranch}_${safeSubject}_${safeChapter}_${semester}_${timestamp}.${extension}`;
 
         const renamedFile = new File(
             [selectedFile],
@@ -548,7 +1007,7 @@ cursor:crosshair;">
 
         const formData = new FormData();
         formData.append("file", renamedFile);
-        formData.append("college", college);
+        formData.append("college", canonicalCollege);
         formData.append("year", year);
         formData.append("semester", semester);
         formData.append("branch", branch);
@@ -577,14 +1036,22 @@ cursor:crosshair;">
                 document.getElementById("subject").value = "";
                 document.getElementById("chapter").value = "";
 
+                branchInput.dataset.selected = "false";
+                branchInput.classList.remove("college-invalid");
+
                 selectedFile = null;
                 fileInput.value = "";
-                preview.textContent = "";
-
+                resetPreviewCard();
                 closeSuggestions();
+                closeBranchSuggestions();
 
-                form.style.display = "none";
+                form.style.display = "flex";
                 uploadBtn.style.display = "none";
+
+                document.getElementById("step-1")?.classList.remove("done");
+                document.getElementById("step-1")?.classList.add("active");
+                document.getElementById("step-2")?.classList.remove("active", "done");
+                document.getElementById("step-3")?.classList.remove("active", "done");
 
                 showUploadPopup(
                     "success",
@@ -609,5 +1076,8 @@ cursor:crosshair;">
             );
         }
     });
+
+    resetPreviewCard();
 </script>
+</body>
 </html>
