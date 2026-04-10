@@ -7,7 +7,7 @@ import LoginData from "./models/login_data.js";
 import docs_view_data from "./models/docs_view_data.js";
 import ChatMessage from "./models/chatMessage.js";
 import DocAI from "./models/DocAI.js";
-import reports from "./models/Reports.js";
+import reports from "./models/Reports.js"
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -15,6 +15,8 @@ import csv from "csv-parser";
 import MongoStore from "connect-mongo";
 import { createClient } from "@supabase/supabase-js";
 import path from "path";
+const app = express();
+const port = process.env.PORT || 5000;
 import connectDB from "./config/db.js";
 import session from "express-session";
 import crypto from "crypto";
@@ -29,116 +31,56 @@ import { Server } from "socket.io";
 import OpenAI from "openai";
 import { UAParser } from "ua-parser-js";
 import Fuse from "fuse.js";
-import { execFile } from "child_process";
-import os from "os";
-
 dotenv.config();
-
-const app = express();
-const port = Number(process.env.PORT) || 5000;
-const HOST = "0.0.0.0";
-const FETCH_TIMEOUT_MS = Number(process.env.FETCH_TIMEOUT_MS) || 15000;
-const PYTHON_TIMEOUT_MS = Number(process.env.PYTHON_TIMEOUT_MS) || 45000;
-const IS_PROD = process.env.NODE_ENV === "production";
-
 const resend = new Resend(process.env.RESEND_API_KEY);
-const upload = multer({ dest: "uploads/" });
-
-process.on("uncaughtException", (err) => {
-    console.error("UNCAUGHT EXCEPTION:", err);
-});
-
-process.on("unhandledRejection", (err) => {
-    console.error("UNHANDLED REJECTION:", err);
-});
-
+const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
+import os from "os";
 /******************************
- Middleware
+           Middleware
  ******************************/
-app.set("trust proxy", 1);
 app.set("view engine", "ejs");
 app.set("views", "./views");
-
-app.use(express.json({ limit: "2mb" }));
-app.use(express.urlencoded({ extended: true, limit: "2mb" }));
-
-app.use((req, res, next) => {
-    const start = Date.now();
-
-    res.on("finish", () => {
-        console.log(
-            `${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`
-        );
-    });
-
-    next();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
+const sessionMiddleware = session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: "sessions",
+        ttl: 24 * 60 * 60
+    }),
+    cookie: {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+    }
 });
 
+app.use(sessionMiddleware);
 app.use((req, res, next) => {
     if (req.headers.host === "docup.in") {
         return res.redirect(301, "https://www.docup.in" + req.url);
     }
     next();
 });
-
-app.use(cors({
-    origin: true,
-    credentials: true
-}));
-
-app.use(express.static("public", {
-    maxAge: "7d",
-    etag: true
-}));
-
-const sessionStore = MongoStore.create({
-    mongoUrl: process.env.MONGO_URI,
-    collectionName: "sessions",
-    ttl: 24 * 60 * 60,
-    autoRemove: "native"
-});
-
-sessionStore.on("error", (err) => {
-    console.error("Mongo session store error:", err);
-});
-
-const sessionMiddleware = session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    rolling: true,
-    proxy: IS_PROD,
-    store: sessionStore,
-    cookie: {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: "lax",
-        secure: IS_PROD
-    }
-});
-
-app.use(sessionMiddleware);
-
 app.get("/health", (req, res) => {
-    res.status(200).json({
-        ok: true,
-        uptime: Math.round(process.uptime()),
-        memory_mb: Math.round(process.memoryUsage().rss / 1024 / 1024),
-        timestamp: new Date().toISOString()
-    });
+    res.status(200).send("OK");
 });
-
+app.use(express.static("public", {
+    maxAge: "7d"
+}));
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
-
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 passport.serializeUser((user, done) => {
     done(null, user.email);
@@ -152,7 +94,6 @@ passport.deserializeUser(async (email, done) => {
         done(err, null);
     }
 });
-
 passport.use(new GoogleStrategy(
     {
         clientID: process.env.GOOGLE_CLIENT_ID,
@@ -187,7 +128,6 @@ passport.use(new GoogleStrategy(
         }
     }
 ));
-
 function getWelcomeTemplate(name = "there") {
     return `
     <!DOCTYPE html>
@@ -283,7 +223,6 @@ async function sendWelcomeEmail(userEmail, userName) {
 
     return data;
 }
-
 function getRechargeSuccessTemplate({
                                         name = "there",
                                         planLabel = "DocScore Recharge",
@@ -422,14 +361,11 @@ async function sendRechargeSuccessEmail(userEmail, userName, rechargeData) {
 
     return data;
 }
-
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET
 });
-
 let collegesList = [];
-
 function sanitizeFilePart(value = "") {
     return String(value)
         .trim()
@@ -437,24 +373,22 @@ function sanitizeFilePart(value = "") {
         .replace(/\s+/g, "_")
         .replace(/[^a-z0-9_-]/g, "");
 }
-
 fs.createReadStream("College_data.csv")
     .pipe(csv())
-    .on("data", (row) => {
-        if (row.College_Name) {
+    .on("data", (row)=>{
+        if(row.College_Name){
             collegesList.push(row.College_Name.trim());
         }
     })
-    .on("end", () => {
+    .on("end", ()=>{
         collegesList = [...new Set(collegesList)].sort();
-        console.log("Colleges Loaded:", collegesList.length);
-    })
-    .on("error", (err) => {
-        console.error("College CSV load error:", err);
+        console.log("Colleges Loaded :", collegesList.length);
     });
-
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 const server = http.createServer(app);
-
 async function getAuthorizedDoc(req, docId) {
     if (!req.session?.email) {
         throw new Error("Unauthorized");
@@ -467,31 +401,19 @@ async function getAuthorizedDoc(req, docId) {
 
     return doc;
 }
-
 async function getPdfBufferFromExistingUrl(doc) {
     if (!doc?.file_url) {
         throw new Error("PDF URL missing");
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-    try {
-        const response = await fetch(doc.file_url, {
-            signal: controller.signal
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch PDF: ${response.status}`);
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-        return Buffer.from(arrayBuffer);
-    } finally {
-        clearTimeout(timeout);
+    const response = await fetch(doc.file_url);
+    if (!response.ok) {
+        throw new Error("Failed to fetch PDF");
     }
-}
 
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
+}
 function extractPagesWithPython(pdfBuffer) {
     return new Promise((resolve, reject) => {
         const tempPdfPath = path.join(os.tmpdir(), `docup-${Date.now()}.pdf`);
@@ -500,25 +422,14 @@ function extractPagesWithPython(pdfBuffer) {
         execFile(
             "python3",
             ["extract_pdf_pages.py", tempPdfPath],
-            {
-                maxBuffer: 25 * 1024 * 1024,
-                timeout: PYTHON_TIMEOUT_MS
-            },
+            { maxBuffer: 25 * 1024 * 1024 },
             (error, stdout, stderr) => {
                 try {
                     fs.unlinkSync(tempPdfPath);
-                } catch (unlinkErr) {
-                    console.error("Temp PDF cleanup error:", unlinkErr);
-                }
+                } catch {}
 
-                if (error) {
-                    console.error("Python extraction error:", error);
-                    return reject(error);
-                }
-
-                if (stderr) {
-                    console.log(stderr);
-                }
+                if (error) return reject(error);
+                if (stderr) console.log(stderr);
 
                 try {
                     const parsed = JSON.parse(stdout);
@@ -530,7 +441,6 @@ function extractPagesWithPython(pdfBuffer) {
         );
     });
 }
-
 async function ensureDocAiData(doc) {
     let aiData = await DocAI.findOne({ doc_id: doc._id });
 
@@ -560,7 +470,6 @@ async function ensureDocAiData(doc) {
 
     return aiData;
 }
-
 async function callAi(messages) {
     const result = await openai.chat.completions.create({
         model: "gpt-4.1",
@@ -570,7 +479,6 @@ async function callAi(messages) {
 
     return result.choices[0].message.content;
 }
-
 function normalizeSearchText(text = "") {
     return String(text)
         .toLowerCase()
@@ -692,11 +600,12 @@ function getSuggestion(searchValue, docs, searchType = "") {
 
     if (!result) return null;
     if (typeof result.score !== "number") return null;
+
+    // only return suggestion if match is reasonably close
     if (result.score > 0.32) return null;
 
     return result.item.original || null;
 }
-
 const io = new Server(server, {
     cors: {
         origin: true,
@@ -705,7 +614,12 @@ const io = new Server(server, {
 });
 
 io.engine.use(sessionMiddleware);
-
+// /******************************
+//            Server Start
+//  ******************************/
+// server.listen(port, () => {
+//     console.log(`Server running on url: http://localhost:${port}/`);
+// });
 app.get("/sitemap.xml", (req, res) => {
     res.header("Content-Type", "application/xml");
     res.send(`
@@ -722,7 +636,6 @@ app.get("/sitemap.xml", (req, res) => {
         </urlset>
     `);
 });
-
 /******************************
  Database + Server Start
  ******************************/
@@ -731,8 +644,8 @@ async function startServer() {
         await connectDB();
         console.log("Mongo Ready");
 
-        server.listen(port, HOST, () => {
-            console.log(`Server running on url: http://${HOST}:${port}/`);
+        server.listen(port, () => {
+            console.log(`Server running on url: http://localhost:${port}/`);
         });
     } catch (err) {
         console.error("MongoDB connection failed ❌", err);
@@ -741,27 +654,17 @@ async function startServer() {
 }
 
 startServer();
-
 /******************************
- Routes
+           Routes
  ******************************/
 app.get("/", async (req, res) => {
-    try {
-        if (req.session.email) {
-            LoginData.create({
-                email: req.session.email
-            }).catch((err) => {
-                console.error("LoginData create error:", err);
-            });
-
-            return res.redirect("/dashboard");
-        }
-
-        return res.render("seo", { err: null });
-    } catch (err) {
-        console.error("Home route error:", err);
-        return res.status(500).send("Server Error");
+    if (req.session.email) {
+        await LoginData.create({
+            email: req.session.email,
+        })
+        return res.redirect("/dashboard");
     }
+    return res.render("seo", { err: null });
 });
 /******************************
           Signup
