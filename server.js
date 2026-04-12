@@ -754,14 +754,17 @@ app.post('/signup', async (req, res) => {
 /******************************
         SignIn
  ******************************/
-app.get('/signin',  (req, res) => {
-    res.render('signin', {err:null});
-})
+app.get('/signin', (req, res) => {
+    res.render('signin', {
+        err: null
+    });
+});
+
 app.post('/signin', async (req, res) => {
     const { email, password } = req.body;
+    const next = req.query.next || "";
 
     const normalizedEmail = (email || "").trim().toLowerCase();
-
     const user = await user_profile.findOne({ email: normalizedEmail });
 
     if (!user) {
@@ -772,25 +775,19 @@ app.post('/signin', async (req, res) => {
 
     if (password === user.password) {
         req.session.email = normalizedEmail;
-        // const parser = new UAParser(req.headers["user-agent"]);
-        // const result = parser.getResult();
-        //
-        // const deviceName = result.device.type || "desktop";
-        // const osName = result.os.name || "Unknown OS";
-        // await user_profile.updateOne(
-        //     { email: req.session.email },
-        //     {
-        //         $push: {
-        //             notifications: {
-        //                 email: req.session.email,
-        //                 content: `A login was detected on ${deviceName} using ${osName} operating system.`,
-        //                 isRead: false,
-        //                 createdAt: new Date()
-        //             }
-        //         }
-        //     }
-        // );
-        return res.redirect('/dashboard');
+
+        let redirectTo = "/dashboard";
+
+        if (
+            next &&
+            typeof next === "string" &&
+            next.startsWith("/") &&
+            !next.startsWith("//")
+        ) {
+            redirectTo = next;
+        }
+
+        return res.redirect(redirectTo);
     }
 
     return res.render('signin', {
@@ -1588,7 +1585,7 @@ function escapeRegex(str) {
 app.get("/view/:id", async (req, res) => {
     try {
         if (!req.session.email) {
-            return res.redirect("/signin");
+            return res.redirect(`/signin?next=${encodeURIComponent(`/view/${req.params.id}`)}`);
         }
 
         res.set({
@@ -1612,7 +1609,7 @@ app.get("/view/:id", async (req, res) => {
         const user_data = await user_profile.findOne({ email: req.session.email });
 
         if (!user_data) {
-            return res.redirect("/signin");
+            return res.redirect(`/signin?next=${encodeURIComponent(`/view/${req.params.id}`)}`);
         }
 
         if (user_data.Doc_score <= 0) {
@@ -1669,13 +1666,16 @@ app.get("/view/:id", async (req, res) => {
         if (!document.comment_section) {
             document.comment_section = [];
         }
+
         await docs_view_data.create({
             email: req.session.email,
-        })
+        });
+
         res.render("docview", {
             doc: document,
             college_data: collegeData || {},
-            user: user_data
+            user: user_data,
+            shareDocLink: `${req.protocol}://${req.get("host")}/view/${req.params.id}`,
         });
 
     } catch (err) {
@@ -2195,12 +2195,29 @@ app.get("/contact",(req,res)=>{
 app.get("/version_report",(req,res)=>{
 res.render("version_report");
 })
-app.get(
-    "/auth/google",
+app.get("/auth/google", (req, res, next) => {
+    const nextPath = req.query.next || "/dashboard";
+
+    let safeNext = "/dashboard";
+    if (
+        nextPath &&
+        typeof nextPath === "string" &&
+        nextPath.startsWith("/") &&
+        !nextPath.startsWith("//")
+    ) {
+        safeNext = nextPath;
+    }
+
+    const state = Buffer.from(
+        JSON.stringify({ next: safeNext }),
+        "utf8"
+    ).toString("base64url");
+
     passport.authenticate("google", {
-        scope: ["profile", "email"]
-    })
-);
+        scope: ["profile", "email"],
+        state
+    })(req, res, next);
+});
 
 app.get(
     "/auth/google/callback",
@@ -2215,29 +2232,38 @@ app.get(
                 return res.redirect("/signin");
             }
 
+            let redirectTo = "/dashboard";
+
+            try {
+                if (req.query.state) {
+                    const parsed = JSON.parse(
+                        Buffer.from(req.query.state, "base64url").toString("utf8")
+                    );
+
+                    if (
+                        parsed.next &&
+                        typeof parsed.next === "string" &&
+                        parsed.next.startsWith("/") &&
+                        !parsed.next.startsWith("//")
+                    ) {
+                        redirectTo = parsed.next;
+                    }
+                }
+            } catch (err) {
+                console.log("Failed to parse Google state:", err);
+            }
+
             // Existing user → login directly
             if (googleUser._id) {
-                // const parser = new UAParser(req.headers["user-agent"]);
-                // const result = parser.getResult();
-                //
-                // const deviceName = result.device.type || "desktop";
-                // const osName = result.os.name || "Unknown OS";
-                //
-                // await user_profile.updateOne(
-                //     { email: googleUser.email },
-                //     {
-                //         $push: {
-                //             notifications: {
-                //                 email: googleUser.email,
-                //                 content: `A login was detected on ${deviceName} using ${osName} operating system.`,
-                //                 isRead: false,
-                //                 createdAt: new Date()
-                //             }
-                //         }
-                //     }
-                // );
                 req.session.email = googleUser.email;
-                return res.redirect("/dashboard");
+
+                return req.session.save((err) => {
+                    if (err) {
+                        console.error("Failed to save login session:", err);
+                        return res.redirect("/dashboard");
+                    }
+                    return res.redirect(redirectTo);
+                });
             }
 
             // New Google user → ask for password
@@ -2245,9 +2271,17 @@ app.get(
                 req.session.googleSignup = {
                     email: googleUser.email,
                     name: googleUser.name,
-                    avatar: googleUser.avatar
+                    avatar: googleUser.avatar,
+                    next: redirectTo
                 };
-                return res.redirect("/google_create_password");
+
+                return req.session.save((err) => {
+                    if (err) {
+                        console.error("Failed to save googleSignup session:", err);
+                        return res.redirect("/signin");
+                    }
+                    return res.redirect("/google_create_password");
+                });
             }
 
             return res.redirect("/signin");
@@ -2257,6 +2291,7 @@ app.get(
         }
     }
 );
+
 app.get("/google_create_password", (req, res) => {
     const data = req.session.googleSignup;
 
@@ -2309,8 +2344,16 @@ app.post("/google_create_password", async (req, res) => {
 
         if (alreadyExists) {
             req.session.email = alreadyExists.email;
+            const redirectTo = data.next || "/dashboard";
             delete req.session.googleSignup;
-            return res.redirect("/dashboard");
+
+            return req.session.save((err) => {
+                if (err) {
+                    console.error("Failed to save existing Google user session:", err);
+                    return res.redirect("/dashboard");
+                }
+                return res.redirect(redirectTo);
+            });
         }
 
         const newUser = await user_profile.create({
@@ -2328,15 +2371,21 @@ app.post("/google_create_password", async (req, res) => {
         }
 
         req.session.email = data.email;
+        const redirectTo = data.next || "/dashboard";
         delete req.session.googleSignup;
 
-        return res.redirect("/dashboard");
+        return req.session.save((err) => {
+            if (err) {
+                console.error("Failed to save new Google user session:", err);
+                return res.redirect("/dashboard");
+            }
+            return res.redirect(redirectTo);
+        });
     } catch (err) {
         console.log("Google create password error:", err);
         return res.status(500).send("Internal Server Error");
     }
 });
-
 /* ***************************
    Profile View by Second person
  ****************************/

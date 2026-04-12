@@ -252,6 +252,37 @@
                     </div>
                 </div>
             </div>
+            <div class="share-doc-wrap">
+                <button type="button" id="share-doc-toggle" class="ha-btn ghost">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <path d="M16 8a3 3 0 1 0-2.83-4H13a3 3 0 0 0 .17 1L8.91 7.12a3 3 0 0 0-1.82-.62 3 3 0 1 0 1.82 5.38l4.26 2.12A3 3 0 0 0 13 15a3 3 0 1 0 .17 1l-4.26-2.12A3 3 0 0 0 9 12c0-.35-.06-.69-.17-1l4.26-2.12c.53.69 1.36 1.14 2.28 1.14Z"
+                              stroke="currentColor"
+                              stroke-width="1.6"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    Share Doc
+                </button>
+
+                <div class="share-doc-dropdown" id="share-doc-dropdown">
+                    <div class="sdd-label">Share this document</div>
+
+                    <div class="sdd-link-row">
+                        <input
+                                type="text"
+                                id="share-doc-link-input"
+                                class="sdd-link-input"
+                                readonly
+                                value="<%= shareDocLink %>"
+                        >
+                        <button type="button" id="copy-share-doc-link" class="sdd-copy-btn">Copy Link</button>
+                    </div>
+
+                    <div class="sdd-note">
+                        Anyone with this link can open the doc after signing in.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -609,7 +640,7 @@
 </div>
 
 <div id="theme-transition-overlay" class="theme-transition-overlay" aria-hidden="true"></div>
-
+<div id="copy-toast" class="copy-toast">Link copied !</div>
 <!-- ═══════════════ SCRIPTS ═══════════════ -->
 <script>
     const docupPopup = document.getElementById("docup-popup");
@@ -1022,6 +1053,81 @@
     document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
             closeThemePopover();
+        }
+    });
+</script>
+<script>
+    const shareDocToggle = document.getElementById("share-doc-toggle");
+    const shareDocDropdown = document.getElementById("share-doc-dropdown");
+    const shareDocLinkInput = document.getElementById("share-doc-link-input");
+    const copyShareDocLinkBtn = document.getElementById("copy-share-doc-link");
+    const copyToast = document.getElementById("copy-toast");
+
+    let copyToastTimer;
+
+    function closeShareDocDropdown() {
+        shareDocDropdown?.classList.remove("active");
+    }
+
+    function showCopyToast(message = "Link copied!") {
+        if (!copyToast) return;
+
+        copyToast.textContent = message;
+        copyToast.classList.add("show");
+
+        clearTimeout(copyToastTimer);
+        copyToastTimer = setTimeout(() => {
+            copyToast.classList.remove("show");
+        }, 1600);
+    }
+
+    function setCopiedState() {
+        if (!copyShareDocLinkBtn) return;
+
+        copyShareDocLinkBtn.textContent = "Copied!";
+        copyShareDocLinkBtn.classList.add("copied");
+
+        setTimeout(() => {
+            copyShareDocLinkBtn.textContent = "Copy Link";
+            copyShareDocLinkBtn.classList.remove("copied");
+        }, 1400);
+    }
+
+    shareDocToggle?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        shareDocDropdown?.classList.toggle("active");
+    });
+
+    copyShareDocLinkBtn?.addEventListener("click", async () => {
+        const link = shareDocLinkInput?.value || "";
+        if (!link) return;
+
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopiedState();
+            showCopyToast("Link copied!");
+        } catch (err) {
+            try {
+                shareDocLinkInput.focus();
+                shareDocLinkInput.select();
+                document.execCommand("copy");
+                setCopiedState();
+                showCopyToast("Link copied!");
+            } catch (fallbackErr) {
+                showCopyToast("Copy failed");
+            }
+        }
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!event.target.closest(".share-doc-wrap")) {
+            closeShareDocDropdown();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeShareDocDropdown();
         }
     });
 </script>
