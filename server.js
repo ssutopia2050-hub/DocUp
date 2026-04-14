@@ -1670,11 +1670,21 @@ app.get("/view/:id", async (req, res) => {
         await docs_view_data.create({
             email: req.session.email,
         });
+        let uploaderProfile = null;
 
+        if (document.uploaded_by) {
+            uploaderProfile = await user_profile.findOne({
+                $or: [
+                    { email: document.uploaded_by },
+                    { name: document.uploaded_by }
+                ]
+            }).select("_id name avatar_img_path user_type");
+        }
         res.render("docview", {
             doc: document,
             college_data: collegeData || {},
             user: user_data,
+            uploaderProfile,
             shareDocLink: `${req.protocol}://${req.get("host")}/view/${req.params.id}`,
         });
 
@@ -2451,6 +2461,32 @@ app.get("/save_profile/:email", async (req, res) => {
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });
 
+app.get("/all_uploads_view_second_pov_profile/:_id", async (req, res) => {
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
+
+    try {
+        const user_data = await user_profile.findById(req.params._id)
+            .populate("uploads.doc_id");
+
+        if (!user_data) {
+            return res.status(404).send("User not found");
+        }
+
+        const verifiedUploads = (user_data.uploads || [])
+            .filter(upload => upload?.doc_id?.reviewed)
+            .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+
+        res.render("all_upload_view_second_pov_profile", {
+            data: user_data,
+            uploads: verifiedUploads
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
 
 /* ***************************
    notification

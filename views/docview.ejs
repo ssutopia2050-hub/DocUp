@@ -143,6 +143,15 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 More Docs from <span style="color:orangered"><%= doc.college %></span>
             </a>
+            <% if (uploaderProfile && uploaderProfile._id) { %>
+            <a href="/all_uploads_view_second_pov_profile/<%= uploaderProfile._id %>" class="ha-btn ghost">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+                More Docs from <span style="color:orangered"><%= uploaderProfile.name %></span>
+            </a>
+            <% } %>
             <button type="button" class="ha-btn ghost report-trigger" id="open-report-modal">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M5 21V5M5 5h10l-1.6 3L15 11H5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -431,7 +440,15 @@
                 </div>
                 <div class="info-row">
                     <dt>Uploader</dt>
-                    <dd><%= doc.uploaded_by || "DocUp User" %></dd>
+                    <dd>
+                        <% if (uploaderProfile && uploaderProfile._id) { %>
+                        <a href="/all_uploads_view_second_pov_profile/<%= uploaderProfile._id %>">
+                            <%= uploaderProfile.name || doc.uploaded_by || "DocUp User" %>
+                        </a>
+                        <% } else { %>
+                        <%= doc.uploaded_by || "DocUp User" %>
+                        <% } %>
+                    </dd>
                 </div>
             </dl>
         </div>

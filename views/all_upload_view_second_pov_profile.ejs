@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | <%= data?.name || "Uploader" %>'s Uploads</title>
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+    <link rel="stylesheet" href="/all_upload_view_second_pov_profile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <nav class="pg-links">
+            <a class="topbar-link" href="/dashboard">FindDocs</a>
+            <a class="topbar-link" href="/uploads">Upload</a>
+            <a class="topbar-link" href="/profile">Profile</a>
+        </nav>
+    </div>
+
+    <div class="topbar-right">
+        <a class="topbar-btn" href="/show_other_user_profile/<%= data.email %>">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to <span style="color:orangered"><%= data.name %>'s</span> Profile Page
+        </a>
+    </div>
+</header>
+
+<!-- ═══════════════ PAGE SHELL ═══════════════ -->
+<main class="page-shell">
+
+    <!-- ── PROFILE HERO ── -->
+    <section class="profile-hero">
+        <div class="profile-main-card">
+
+            <!-- Left: identity + meta -->
+            <div class="profile-main-left">
+                <div class="avatar-wrap">
+                    <% if (data?.avatar_img_path) { %>
+                    <img class="avatar-img" src="<%= data.avatar_img_path %>" alt="<%= data?.name || 'User' %>">
+                    <% } else { %>
+                    <div class="avatar-fallback">
+                        <%= (data?.name && data.name[0]) ? data.name[0].toUpperCase() : "D" %>
+                    </div>
+                    <% } %>
+
+                    <% if (data?.user_type) { %>
+                    <span class="user-type-pill"><%= data.user_type %></span>
+                    <% } %>
+                </div>
+
+                <div class="profile-copy">
+                    <p class="eyebrow">Uploader Space</p>
+                    <h1><%= data?.name || "Unknown User" %></h1>
+                    <p class="profile-subtext">
+                        Browse verified uploads from this contributor in one place.
+                        Search by subject, college, chapter, or branch and open documents directly inside DocUp.
+                    </p>
+
+                    <div class="profile-meta-row">
+                        <div class="meta-chip">
+                            <span class="meta-label">Verified Uploads</span>
+                            <strong id="totalUploadsCount"><%= uploads?.length || 0 %></strong>
+                        </div>
+
+                        <div class="meta-chip">
+                            <span class="meta-label">DocScore</span>
+                            <strong><%= data?.Doc_score ?? 0 %></strong>
+                        </div>
+
+                        <div class="meta-chip">
+                            <span class="meta-label">Plan</span>
+                            <strong><%= data?.subscription || "Free Tier" %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: stats -->
+            <div class="profile-main-right">
+                <div class="stat-card">
+                    <span class="stat-top">Saved Profiles</span>
+                    <h3><%= data?.saved_profiles?.length || 0 %></h3>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-top">Saved Docs</span>
+                    <h3><%= data?.saved_documents?.length || 0 %></h3>
+                </div>
+
+                <div class="stat-card">
+                    <span class="stat-top">Viewed Docs</span>
+                    <h3><%= data?.doc_view_history?.length || 0 %></h3>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ── DOCUMENT EXPLORER ── -->
+    <section class="explorer-wrap">
+
+        <div class="explorer-topbar">
+            <div class="explorer-title-wrap">
+                <p class="explorer-kicker">Document Explorer</p>
+                <h2>Uploads by <%= data?.name || "this contributor" %></h2>
+            </div>
+
+            <div class="explorer-actions">
+                <button class="sort-btn active" data-sort="latest" type="button">Latest</button>
+                <button class="sort-btn" data-sort="oldest" type="button">Oldest</button>
+                <button class="sort-btn" data-sort="az" type="button">A–Z</button>
+            </div>
+        </div>
+
+        <!-- Filter strip -->
+        <div class="filter-strip">
+            <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <input id="uploadSearch" type="text" placeholder="Search subject, college, chapter, branch…" autocomplete="off">
+                <button id="clearSearch" type="button" aria-label="Clear search">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="collegeFilter" aria-label="Filter by college">
+                    <option value="">All Colleges</option>
+                    <%
+                    const uniqueColleges = [...new Set((uploads || [])
+                    .map(item => item?.doc_id?.college || item?.college)
+                    .filter(Boolean)
+                    )].sort((a, b) => a.localeCompare(b));
+                    %>
+                    <% uniqueColleges.forEach(college => { %>
+                    <option value="<%= college %>"><%= college %></option>
+                    <% }) %>
+                </select>
+
+                <select id="subjectFilter" aria-label="Filter by subject">
+                    <option value="">All Subjects</option>
+                    <%
+                    const uniqueSubjects = [...new Set((uploads || [])
+                    .map(item => item?.doc_id?.subject || item?.subject)
+                    .filter(Boolean)
+                    )].sort((a, b) => a.localeCompare(b));
+                    %>
+                    <% uniqueSubjects.forEach(subject => { %>
+                    <option value="<%= subject %>"><%= subject %></option>
+                    <% }) %>
+                </select>
+            </div>
+        </div>
+
+        <!-- Results count -->
+        <div class="results-bar">
+            <span class="results-count-pill">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span id="totalUploadsCount2"><%= uploads?.length || 0 %></span>
+            </span>
+            <span class="results-bar-label"></span>
+        </div>
+
+        <!-- Documents grid -->
+        <% if (uploads && uploads.length > 0) { %>
+        <div class="docs-grid" id="docsGrid">
+            <% uploads.forEach((upload, index) => { %>
+            <article
+                    class="doc-card"
+                    data-index="<%= index %>"
+                    data-subject="<%= (upload?.doc_id?.subject || upload?.subject || '').toLowerCase() %>"
+                    data-college="<%= (upload?.doc_id?.college || upload?.college || '').toLowerCase() %>"
+                    data-chapter="<%= (upload?.doc_id?.chapter || '').toLowerCase() %>"
+                    data-branch="<%= (upload?.doc_id?.branch || '').toLowerCase() %>"
+                    data-uploaded="<%= upload?.uploadedAt ? new Date(upload.uploadedAt).getTime() : 0 %>"
+            >
+                <!-- Card top -->
+                <div class="doc-card-top">
+                    <div class="doc-icon-wrap">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <path d="M8 3.75h6.5L19.25 8.5V18A2.25 2.25 0 0 1 17 20.25H8A2.25 2.25 0 0 1 5.75 18V6A2.25 2.25 0 0 1 8 3.75Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M14 3.75V8.5h4.75" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            <path d="M9 13h6M9 16h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+
+                    <div class="doc-top-text">
+                        <p class="doc-label">Verified</p>
+                        <h3><%= upload?.doc_id?.subject || upload?.subject || "Untitled Subject" %></h3>
+                    </div>
+                </div>
+
+                <!-- Meta -->
+                <div class="doc-meta-list">
+                    <div class="doc-meta-item">
+                        <span class="doc-meta-key">College</span>
+                        <span class="doc-meta-value"><%= upload?.doc_id?.college || upload?.college || "—" %></span>
+                    </div>
+
+                    <div class="doc-meta-item">
+                        <span class="doc-meta-key">Branch</span>
+                        <span class="doc-meta-value"><%= upload?.doc_id?.branch || "—" %></span>
+                    </div>
+
+                    <div class="doc-meta-item">
+                        <span class="doc-meta-key">Semester</span>
+                        <span class="doc-meta-value"><%= upload?.doc_id?.semester || "—" %></span>
+                    </div>
+
+                    <div class="doc-meta-item">
+                        <span class="doc-meta-key">Chapter</span>
+                        <span class="doc-meta-value"><%= upload?.doc_id?.chapter || "—" %></span>
+                    </div>
+
+                    <div class="doc-meta-item">
+                        <span class="doc-meta-key">Uploaded</span>
+                        <span class="doc-meta-value">
+                            <%= upload?.uploadedAt ? new Date(upload.uploadedAt).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric"
+                            }) : "Unknown" %>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- CTA -->
+                <div class="doc-card-bottom">
+                    <% if (upload?.doc_id?._id) { %>
+                    <a class="doc-btn primary-btn" href="/view/<%= upload.doc_id._id %>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
+                        </svg>
+                        Open in DocUp
+                    </a>
+                    <% } else { %>
+                    <button class="doc-btn disabled-btn" disabled>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                        Unavailable
+                    </button>
+                    <% } %>
+                </div>
+            </article>
+            <% }) %>
+        </div>
+
+        <!-- No results -->
+        <div id="noResultsState" class="no-results-state" style="display:none;">
+            <div class="no-results-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <path d="M8 11h6M11 8v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+                </svg>
+            </div>
+            <p class="no-results-kicker">No matches found</p>
+            <h3>Try another search or change the filters</h3>
+            <p>Search by subject, college, chapter, or branch — or clear filters to see all verified uploads.</p>
+        </div>
+
+        <% } else { %>
+        <!-- Empty state -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M8 3.75h6.5L19.25 8.5V18A2.25 2.25 0 0 1 17 20.25H8A2.25 2.25 0 0 1 5.75 18V6A2.25 2.25 0 0 1 8 3.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M14 3.75V8.5h4.75" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <p class="empty-label">Nothing here yet</p>
+            <h2>No verified uploads from this contributor</h2>
+            <p class="empty-subtext">
+                Once reviewed documents are available, they will appear here in a clean navigable archive.
+            </p>
+        </div>
+        <% } %>
+
+    </section>
+</main>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+    <div class="footer-left">
+        DocUp
+        <a href="/version_report" class="footer-version">v<%= process.env.VERSION %></a>
+    </div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">Contact</a>
+        <a href="/privacy_policy">Privacy</a>
+        <a href="/logout">Logout</a>
+    </div>
+</footer>
+
+<script>
+    /* ── Filter, sort, search ── */
+    const searchInput       = document.getElementById("uploadSearch");
+    const clearBtn          = document.getElementById("clearSearch");
+    const collegeFilter     = document.getElementById("collegeFilter");
+    const subjectFilter     = document.getElementById("subjectFilter");
+    const cards             = Array.from(document.querySelectorAll(".doc-card"));
+    const docsGrid          = document.getElementById("docsGrid");
+    const noResultsState    = document.getElementById("noResultsState");
+    const totalCount1       = document.getElementById("totalUploadsCount");
+    const totalCount2       = document.getElementById("totalUploadsCount2");
+    const sortButtons       = document.querySelectorAll(".sort-btn");
+
+    let activeSort = "latest";
+
+    function matchesFilters(card) {
+        const q        = (searchInput?.value || "").trim().toLowerCase();
+        const college  = (collegeFilter?.value || "").trim().toLowerCase();
+        const subject  = (subjectFilter?.value || "").trim().toLowerCase();
+
+        const combined = `${card.dataset.subject || ""} ${card.dataset.college || ""} ${card.dataset.chapter || ""} ${card.dataset.branch || ""}`;
+
+        return (!q       || combined.includes(q))
+            && (!college || card.dataset.college === college)
+            && (!subject || card.dataset.subject === subject);
+    }
+
+    function sortCards(arr) {
+        return [...arr].sort((a, b) => {
+            if (activeSort === "latest")  return Number(b.dataset.uploaded || 0) - Number(a.dataset.uploaded || 0);
+            if (activeSort === "oldest")  return Number(a.dataset.uploaded || 0) - Number(b.dataset.uploaded || 0);
+            if (activeSort === "az")      return (a.dataset.subject || "").localeCompare(b.dataset.subject || "");
+            return 0;
+        });
+    }
+
+    function applyFiltersAndSort() {
+        if (!docsGrid) return;
+
+        const visible = sortCards(cards.filter(matchesFilters));
+
+        cards.forEach(c => { c.style.display = "none"; });
+        visible.forEach(c => { c.style.display = ""; docsGrid.appendChild(c); });
+
+        const count = visible.length;
+        if (noResultsState)  noResultsState.style.display = count ? "none" : "flex";
+        if (totalCount1)     totalCount1.textContent = count;
+        if (totalCount2)     totalCount2.textContent = count;
+        if (clearBtn)        clearBtn.style.display   = (searchInput?.value || "").length ? "flex" : "none";
+    }
+
+    searchInput?.addEventListener("input",   applyFiltersAndSort);
+    collegeFilter?.addEventListener("change", applyFiltersAndSort);
+    subjectFilter?.addEventListener("change", applyFiltersAndSort);
+
+    clearBtn?.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        applyFiltersAndSort();
+        searchInput?.focus();
+    });
+
+    sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            sortButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeSort = btn.dataset.sort;
+            applyFiltersAndSort();
+        });
+    });
+
+    applyFiltersAndSort();
+</script>
+</body>
+</html>

@@ -230,7 +230,7 @@ return name.trim().charAt(0).toUpperCase();
             <div class="recent-uploads-card glass-card">
                 <div class="section-header">
                     <h2>Recent Uploads</h2>
-                    <span class="mini-tag"><%= uploadCount %> Uploads</span>
+                    <a style="color:orangered" href="/all_uploads_view_second_pov_profile/<%= data._id %>"><span style="color:orangered;font-size: 0.9rem" class="mini-tag">View all Uploads</span></a>
                 </div>
 
                 <% if (recentUploads.length > 0) { %>
