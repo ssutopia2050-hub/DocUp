@@ -272,11 +272,26 @@ user-select:none;
         </div>
     </div>
 </div>
-<div id="upload-loader" class="upload-loader-overlay">
-    <div class="upload-loader-box">
-        <p style="color:orangered;font-size: 1.5rem">Insufficient DocScore</p>
-        <a class="overlay-anchor-tags" style="color:#457b9d;font-family:Saira, sans-serif" href="/pricing">Buy DocScores or</a>
-        <a class="overlay-anchor-tags" style="color:#457b9d;font-family:Saira, sans-serif" href="/uploads">Upload a Valid Document</a>
+<div id="upload-loader" class="upload-loader-overlay" aria-hidden="true">
+    <div class="upload-loader-box" role="dialog" aria-modal="true" aria-labelledby="docscore-overlay-title">
+        <button type="button" class="upload-loader-close" id="docscore-overlay-close" aria-label="Close overlay">
+            ×
+        </button>
+
+        <div class="upload-loader-icon">
+            <img src="/fire.png" alt="DocScore">
+        </div>
+
+        <p id="docscore-overlay-title" class="upload-loader-title">Insufficient DocScore</p>
+        <p class="upload-loader-subtext">
+            You need at least <span>1 DocScore</span> to view this document.
+            Recharge your DocScore or upload a valid document to increase it by <span>+1</span>.
+        </p>
+
+        <div class="upload-loader-actions">
+            <a class="overlay-cta overlay-cta-primary" href="/pricing">Recharge DocScore</a>
+            <a class="overlay-cta overlay-cta-secondary" href="/uploads">Upload a Document</a>
+        </div>
     </div>
 </div>
 <div class="footer">
@@ -306,38 +321,67 @@ user-select:none;
 
 <script>
     const msg = <%- JSON.stringify(msg || null) %>;
-    const homeBtn  = document.querySelector(".logo-text-container");
-    homeBtn.addEventListener("click", () => {
-        window.location.href="/dashboard";
-    })
-    if (msg && msg.err) {
-        const overlay = document.getElementById("upload-loader");
-        if (overlay) {
-            overlay.style.display = "flex";
-        }
+
+    const homeBtn = document.querySelector(".logo-wordmark");
+    if (homeBtn) {
+        homeBtn.addEventListener("click", () => {
+            window.location.href = "/dashboard";
+        });
     }
+
     const overlay = document.getElementById("upload-loader");
     const box = document.querySelector(".upload-loader-box");
+    const closeBtn = document.getElementById("docscore-overlay-close");
 
-    overlay.addEventListener("click", function (e) {
+    function openDocscoreOverlay() {
+        if (!overlay) return;
+        overlay.classList.add("active");
+        overlay.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+    }
 
-        // if clicked element is NOT inside the box → close overlay
-        if (!box.contains(e.target)) {
-            overlay.style.display = "none";
+    function closeDocscoreOverlay() {
+        if (!overlay) return;
+        overlay.classList.remove("active");
+        overlay.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+    }
+
+    if (msg && msg.err === "Insufficient DocScore") {
+        openDocscoreOverlay();
+    }
+
+    if (overlay && box) {
+        overlay.addEventListener("click", function (e) {
+            if (!box.contains(e.target)) {
+                closeDocscoreOverlay();
+            }
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener("click", closeDocscoreOverlay);
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay && overlay.classList.contains("active")) {
+            closeDocscoreOverlay();
         }
-
     });
+
     const searchInput = document.getElementById("search_parameter_text");
     const clearBtn = document.getElementById("clear-search");
 
-    searchInput.addEventListener("input", () => {
-        clearBtn.style.display = searchInput.value.length ? "block" : "none";
-    });
+    if (searchInput && clearBtn) {
+        searchInput.addEventListener("input", () => {
+            clearBtn.style.display = searchInput.value.length ? "block" : "none";
+        });
 
-    clearBtn.addEventListener("click", () => {
-        searchInput.value = "";
-        clearBtn.style.display = "none";
-        searchInput.focus();
-    });
+        clearBtn.addEventListener("click", () => {
+            searchInput.value = "";
+            clearBtn.style.display = "none";
+            searchInput.focus();
+        });
+    }
 </script>
 </html>
