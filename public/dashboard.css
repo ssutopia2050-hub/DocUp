@@ -47,10 +47,9 @@ html {
 body {
     min-height: 100vh;
     background:
-            radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255,106,0,0.10) 0%, transparent 55%),
-            radial-gradient(ellipse 60% 40% at 90% 5%, rgba(75,146,255,0.07) 0%, transparent 45%),
-            radial-gradient(ellipse 50% 60% at 50% 100%, rgba(255,106,0,0.05) 0%, transparent 60%),
-            linear-gradient(160deg, #00141c 0%, #000f17 60%, #001018 100%);
+            radial-gradient(ellipse at top left, rgba(255,106,0,0.07) 0%, transparent 40%),
+            radial-gradient(ellipse at top right, rgba(75,146,255,0.06) 0%, transparent 36%),
+            linear-gradient(180deg, #00141c 0%, #00131b 100%);
     color: var(--text);
     font-family: 'DM Sans', system-ui, sans-serif;
     font-size: 15px;
@@ -68,21 +67,12 @@ body::before {
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.18;
+    opacity: 0.22;
     background-image:
-            linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
-    background-size: 40px 40px;
-    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
-}
-
-body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background: radial-gradient(ellipse 100% 80% at 50% 0%, transparent 40%, rgba(0,8,14,0.55) 100%);
+            linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent 90%);
 }
 
 a,
@@ -118,12 +108,11 @@ button {
     align-items: center;
     justify-content: space-between;
     padding: 0 28px;
-    background: rgba(0, 16, 22, 0.32);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
+    background: #07141c;
     border-bottom: 1px solid var(--border);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
-
 .topbar-left,
 .topbar-right {
     display: flex;
@@ -268,14 +257,14 @@ button {
     width:10%;
     height:54px;
     border:1px solid var(--border-warm);
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.018));
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
     padding-left:2vw;
     font-size:1.02rem;
     color:var(--text);
     font-weight:500;
     font-family:'DM Sans', sans-serif;
-    border-radius:22px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.18);
+    border-radius:20px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     transition: var(--t);
 }
 .search-input-wrapper input{
@@ -300,8 +289,8 @@ button {
 
 .search-form .search-input-wrapper:focus-within{
     border-color: var(--border-warm-hi);
-    background: linear-gradient(180deg, rgba(255,106,0,0.07), rgba(255,255,255,0.02));
-    box-shadow: 0 0 0 4px rgba(255,106,0,0.08), 0 6px 28px rgba(0,0,0,0.22);
+    background: linear-gradient(180deg, rgba(255,106,0,0.06), rgba(255,255,255,0.02));
+    box-shadow: 0 0 0 4px rgba(255,106,0,0.05);
 }
 .search-form select{
     width:fit-content;
@@ -313,29 +302,26 @@ button {
 .search-form .search-btn{
     width:fit-content;
     height:54px;
-    border:1px solid rgba(255,106,0,0.32);
-    background: linear-gradient(135deg, rgba(255,106,0,0.20) 0%, rgba(255,106,0,0.10) 100%);
+    border:1px solid var(--border-warm);
+    background: linear-gradient(180deg, rgba(255,106,0,0.08), rgba(255,106,0,0.04));
     padding:10px 70px;
     font-size:1rem;
     color:#ffb27a;
     font-weight:700;
     font-family:'DM Sans', sans-serif;
-    border-radius:22px;
+    border-radius:20px;
     appearance:none;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor:pointer;
     transition: var(--t);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 4px 20px rgba(255,106,0,0.12);
-    letter-spacing: 0.3px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
 .search-form button:hover{
-    background: linear-gradient(135deg, rgba(255,106,0,0.28), rgba(255,106,0,0.16));
+    background: linear-gradient(180deg, rgba(255,106,0,0.14), rgba(255,106,0,0.08));
     color: white;
-    border-color: rgba(255,106,0,0.45);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 26px rgba(255,106,0,0.22);
-    transform: translateY(-1px);
+    border-color: var(--border-warm-hi);
 }
 .search-form select{
     width:fit-content;
@@ -381,28 +367,27 @@ button {
     grid-template-rows:auto 1fr auto;
     border-radius:28px;
     overflow:hidden;
-    border:1px solid rgba(255, 110, 45, 0.12);
+    border:1px solid rgba(255, 110, 45, 0.14);
     background:
-            radial-gradient(ellipse at top right, rgba(255, 98, 0, 0.10), transparent 36%),
-            linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 100%);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+            radial-gradient(circle at top right, rgba(255, 98, 0, 0.14), transparent 28%),
+            linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.018));
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
     box-shadow:
-            0 2px 0 rgba(255,255,255,0.04) inset,
-            0 28px 60px rgba(0,0,0,0.32),
-            0 0 0 1px rgba(255,255,255,0.02);
+            0 24px 55px rgba(0,0,0,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(255,255,255,0.025);
     transition:
-            transform 0.35s cubic-bezier(0.22,1,0.36,1),
-            box-shadow 0.35s ease,
-            border-color 0.35s ease;
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            border-color 0.3s ease;
 }
 .result-tab:hover{
-    transform:translateY(-6px) scale(1.005);
-    border-color:rgba(255, 120, 50, 0.28);
+    transform:translateY(-5px);
+    border-color:rgba(255, 115, 45, 0.3);
     box-shadow:
-            0 36px 80px rgba(0,0,0,0.40),
-            0 0 0 1px rgba(255,110,45,0.06),
-            inset 0 1px 0 rgba(255,255,255,0.08);
+            0 30px 70px rgba(0,0,0,0.36),
+            inset 0 1px 0 rgba(255,255,255,0.07);
 }
 .result-tab-top{
     width:100%;
@@ -604,7 +589,7 @@ button {
     flex-direction:column;
     gap:12px;
     box-shadow:0 20px 50px rgba(0,0,0,0.45);
-    z-index:999;
+    z-index:9999999;
 }
 .filter-dropdown select{
     width:100%;
@@ -996,11 +981,9 @@ label{
     position:relative;
     width:100%;
     min-height:380px;
-    border:1px solid rgba(255,255,255,0.06);
-    background:
-            radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255,69,0,0.07) 0%, transparent 70%),
-            linear-gradient(160deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.012) 100%);
-    border-radius:32px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+    border-radius:30px;
     padding:50px 42px;
     overflow:hidden;
     display:flex;
@@ -1008,11 +991,7 @@ label{
     align-items:center;
     justify-content:center;
     text-align:center;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow:
-            inset 0 1px 0 rgba(255,255,255,0.05),
-            0 32px 80px rgba(0,0,0,0.30);
+    backdrop-filter: blur(10px);
     margin-top:5vh;
 }
 .empty-results-glow{
@@ -1058,20 +1037,12 @@ label{
 .shortcut-chip{
     font-family:'DM Sans', sans-serif;
     color:rgba(255,255,255,0.88);
-    border:1px solid rgba(255,255,255,0.09);
-    background:
-            linear-gradient(145deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
-    padding:12px 20px;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.04);
+    padding:12px 18px;
     border-radius:999px;
     font-size:0.95rem;
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 14px rgba(0,0,0,0.18);
-    transition: transform 0.22s ease, border-color 0.22s ease;
-}
-.shortcut-chip:hover{
-    transform: translateY(-2px);
-    border-color: rgba(255,106,0,0.22);
+    backdrop-filter:blur(8px);
 }
 .empty-preview-grid{
     width:100%;
@@ -1082,18 +1053,11 @@ label{
 }
 .preview-card{
     border:1px solid rgba(255,255,255,0.07);
-    background:
-            linear-gradient(150deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.018) 100%);
-    border-radius:22px;
-    padding:22px;
+    background:rgba(255,255,255,0.03);
+    border-radius:20px;
+    padding:20px;
     text-align:left;
     min-height:110px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 24px rgba(0,0,0,0.18);
-    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), border-color 0.28s ease;
-}
-.preview-card:hover{
-    transform: translateY(-3px);
-    border-color: rgba(255,106,0,0.18);
 }
 .preview-card-top{
     display:inline-block;
@@ -1143,28 +1107,26 @@ label{
     min-width:240px;
     max-width:320px;
     flex:1 1 260px;
-    border:1px solid rgba(255,69,0,0.14);
-    background:
-            linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.018) 100%);
+    border:1px solid rgba(255,69,0,0.18);
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
     border-radius:22px;
     padding:16px 18px;
     display:flex;
     align-items:center;
     gap:14px;
-    transition: transform 0.32s cubic-bezier(0.22,1,0.36,1), box-shadow 0.32s ease, border-color 0.32s ease;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    transition:0.28s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow:
-            0 2px 0 rgba(255,255,255,0.03) inset,
-            0 12px 34px rgba(0,0,0,0.22);
+            0 10px 30px rgba(0,0,0,0.18),
+            inset 0 1px 0 rgba(255,255,255,0.03);
 }
 .college-result-card:hover{
-    transform:translateY(-5px) scale(1.01);
-    border:1px solid rgba(255,69,0,0.36);
+    transform:translateY(-4px);
+    border:1px solid rgba(255,69,0,0.42);
     box-shadow:
-            0 22px 48px rgba(0,0,0,0.30),
-            0 0 0 1px rgba(255,69,0,0.05),
-            inset 0 1px 0 rgba(255,255,255,0.06);
+            0 16px 38px rgba(0,0,0,0.24),
+            0 0 0 1px rgba(255,69,0,0.06);
 }
 .college-result-card-logo{
     width:58px;
@@ -1467,19 +1429,29 @@ a.view-doc-link:hover {
     right: 0;
     width: 360px;
     max-height: 440px;
+
     border-radius: var(--r-lg);
-    border: 1px solid rgba(255,255,255,0.07);
-    background: linear-gradient(160deg, rgba(10,22,30,0.98), rgba(5,14,20,0.98));
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255,255,255,0.08);
+
+    /* 🔥 SOLID BACKGROUND (fix) */
+    background: #08141c;
+
+    /* subtle depth instead of glass */
+    box-shadow:
+            0 24px 60px rgba(0,0,0,0.55),
+            0 0 0 1px rgba(255,255,255,0.03);
+
     overflow: hidden;
+
     display: none;
     flex-direction: column;
+
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
     pointer-events: none;
+
     transition: opacity 0.18s ease, transform 0.18s ease;
+
     z-index: 99999;
 }
 
@@ -1973,4 +1945,147 @@ a.view-doc-link:hover {
         gap:8px;
         padding:10px 12px;
     }
+}
+/* ===== FILTER DROPDOWN STACKING FIX ===== */
+.topbar,
+.search-param-container,
+.search-suggestion-bar,
+.footer {
+    position: relative;
+    z-index: 20;
+}
+
+.search-results-container {
+    position: relative;
+    z-index: 1;
+}
+
+.search-param-container {
+    z-index: 30;
+}
+
+.search-param-container form {
+    position: absolute;
+    z-index: 31;
+}
+
+.filter-wrapper {
+    position: relative;
+    z-index: 40;
+}
+
+.filter-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 240px;
+    background: rgba(7, 13, 24, 0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 18px;
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    z-index: 99999;
+}
+
+/* ===== ACTUAL FIX FOR NOTIFICATION DROPDOWN TRANSPARENCY ===== */
+.notification-wrap{
+    position: relative;
+    z-index: 2000;
+}
+
+.notification-dropdown{
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    width: 360px;
+    max-height: 440px;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+
+    z-index: 999999;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    box-shadow:
+            0 32px 80px rgba(0,0,0,0.72),
+            0 12px 30px rgba(0,0,0,0.45);
+
+    isolation: isolate;
+}
+
+.notification-dropdown::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #08141c;
+    z-index: 0;
+}
+
+.notification-dropdown.active{
+    display: flex;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.nd-header,
+.nd-list,
+.nd-empty{
+    position: relative;
+    z-index: 1;
+}
+
+.nd-header{
+    background: #0a1821 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.nd-list{
+    background: #08141c !important;
+    padding: 10px;
+}
+
+.nd-item{
+    position: relative;
+    z-index: 1;
+    background: #0c1a23 !important;
+    border: 1px solid rgba(255,255,255,0.07);
+    box-shadow: none;
+}
+
+.nd-item.unread{
+    background: #10202a !important;
+    border-color: rgba(255,106,0,0.22);
+}
+
+.nd-item:hover{
+    background: #122430 !important;
+    border-color: rgba(255,106,0,0.22);
+}
+
+.nd-text{
+    color: rgba(240,244,247,0.84);
+}
+
+.nd-when{
+    color: rgba(240,244,247,0.44);
+}
+
+.nd-empty{
+    background: #08141c !important;
 }
