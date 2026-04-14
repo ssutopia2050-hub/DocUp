@@ -1003,9 +1003,38 @@
         themeMenuBtn?.setAttribute("aria-expanded", "false");
     }
 
+    function positionThemePopover() {
+        if (!themePopover || !themeMenuBtn) return;
+
+        themePopover.classList.remove("shift-left", "shift-right");
+
+        const rect = themePopover.getBoundingClientRect();
+        const gap = 14;
+
+        if (rect.right > window.innerWidth - gap) {
+            themePopover.classList.add("shift-right");
+        }
+
+        if (rect.left < gap) {
+            themePopover.classList.remove("shift-right");
+            themePopover.classList.add("shift-left");
+        }
+    }
+    window.addEventListener("resize", () => {
+        if (themePopover?.classList.contains("active")) {
+            positionThemePopover();
+        }
+    });
+
     function openThemePopover() {
-        themePopover?.classList.add("active");
+        if (!themePopover) return;
+
+        themePopover.classList.add("active");
         themeMenuBtn?.setAttribute("aria-expanded", "true");
+
+        requestAnimationFrame(() => {
+            positionThemePopover();
+        });
     }
 
     function updateReadingModeUi() {

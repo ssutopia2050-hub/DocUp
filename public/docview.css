@@ -2513,7 +2513,8 @@ body.light-mode .save-btn:hover {
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    width: 320px;
+    width: min(320px, calc(100vw - 28px));
+    max-width: calc(100vw - 28px);
     padding: 14px;
     border-radius: 22px;
     border: 1px solid var(--border-warm);
@@ -2526,8 +2527,21 @@ body.light-mode .save-btn:hover {
     pointer-events: none;
     transition: opacity 0.18s ease, transform 0.18s ease;
     z-index: 9999;
+    overflow-x: hidden;
+}
+.theme-menu {
+    position: relative;
 }
 
+.theme-popover.shift-left {
+    right: 0;
+    left: auto;
+}
+
+.theme-popover.shift-right {
+    left: 0;
+    right: auto;
+}
 .theme-popover.active {
     opacity: 1;
     transform: translateY(0) scale(1);
