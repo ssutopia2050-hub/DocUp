@@ -3,10 +3,15 @@
 <head>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;500;600&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
     <link rel="stylesheet" href="/dashboard.css">
 
     <meta charset="UTF-8">
@@ -16,9 +21,9 @@
 <body>
 
 <div class="topbar">
-    <div class="logo-text-container">DocUp</div>
+    <div style="font-family: Archivo Black , sans-serif;font-size: 2rem" class="logo-text-container">DocUp</div>
 
-    <div class="pg-links">
+    <div style="display: flex;gap: 10px;font-family: 'DM Sans',sans-serif" class="pg-links">
         <a href="/dashboard">FindDocs</a>
         <a href="/uploads">Upload</a>
     </div>
@@ -55,7 +60,7 @@
 </div>
 
 <div class="footer">
-    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end;font-family: Archivo Black , sans-serif" class="footer-left">
         DocUp
         <p style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></p>
     </div>

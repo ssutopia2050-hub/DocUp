@@ -3,12 +3,12 @@
 <head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/dashboard.css">
     <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
@@ -16,42 +16,65 @@
     <title>DocUp | Dashboard</title>
 </head>
 <body>
-<div class="topbar">
-    <div class="logo-text-container">
-        DocUp
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+
+<!--        <div class="topbar-divider"></div>-->
+
+<!--        <span class="topbar-breadcrumb">-->
+<!--            <a href="/dashboard">Dashboard</a>-->
+<!--            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">-->
+<!--                <path d="M4.5 2.5L7.5 6L4.5 9.5"-->
+<!--                      stroke="currentColor"-->
+<!--                      stroke-width="1.4"-->
+<!--                      stroke-linecap="round"-->
+<!--                      stroke-linejoin="round"/>-->
+<!--            </svg>-->
+<!--            <span class="breadcrumb-current">FindDocs</span>-->
+<!--        </span>-->
     </div>
-    <div class="pg-links">
-        <a href="">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
+
+    <div class="topbar-right">
+
+        <!-- FindDocs -->
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"/>
             </svg>
-            <span style="border-bottom:2px solid rgba(255,69,0,0.59);padding-bottom: 2px;">FindDocs</span>
+            <span>FindDocs</span>
         </a>
 
-        <p style="border:1px solid orangered;
-               padding:15px 25px;
-               border-radius:30px;
-               display:flex;
-               gap:10px;
-               align-items:center;
-               white-space:nowrap;
-               cursor:crosshair;">
-            <span style="color:orangered">DocScore :</span>
-            <span id="docscore-value" style="color:white"><%= data.Doc_score %></span>
-            <img style="height:20px;" src="/fire.png" alt="">
-        </p>
+        <!-- DocScore -->
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= data.Doc_score %></span>
+            <img src="/fire.png" alt="">
+        </div>
 
-        <a href="/uploads">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
+        <!-- Upload -->
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="M5 18.5h14"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"/>
             </svg>
-            Upload
+            <span>Upload</span>
         </a>
 
-
+        <!-- Notifications -->
         <div class="notification-wrap">
-            <div class="notification-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none">
+            <button type="button" class="icon-btn notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
                           stroke="currentColor"
                           stroke-width="1.7"
@@ -66,65 +89,78 @@
 
                 <% const unreadCount = (data.notifications || []).filter(n => !n.isRead).length; %>
                 <% if (unreadCount > 0) { %>
-                <span class="notification-badge">
-                <%= unreadCount > 9 ? "9+" : unreadCount %>
-            </span>
+                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
                 <% } %>
-            </div>
+            </button>
 
             <div class="notification-dropdown">
-                <div class="notification-dropdown-header">
-                    <span>Notifications</span>
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
                     <% if (data.notifications && data.notifications.length > 0) { %>
-                    <a href="/notifications" class="notification-view-all">View all</a>
+                    <a href="/notifications" class="nd-view-all">View all</a>
                     <% } %>
                 </div>
 
-                <div class="notification-list">
+                <div class="nd-list">
                     <% if (data.notifications && data.notifications.length > 0) { %>
                     <% data.notifications.slice().reverse().forEach((item) => { %>
-                    <div class="notification-item <%= item.isRead ? '' : 'unread' %>">
-                        <div class="notification-item-top">
-                            <div class="notification-item-top-left">
-                                <span class="notification-dot"></span>
-                                <span class="notification-label"><%= item.isRead ? "Seen" : "New" %></span>
-                            </div>
-
-                            <span class="notification-meta">
-            <%= item.createdAt
-                ? new Date(item.createdAt).toLocaleString("en-IN", {
-                    dateStyle: "medium",
-                    timeStyle: "short"
-                })
-                : "Just now" %>
-        </span>
+                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="nd-item-row">
+                            <span class="nd-dot"></span>
+                            <span class="nd-when">
+                                <%= item.createdAt
+                                    ? new Date(item.createdAt).toLocaleString("en-IN", {
+                                        dateStyle: "medium",
+                                        timeStyle: "short"
+                                    })
+                                    : "Just now" %>
+                            </span>
                         </div>
-
-                        <div class="notification-content">
-                            <%= item.content %>
-                        </div>
+                        <p class="nd-text"><%= item.content %></p>
                     </div>
                     <% }) %>
                     <% } else { %>
-                    <div class="notification-empty">
-                        No notifications yet.
-                    </div>
+                    <div class="nd-empty">No notifications yet.</div>
                     <% } %>
                 </div>
             </div>
         </div>
-        <div class="profile-btn">
+
+        <!-- Avatar -->
+        <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
             <img src="<%= data.avatar_img_path %>" alt="">
             <% } else { %>
             <%= data.name ? data.name.charAt(0).toUpperCase() : "U" %>
             <% } %>
         </div>
+
     </div>
-</div>
-<div class="profile-btn-dropdown">
-    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Profile</a>
-    <a href="/pricing">Recharge DocScore</a>
+</header>
+
+<!-- Avatar Dropdown -->
+<div class="avatar-dropdown">
+    <a href="/profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"/>
+        </svg>
+        Profile
+    </a>
+
+    <a href="/pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        Recharge DocScore
+    </a>
 </div>
 <div class="search-param-container">
     <form class="search-form">
@@ -206,7 +242,7 @@ user-select:none;
         <div class="empty-results-glow"></div>
 
         <p class="empty-results-label">Find smarter with DocUp</p>
-        <h2>Search notes, PYQs, docs and semester material</h2>
+        <h2 STYLE="font-family: 'DM Sans',sans-serif">Search notes, PYQs, docs and semester material</h2>
 <!--        <p class="empty-results-subtext">-->
 <!--            Use smart tags to search faster and get cleaner results.-->
 <!--        </p>-->
@@ -244,7 +280,7 @@ user-select:none;
     </div>
 </div>
 <div class="footer">
-    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+    <div style="font-family: 'Archivo Black',sans-serif;display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
         DocUp
         <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></a>
     </div>

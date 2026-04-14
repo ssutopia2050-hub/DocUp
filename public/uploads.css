@@ -1276,18 +1276,18 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     padding: 4px 0;
     position: relative;
 }
-.footer-right a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: var(--accent);
-    transition: width var(--t);
-}
+/*.footer-right a::after {*/
+/*    content: '';*/
+/*    position: absolute;*/
+/*    bottom: 0;*/
+/*    left: 0;*/
+/*    width: 0;*/
+/*    height: 1px;*/
+/*    background: var(--accent);*/
+/*    transition: width var(--t);*/
+/*}*/
 .footer-right a:hover { color: white; }
-.footer-right a:hover::after { width: 100%; }
+/*.footer-right a:hover::after { width: 100%; }*/
 
 /* ─── STEP PROGRESS BAR ─── */
 .upload-steps-bar {

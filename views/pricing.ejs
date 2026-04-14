@@ -6,6 +6,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/pricing.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,53 +18,48 @@
 </head>
 <body>
 
-<div class="topbar">
-    <div class="logo-text-container">
-        DocUp
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+
+<!--        <div class="topbar-divider"></div>-->
+
+<!--        <span class="topbar-breadcrumb">-->
+<!--            <a href="/dashboard">Dashboard</a>-->
+<!--            <span class="breadcrumb-current">Recharge</span>-->
+<!--        </span>-->
     </div>
-    <div class="pg-links">
-        <a href="/dashboard">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M10 2a8 8 0 105.293 14.293l4.707 4.707 1.414-1.414-4.707-4.707A8 8 0 0010 2zm0 2a6 6 0 110 12 6 6 0 010-12z"/>
-            </svg>
-            <span style="padding-bottom: 2px;">FindDocs</span>
+
+    <div class="topbar-right">
+
+        <a href="/dashboard" class="topbar-pill">
+            FindDocs
         </a>
 
-        <p style="border:1px solid orangered;
-               padding:15px 25px;
-               border-radius:30px;
-               display:flex;
-               gap:10px;
-               align-items:center;
-               white-space:nowrap;
-               cursor:crosshair;">
-            <span style="color:orangered">DocScore :</span>
-            <span id="docscore-value" style="color:white"><%= data.Doc_score %></span>
-            <img style="height:20px;" src="/fire.png" alt="">
-        </p>
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= data.Doc_score %></span>
+            <img src="/fire.png" alt="">
+        </div>
 
-        <a href="/uploads">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 20h14v-2H5v2zM12 2l5 5h-3v6h-4V7H7l5-5z"/>
-            </svg>
-            <span style="padding-bottom: 2px;">Upload</span>
+        <a href="/uploads" class="topbar-pill">
+            Upload
         </a>
 
-        <div class="profile-btn">
+        <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
             <img src="<%= data.avatar_img_path %>" alt="">
             <% } else { %>
             <%= data.name ? data.name.charAt(0).toUpperCase() : "U" %>
             <% } %>
-
         </div>
     </div>
-</div>
-<div class="profile-btn-dropdown">
-    <a style="border-bottom:1px solid orangered;width:100%;display: flex;justify-content: center;align-items: center;padding-bottom:20px" href="/profile">Profile</a>
+</header>
+
+<div class="avatar-dropdown">
+    <a href="/profile">Profile</a>
     <a href="/pricing">Recharge DocScore</a>
 </div>
-
 <section class="hero-section">
     <div class="hero-content">
         <p class="hero-tag">DocScore Recharge</p>
