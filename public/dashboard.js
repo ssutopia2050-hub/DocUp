@@ -205,7 +205,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
 
                 <p class="search-ui-eyebrow">DocUp Search</p>
-                <h2>Searching through documents</h2>
+                <h2 style="font-family: 'DM Sans',sans-serif">Searching through documents</h2>
                 <p class="search-ui-text">
                     Finding notes, PYQs, semester material and useful docs for you...
                 </p>
