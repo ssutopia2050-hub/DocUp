@@ -40,6 +40,144 @@ import os from "os";
  ******************************/
 app.set("view engine", "ejs");
 app.set("views", "./views");
+app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (req, res) => {
+    try {
+        const signature = req.headers["x-razorpay-signature"];
+        const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+        const expectedSignature = crypto
+            .createHmac("sha256", webhookSecret)
+            .update(req.body)
+            .digest("hex");
+
+        if (signature !== expectedSignature) {
+            return res.status(400).send("Invalid signature");
+        }
+
+        const event = JSON.parse(req.body.toString());
+        console.log("Razorpay webhook event:", event.event);
+
+        if (event.event === "invoice.paid") {
+            const invoice = event.payload?.invoice?.entity;
+            if (!invoice || !invoice.subscription_id) {
+                return res.status(200).send("OK");
+            }
+
+            const user = await user_profile.findOne({
+                subscription_id: invoice.subscription_id
+            });
+
+            if (!user) {
+                console.log("No user found for subscription:", invoice.subscription_id);
+                return res.status(200).send("OK");
+            }
+
+            const planKey = user.subscription_plan_key;
+            const selectedPlan = SUBSCRIPTION_PLANS[planKey];
+
+            if (!selectedPlan) {
+                console.log("No matching plan found for user:", user.email);
+                return res.status(200).send("OK");
+            }
+
+            const alreadyCredited = Array.isArray(user.payment_history)
+                ? user.payment_history.some(entry => entry.order_id === invoice.id)
+                : false;
+
+            if (!alreadyCredited) {
+                await user_profile.findOneAndUpdate(
+                    { email: user.email },
+                    {
+                        $inc: { Doc_score: selectedPlan.docscore },
+                        $set: {
+                            subscription: selectedPlan.label,
+                            subscription_status: "ACTIVE",
+                            subscription_id: invoice.subscription_id
+                        },
+                        $push: {
+                            payment_history: {
+                                order_id: invoice.id,
+                                payment_id: invoice.payment_id || "",
+                                amount: selectedPlan.amount,
+                                plan: selectedPlan.label,
+                                docscore_added: selectedPlan.docscore,
+                                status: "SUCCESS",
+                                date: new Date()
+                            },
+                            notifications: {
+                                email: user.email,
+                                content: `Subscription renewed 🎉 +${selectedPlan.docscore} DocScore added for ${selectedPlan.label}`
+                            }
+                        }
+                    }
+                );
+            }
+        }
+
+        if (event.event === "payment.failed") {
+            const payment = event.payload?.payment?.entity;
+            const subscriptionId = payment?.subscription_id;
+
+            if (subscriptionId) {
+                const user = await user_profile.findOne({
+                    subscription_id: subscriptionId
+                });
+
+                if (user) {
+                    await user_profile.findOneAndUpdate(
+                        { email: user.email },
+                        {
+                            $set: { subscription_status: "PAST_DUE" },
+                            $push: {
+                                notifications: {
+                                    email: user.email,
+                                    content: "Subscription payment failed ❌ Please update your payment method."
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+        }
+
+        if (event.event === "subscription.cancelled") {
+            const subscription = event.payload?.subscription?.entity;
+
+            if (subscription?.id) {
+                const user = await user_profile.findOne({
+                    subscription_id: subscription.id
+                });
+
+                if (user) {
+                    await user_profile.findOneAndUpdate(
+                        { email: user.email },
+                        {
+                            $set: {
+                                subscription_status: "CANCELLED",
+                                subscription_id: subscription.id
+                            },
+                            $push: {
+                                notifications: {
+                                    email: user.email,
+                                    content: "Your subscription has been cancelled."
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+        }
+
+        if (event.event === "subscription.charged") {
+            console.log("subscription.charged:", event.payload?.subscription?.entity?.id);
+        }
+
+        return res.status(200).send("OK");
+    } catch (err) {
+        console.error("Webhook error:", err);
+        return res.status(500).send("Server error");
+    }
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
@@ -3106,6 +3244,175 @@ app.post("/report_doc", async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Server Error"
+        });
+    }
+});
+
+
+/*******************
+Subscription Plans
+ *****************/
+const SUBSCRIPTION_PLANS = {
+    essential_monthly: {
+        label: "Essential Monthly",
+        amount: 100,
+        docscore: 80,
+        period: "monthly",
+        interval: 1
+    },
+    standard_monthly: {
+        label: "Standard Monthly",
+        amount: 150,
+        docscore: 100,
+        period: "monthly",
+        interval: 1
+    },
+    power_monthly: {
+        label: "Power Monthly",
+        amount: 250,
+        docscore: 200,
+        period: "monthly",
+        interval: 1
+    }
+};
+app.get("/upgrade-plans", async (req, res) => {
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
+
+    const user_data = await user_profile.findOne({ email: req.session.email });
+    res.render("upgrade_plans", { data: user_data });
+});
+
+app.post("/buy-subscription", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
+        }
+
+        const { plan } = req.body;
+        const selectedPlan = SUBSCRIPTION_PLANS[plan];
+
+        if (!selectedPlan) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid subscription plan"
+            });
+        }
+
+        const razorpayPlan = await razorpay.plans.create({
+            period: selectedPlan.period,
+            interval: selectedPlan.interval,
+            item: {
+                name: selectedPlan.label,
+                amount: selectedPlan.amount * 100,
+                currency: "INR",
+                description: `${selectedPlan.docscore} DocScore per month`
+            }
+        });
+
+        const subscription = await razorpay.subscriptions.create({
+            plan_id: razorpayPlan.id,
+            customer_notify: 1,
+            total_count: 12,
+            notes: {
+                user_email: req.session.email,
+                plan_key: plan,
+                plan_label: selectedPlan.label,
+                docscore_per_month: String(selectedPlan.docscore)
+            }
+        });
+
+        return res.json({
+            success: true,
+            key: process.env.RAZORPAY_KEY_ID,
+            subscriptionId: subscription.id,
+            userEmail: req.session.email,
+            planLabel: selectedPlan.label
+        });
+    } catch (err) {
+        console.error("Subscription creation error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Could not start subscription"
+        });
+    }
+});
+
+app.post("/subscription/verify", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).json({
+                success: false,
+                message: "Please sign in first"
+            });
+        }
+
+        const {
+            razorpay_payment_id,
+            razorpay_subscription_id,
+            razorpay_signature,
+            plan
+        } = req.body;
+
+        if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature || !plan) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing subscription details"
+            });
+        }
+
+        const selectedPlan = SUBSCRIPTION_PLANS[plan];
+
+        if (!selectedPlan) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid subscription plan"
+            });
+        }
+
+        const generatedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+            .digest("hex");
+
+        if (generatedSignature !== razorpay_signature) {
+            return res.status(400).json({
+                success: false,
+                message: "Subscription verification failed"
+            });
+        }
+
+        await user_profile.findOneAndUpdate(
+            { email: req.session.email },
+            {
+                $set: {
+                    subscription: selectedPlan.label,
+                    subscription_status: "ACTIVE",
+                    subscription_id: razorpay_subscription_id,
+                    subscription_plan_key: plan
+                },
+                $push: {
+                    notifications: {
+                        email: req.session.email,
+                        content: `${selectedPlan.label} subscription activated successfully.`
+                    }
+                }
+            }
+        );
+
+        return res.json({
+            success: true,
+            redirectUrl: "/profile"
+        });
+    } catch (err) {
+        console.error("Subscription verification error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Could not verify subscription"
         });
     }
 });
