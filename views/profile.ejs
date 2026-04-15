@@ -19,7 +19,7 @@
 <body>
 
 <%
-const maxDocScore = 100;
+const maxDocScore = 500;
 const rawDocScore = Number(user.Doc_score || 0);
 const safeDocScore = Math.max(0, Math.min(rawDocScore, maxDocScore));
 const safeDisplayDocScore = Math.max(0, rawDocScore);
@@ -29,11 +29,11 @@ let ringColor1 = "#ff6a00";
 let ringColor2 = "#ff9b45";
 let scoreStatus = "Healthy";
 
-if (safeDocScore <= 25) {
+if (safeDocScore <= 100) {
 ringColor1 = "#ff3b30";
 ringColor2 = "#ff6b6b";
 scoreStatus = "Low";
-} else if (safeDocScore <= 60) {
+} else if (safeDocScore <= 250) {
 ringColor1 = "#ff9500";
 ringColor2 = "#ffb74d";
 scoreStatus = "Medium";
@@ -209,6 +209,7 @@ return "Document";
         </svg>
         Recharge DocScore
     </a>
+    <a href="/upgrade-plans">Upgrade Plans</a>
 </div>
 <div class="profile-page">
 
