@@ -3342,7 +3342,6 @@ app.post("/buy-subscription", async (req, res) => {
         });
     }
 });
-
 app.post("/subscription/verify", async (req, res) => {
     try {
         if (!req.session.email) {
@@ -3387,22 +3386,46 @@ app.post("/subscription/verify", async (req, res) => {
             });
         }
 
-        await user_profile.findOneAndUpdate(
-            { email: req.session.email },
-            {
-                $set: {
-                    subscription: selectedPlan.label,
-                    subscription_status: "ACTIVE",
-                    subscription_id: razorpay_subscription_id,
-                    subscription_plan_key: plan
-                },
-                $push: {
-                    notifications: {
-                        email: req.session.email,
-                        content: `${selectedPlan.label} subscription activated successfully.`
-                    }
+        const user = await user_profile.findOne({ email: req.session.email });
+
+        const alreadyCredited = Array.isArray(user?.payment_history)
+            ? user.payment_history.some(entry => entry.payment_id === razorpay_payment_id)
+            : false;
+
+        const updateOps = {
+            $set: {
+                subscription: selectedPlan.label,
+                subscription_status: "ACTIVE",
+                subscription_id: razorpay_subscription_id,
+                subscription_plan_key: plan
+            },
+            $push: {
+                notifications: {
+                    email: req.session.email,
+                    content: `${selectedPlan.label} subscription activated successfully.`
                 }
             }
+        };
+
+        if (!alreadyCredited) {
+            updateOps.$inc = {
+                Doc_score: selectedPlan.docscore
+            };
+
+            updateOps.$push.payment_history = {
+                order_id: razorpay_subscription_id,
+                payment_id: razorpay_payment_id,
+                amount: selectedPlan.amount,
+                plan: selectedPlan.label,
+                docscore_added: selectedPlan.docscore,
+                status: "SUCCESS",
+                date: new Date()
+            };
+        }
+
+        await user_profile.findOneAndUpdate(
+            { email: req.session.email },
+            updateOps
         );
 
         return res.json({
