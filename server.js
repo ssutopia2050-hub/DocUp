@@ -40,6 +40,29 @@ import os from "os";
  ******************************/
 app.set("view engine", "ejs");
 app.set("views", "./views");
+const SUBSCRIPTION_PLANS = {
+    essential_monthly: {
+        label: "Essential Monthly",
+        amount: 100,
+        docscore: 80,
+        period: "monthly",
+        interval: 1
+    },
+    standard_monthly: {
+        label: "Standard Monthly",
+        amount: 150,
+        docscore: 100,
+        period: "monthly",
+        interval: 1
+    },
+    power_monthly: {
+        label: "Power Monthly",
+        amount: 250,
+        docscore: 200,
+        period: "monthly",
+        interval: 1
+    }
+};
 app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (req, res) => {
     try {
         const signature = req.headers["x-razorpay-signature"];
@@ -3252,29 +3275,7 @@ app.post("/report_doc", async (req, res) => {
 /*******************
 Subscription Plans
  *****************/
-const SUBSCRIPTION_PLANS = {
-    essential_monthly: {
-        label: "Essential Monthly",
-        amount: 100,
-        docscore: 80,
-        period: "monthly",
-        interval: 1
-    },
-    standard_monthly: {
-        label: "Standard Monthly",
-        amount: 150,
-        docscore: 100,
-        period: "monthly",
-        interval: 1
-    },
-    power_monthly: {
-        label: "Power Monthly",
-        amount: 250,
-        docscore: 200,
-        period: "monthly",
-        interval: 1
-    }
-};
+
 app.get("/upgrade-plans", async (req, res) => {
     if (!req.session.email) {
         return res.redirect("/signin");
