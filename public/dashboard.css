@@ -2102,10 +2102,10 @@ a.view-doc-link:hover {
             inset 0 1px 0 rgba(255,255,255,0.10);
 }
 
-/* ===== GLOBAL SCROLLBAR STYLING ===== */
+/*!* ===== GLOBAL SCROLLBAR STYLING ===== *!*/
 ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
+    width: 2px;
+    height: 2px;
 }
 ::-webkit-scrollbar-track {
     background: transparent;
