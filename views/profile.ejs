@@ -141,7 +141,7 @@ return "Document";
                 <% } %>
             </button>
 
-            <div class="notification-dropdown">
+            <div style="background: #000407" class="notification-dropdown">
                 <div class="nd-header">
                     <span class="nd-title">Notifications</span>
                     <% if (user.notifications && user.notifications.length > 0) { %>
@@ -535,7 +535,9 @@ return "Document";
                             <span>Uploads</span>
                             <strong><%= Array.isArray(profile.uploads) ? profile.uploads.length : 0 %></strong>
                         </div>
-
+                        <a href="/all_uploads_view_second_pov_profile/<%= profile._id %>" class="visit-profile-btn">
+                            View Uploads
+                        </a>
                         <a href="/show_other_user_profile/<%= encodeURIComponent(profile.email) %>" class="visit-profile-btn">
                             Visit Profile
                         </a>

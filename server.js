@@ -1491,7 +1491,7 @@ app.get("/profile", async (req, res) => {
         const savedProfilesData = savedProfileEmails.length
             ? await user_profile.find(
                 { email: { $in: savedProfileEmails } },
-                "name email avatar_img_path subscription user_type uploads"
+                "name email avatar_img_path subscription user_type uploads _id"
             ).lean()
             : [];
 
@@ -2447,17 +2447,17 @@ app.get("/save_profile/:email", async (req, res) => {
     );
     const saved_profile_user_data = await user_profile.findOne({email:req.params.email})
     const user_data = await user_profile.findOne({email:req.session.email})
-    await user_profile.updateOne(
-        { email: req.session.email },
-        {
-            $push: {
-                notifications: {
-                    email: req.session.email,
-                    content: `${saved_profile_user_data.name}'s profile saved successfully for your account`
-                }
-            }
-        }
-    );
+    // await user_profile.updateOne(
+    //     { email: req.session.email },
+    //     {
+    //         $push: {
+    //             notifications: {
+    //                 email: req.session.email,
+    //                 content: `${saved_profile_user_data.name}'s profile saved successfully for your account`
+    //             }
+    //         }
+    //     }
+    // );
     res.redirect(`/show_other_user_profile/${encodeURIComponent(req.params.email)}`);
 });
 
