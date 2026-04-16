@@ -3440,3 +3440,388 @@ app.post("/subscription/verify", async (req, res) => {
         });
     }
 });
+
+
+
+
+/*************************
+DOC UP DEV Routes
+ ***************************/
+/****************
+ Sign In
+ *****************/
+app.get('/dev', (req, res) => {
+    // if(req.session.email){
+    //     return res.redirect("/dashboard");
+    // }
+    return res.redirect('/dev/signin');
+});
+app.get("/dev/signin", (req, res) => {
+    res.render("dev_signin",{err:null});
+})
+app.post('/dev/signin', async (req, res) => {
+    const{email, password} = req.body;
+    const user_data = await user_profile.findOne({email:email});
+    if (!user_data) {
+        return  res.render('/dev/signin',{err:"You dont have an account with this email"});
+    }
+    if(!(user_data.password === password)){
+        return  res.render('/dev/signin',{err:"Wrong Password !"});
+    }
+    if((user_data.user_type ==="DocUp Developer") || (user_data.user_type ==="DocUp Admin")){
+        req.session.dev_email = email;
+        res.redirect("/dev/dashboard");
+    }
+    else{
+        return res.render('dev_signin',{err: "You are not allowed access to DocUp Dev."});
+    }
+});
+/****************
+ Dashboard
+ *****************/
+app.get("/dev/dashboard", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+
+        // ===== USERS =====
+        const totalUsers = await user_profile.countDocuments();
+        const totalAdmins = await user_profile.countDocuments({ user_type: "DocUp Admin" });
+        const totalDevelopers = await user_profile.countDocuments({ user_type: "DocUp Developer" });
+        const totalVerifiedUploaders = await user_profile.countDocuments({ user_type: "Verified Uploader" });
+
+        // ===== DOCS =====
+        const totalDocs = await Docs.countDocuments();
+        const reviewedDocs = await Docs.countDocuments({ reviewed: true });
+        const unreviewedDocs = await Docs.countDocuments({ reviewed: false });
+
+        // ===== REPORTS =====
+        const totalReports = await reports.countDocuments();
+
+        // ===== COMMENTS (from Docs) =====
+        const docs = await Docs.find({}, "comment_section");
+
+        let totalComments = 0;
+        docs.forEach(doc => {
+            totalComments += doc.comment_section.length;
+        });
+
+        // ===== CHAT MESSAGES =====
+        const totalMessages = await ChatMessage.countDocuments();
+
+        // ===== RECENT ACTIVITY (simple version) =====
+        const recentDocs = await Docs.find()
+            .sort({ _id: -1 })
+            .limit(5)
+            .select("subject uploaded_by reviewed");
+
+        res.render("dev_dashboard", {
+            totalUsers,
+            totalAdmins,
+            totalDevelopers,
+            totalVerifiedUploaders,
+
+            totalDocs,
+            reviewedDocs,
+            unreviewedDocs,
+
+            totalReports,
+            totalComments,
+            totalMessages,
+
+            recentDocs
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error loading dashboard");
+    }
+});
+/****************
+ Docs Moderation
+ *****************/
+app.get("/dev/docs", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const allDocs = await Docs.find().sort({ _id: -1 });
+
+        const reportedDocIds = await reports.distinct("doc_id");
+
+        const docsWithReportInfo = allDocs.map((doc) => {
+            const docObj = doc.toObject();
+
+            docObj.commentCount = Array.isArray(doc.comment_section)
+                ? doc.comment_section.length
+                : 0;
+
+            docObj.isReported = reportedDocIds.some(
+                (id) => id.toString() === doc._id.toString()
+            );
+
+            return docObj;
+        });
+
+        res.render("dev_docs", {
+            docs: docsWithReportInfo
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error loading docs moderation page");
+    }
+});
+
+app.post("/dev/docs/:id/review", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        await Docs.findByIdAndUpdate(req.params.id, {
+            reviewed: true
+        });
+
+        const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
+        res.redirect(redirectTo);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error marking doc as reviewed");
+    }
+});
+
+app.post("/dev/docs/:id/unreview", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        await Docs.findByIdAndUpdate(req.params.id, {
+            reviewed: false
+        });
+
+        const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
+        res.redirect(redirectTo);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error marking doc as unreviewed");
+    }
+});
+
+app.post("/dev/docs/:id/delete", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        await reports.deleteMany({ doc_id: req.params.id });
+        await Docs.findByIdAndDelete(req.params.id);
+
+        const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
+        res.redirect(redirectTo);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting doc");
+    }
+});
+/****************
+ Reports
+ *****************/
+app.get("/dev/reports", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const allReports = await reports.find().sort({ createdAt: -1 });
+
+        const reportedDocIds = allReports.map(report => report.doc_id);
+
+        const relatedDocs = await Docs.find({
+            _id: { $in: reportedDocIds }
+        });
+
+        const docMap = new Map();
+        relatedDocs.forEach(doc => {
+            docMap.set(doc._id.toString(), doc);
+        });
+
+        const reportCards = allReports.map(report => {
+            const linkedDoc = docMap.get(report.doc_id.toString());
+
+            return {
+                _id: report._id,
+                reported_by_email: report.reported_by_email,
+                report: report.report,
+                createdAt: report.createdAt,
+                doc_id: report.doc_id,
+                doc: linkedDoc
+                    ? {
+                        _id: linkedDoc._id,
+                        subject: linkedDoc.subject,
+                        college: linkedDoc.college,
+                        branch: linkedDoc.branch,
+                        uploaded_by: linkedDoc.uploaded_by,
+                        chapter: linkedDoc.chapter,
+                        year: linkedDoc.year,
+                        semester: linkedDoc.semester,
+                        likes: linkedDoc.likes,
+                        dislikes: linkedDoc.dislikes,
+                        reviewed: linkedDoc.reviewed,
+                        file_url: linkedDoc.file_url,
+                        commentCount: Array.isArray(linkedDoc.comment_section)
+                            ? linkedDoc.comment_section.length
+                            : 0
+                    }
+                    : null
+            };
+        });
+
+        res.render("dev_reports", {
+            reportsData: reportCards
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error loading reports page");
+    }
+});
+
+app.post("/dev/reports/:id/delete", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        await reports.findByIdAndDelete(req.params.id);
+        res.redirect("/dev/reports");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting report");
+    }
+});
+
+app.post("/dev/reports/:id/delete-doc", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const reportDoc = await reports.findById(req.params.id);
+
+        if (!reportDoc) {
+            return res.status(404).send("Report not found");
+        }
+
+        await reports.deleteMany({ doc_id: reportDoc.doc_id });
+        await Docs.findByIdAndDelete(reportDoc.doc_id);
+
+        res.redirect("/dev/reports");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting reported doc");
+    }
+});
+/****************
+ Users
+ *****************/
+app.get("/dev/users", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const allUsers = await user_profile.find().sort({ _id: -1 });
+
+        const usersData = allUsers.map(user => {
+            const userObj = user.toObject();
+
+            userObj.uploadCount = Array.isArray(user.uploads) ? user.uploads.length : 0;
+            userObj.savedDocsCount = Array.isArray(user.saved_documents) ? user.saved_documents.length : 0;
+            userObj.savedProfilesCount = Array.isArray(user.saved_profiles) ? user.saved_profiles.length : 0;
+            userObj.notificationCount = Array.isArray(user.notifications) ? user.notifications.length : 0;
+            userObj.unreadNotificationCount = Array.isArray(user.notifications)
+                ? user.notifications.filter(n => !n.isRead).length
+                : 0;
+            userObj.paymentCount = Array.isArray(user.payment_history) ? user.payment_history.length : 0;
+            userObj.viewHistoryCount = Array.isArray(user.doc_view_history) ? user.doc_view_history.length : 0;
+
+            return userObj;
+        });
+
+        res.render("dev_users", {
+            usersData
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error loading users page");
+    }
+});
+app.post("/dev/users/:id/delete", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        await user_profile.findByIdAndDelete(req.params.id);
+        res.redirect("/dev/users");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting user");
+    }
+});
+/****************
+ Activity Page
+ *****************/
+app.get("/dev/activity", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const allUsers = await user_profile.find().sort({ _id: -1 });
+
+        const usersAnalytics = allUsers.map(user => {
+            const uploads = Array.isArray(user.uploads) ? user.uploads : [];
+            const notifications = Array.isArray(user.notifications) ? user.notifications : [];
+            const payments = Array.isArray(user.payment_history) ? user.payment_history : [];
+            const savedDocs = Array.isArray(user.saved_documents) ? user.saved_documents : [];
+            const savedProfiles = Array.isArray(user.saved_profiles) ? user.saved_profiles : [];
+            const viewedDocs = Array.isArray(user.doc_view_history) ? user.doc_view_history : [];
+
+            const groupByDay = (items, dateGetter) => {
+                const map = {};
+
+                items.forEach(item => {
+                    const raw = dateGetter(item);
+                    if (!raw) return;
+
+                    const d = new Date(raw);
+                    if (isNaN(d.getTime())) return;
+
+                    const key = d.toISOString().slice(0, 10);
+                    map[key] = (map[key] || 0) + 1;
+                });
+
+                return Object.entries(map)
+                    .sort(([a], [b]) => new Date(a) - new Date(b))
+                    .map(([date, count]) => ({ date, count }));
+            };
+
+            const uploadsTimeline = groupByDay(uploads, item => item.uploadedAt);
+            const notificationsTimeline = groupByDay(notifications, item => item.createdAt);
+            const paymentsTimeline = groupByDay(payments, item => item.date);
+
+            return {
+                ...user.toObject(),
+                uploadCount: uploads.length,
+                notificationCount: notifications.length,
+                unreadNotificationCount: notifications.filter(n => !n.isRead).length,
+                paymentCount: payments.length,
+                savedDocsCount: savedDocs.length,
+                savedProfilesCount: savedProfiles.length,
+                viewedDocsCount: viewedDocs.length,
+                latestPayment: payments.length > 0 ? payments[payments.length - 1] : null,
+                uploadsTimeline,
+                notificationsTimeline,
+                paymentsTimeline
+            };
+        });
+
+        res.render("dev_activity", { usersAnalytics });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Activity error");
+    }
+});

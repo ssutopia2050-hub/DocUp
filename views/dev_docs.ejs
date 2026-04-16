@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Docs Moderation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dev_docs.css">
+</head>
+<body>
+<div class="docs-shell">
+
+    <aside class="docs-sidebar">
+        <div style="display: flex; align-items: flex-end; justify-content: center; flex-direction: row; padding-bottom: 20px;" class="box">
+            <h1 style="font-size: 3rem;font-family: 'Archivo Black',sans-serif;">DocUp</h1>
+            <h3 style="color: orangered;">Dev</h3>
+        </div>
+
+        <nav class="docs-nav">
+            <a href="/dev/dashboard" >Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs" class="active">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity">Activity</a>
+        </nav>
+    </aside>
+
+    <main class="docs-main">
+        <header class="docs-topbar">
+            <div>
+                <h2>Docs Moderation</h2>
+                <p class="subtitle">Review, inspect and remove uploaded docs</p>
+            </div>
+
+            <div class="top-controls">
+                <input type="text" id="docSearch" placeholder="Search docs..." class="search-input">
+
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="reviewed">Reviewed</button>
+                    <button class="filter-btn" data-filter="unreviewed">Unreviewed</button>
+                    <button class="filter-btn" data-filter="reported">Reported</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="docs-content">
+            <% if (docs && docs.length > 0) { %>
+            <div class="docs-grid">
+                <% docs.forEach(doc => { %>
+                <div class="doc-card"
+                     data-reviewed="<%= doc.reviewed %>"
+                     data-reported="<%= doc.isReported %>"
+                     data-search="<%= (doc.subject + ' ' + doc.college + ' ' + doc.uploaded_by).toLowerCase() %>">
+                    <div class="doc-head">
+                        <div>
+                            <h3><%= doc.subject || "Untitled Subject" %></h3>
+                            <p class="doc-submeta">
+                                <span><%= doc.college || "Unknown College" %></span>
+                                <span>•</span>
+                                <span><%= doc.branch || "Unknown Branch" %></span>
+                            </p>
+                        </div>
+
+                        <div class="badge-group">
+                            <% if (doc.reviewed) { %>
+                            <span class="badge good">Reviewed</span>
+                            <% } else { %>
+                            <span class="badge warn">Unreviewed</span>
+                            <% } %>
+
+                            <% if (doc.isReported) { %>
+                            <span class="badge danger">Reported</span>
+                            <% } %>
+                        </div>
+                    </div>
+                    <% if (doc.file_url) { %>
+                    <div class="pdf-preview">
+                        <iframe src="<%= doc.file_url %>#toolbar=0"></iframe>
+                    </div>
+                    <% } %>
+                    <div class="doc-meta-grid">
+                        <div class="meta-box">
+                            <span class="meta-label">Uploader</span>
+                            <strong><%= doc.uploaded_by || "Unknown" %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Chapter</span>
+                            <strong><%= doc.chapter || "—" %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Year</span>
+                            <strong><%= doc.year || "—" %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Semester</span>
+                            <strong><%= doc.semester || "—" %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Likes</span>
+                            <strong><%= doc.likes || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Dislikes</span>
+                            <strong><%= doc.dislikes || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Comments</span>
+                            <strong><%= doc.commentCount || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Doc ID</span>
+                            <strong class="doc-id"><%= doc._id %></strong>
+                        </div>
+                    </div>
+
+                    <div class="doc-actions">
+                        <% if (doc.file_url) { %>
+                        <a href="<%= doc.file_url %>" target="_blank" class="btn btn-secondary">
+                            Open PDF
+                        </a>
+                        <% } else { %>
+                        <span class="btn btn-disabled">No File</span>
+                        <% } %>
+
+                        <% if (!doc.reviewed) { %>
+                        <form action="/dev/docs/<%= doc._id %>/review" method="POST">
+                            <button type="submit" class="btn btn-primary">
+                                Mark Reviewed
+                            </button>
+                        </form>
+                        <% } else { %>
+                        <form action="/dev/docs/<%= doc._id %>/unreview" method="POST">
+                            <button type="submit" class="btn btn-secondary">
+                                Mark Unreviewed
+                            </button>
+                        </form>
+                        <% } %>
+
+                        <form action="/dev/docs/<%= doc._id %>/delete" method="POST" onsubmit="return confirm('Delete this doc permanently?')">
+                            <button type="submit" class="btn btn-danger">
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <h3>No docs found</h3>
+                <p>There are no uploaded documents in the database right now.</p>
+            </div>
+            <% } %>
+        </section>
+    </main>
+</div>
+<script>
+    const searchInput = document.getElementById("docSearch");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    const cards = document.querySelectorAll(".doc-card");
+
+    let activeFilter = "all";
+
+    // search
+    searchInput.addEventListener("input", () => {
+        applyFilters();
+    });
+
+    // filter buttons
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const searchValue = searchInput.value.toLowerCase();
+
+        cards.forEach(card => {
+            const text = card.dataset.search;
+            const reviewed = card.dataset.reviewed === "true";
+            const reported = card.dataset.reported === "true";
+
+            let visible = true;
+
+            // search filter
+            if (!text.includes(searchValue)) visible = false;
+
+            // category filter
+            if (activeFilter === "reviewed" && !reviewed) visible = false;
+            if (activeFilter === "unreviewed" && reviewed) visible = false;
+            if (activeFilter === "reported" && !reported) visible = false;
+
+            card.style.display = visible ? "block" : "none";
+        });
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dev_reports.css">
+</head>
+<body>
+<div class="reports-shell">
+
+    <aside class="reports-sidebar">
+        <div style="display: flex; align-items: flex-end; justify-content: center; flex-direction: row; padding-bottom: 20px;" class="box">
+            <h1 style="font-size: 3rem;font-family: 'Archivo Black',sans-serif;">DocUp</h1>
+            <h3 style="color: orangered;">Dev</h3>
+        </div>
+
+        <nav class="reports-nav">
+            <a href="/dev/dashboard" >Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports"  class="active">Reports</a>
+            <a href="/dev/activity">Activity</a>
+        </nav>
+    </aside>
+
+    <main class="reports-main">
+        <header class="reports-topbar">
+            <div>
+                <h2>Reports Queue</h2>
+                <p class="subtitle">Inspect flagged docs and take action quickly</p>
+            </div>
+
+            <div class="top-controls">
+                <input type="text" id="reportSearch" placeholder="Search reports..." class="search-input">
+
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="reviewed">Reviewed Docs</button>
+                    <button class="filter-btn" data-filter="unreviewed">Unreviewed Docs</button>
+                    <button class="filter-btn" data-filter="missing">Missing Docs</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="reports-content">
+            <% if (reportsData && reportsData.length > 0) { %>
+            <div class="reports-grid">
+                <% reportsData.forEach(item => { %>
+                <div class="report-card"
+                     data-reviewed="<%= item.doc ? item.doc.reviewed : false %>"
+                     data-missing="<%= item.doc ? false : true %>"
+                     data-search="<%= (
+                                (item.reported_by_email || '') + ' ' +
+                                (item.report || '') + ' ' +
+                                (item.doc?.subject || '') + ' ' +
+                                (item.doc?.college || '') + ' ' +
+                                (item.doc?.uploaded_by || '')
+                             ).toLowerCase() %>">
+
+                    <div class="report-head">
+                        <div>
+                            <h3>Report</h3>
+                            <p class="report-submeta">
+                                <span><%= item.reported_by_email %></span>
+                                <span>•</span>
+                                <span><%= new Date(item.createdAt).toLocaleString() %></span>
+                            </p>
+                        </div>
+
+                        <div class="badge-group">
+                            <% if (item.doc) { %>
+                            <% if (item.doc.reviewed) { %>
+                            <span class="badge good">Reviewed Doc</span>
+                            <% } else { %>
+                            <span class="badge warn">Unreviewed Doc</span>
+                            <% } %>
+                            <% } else { %>
+                            <span class="badge danger">Doc Missing</span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="reason-box">
+                        <span class="reason-label">Report Reason</span>
+                        <p><%= item.report %></p>
+                    </div>
+
+                    <% if (item.doc) { %>
+                    <% if (item.doc.file_url) { %>
+                    <div class="pdf-preview">
+                        <iframe src="<%= item.doc.file_url %>#toolbar=0"></iframe>
+                    </div>
+                    <% } %>
+
+                    <div class="doc-block">
+                        <div class="doc-block-head">
+                            <h4><%= item.doc.subject || "Untitled Subject" %></h4>
+                            <p>
+                                <span><%= item.doc.college || "Unknown College" %></span>
+                                <span>•</span>
+                                <span><%= item.doc.branch || "Unknown Branch" %></span>
+                            </p>
+                        </div>
+
+                        <div class="report-meta-grid">
+                            <div class="meta-box">
+                                <span class="meta-label">Uploader</span>
+                                <strong><%= item.doc.uploaded_by || "Unknown" %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Chapter</span>
+                                <strong><%= item.doc.chapter || "—" %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Year</span>
+                                <strong><%= item.doc.year || "—" %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Semester</span>
+                                <strong><%= item.doc.semester || "—" %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Likes</span>
+                                <strong><%= item.doc.likes || 0 %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Dislikes</span>
+                                <strong><%= item.doc.dislikes || 0 %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Comments</span>
+                                <strong><%= item.doc.commentCount || 0 %></strong>
+                            </div>
+
+                            <div class="meta-box">
+                                <span class="meta-label">Doc ID</span>
+                                <strong class="doc-id"><%= item.doc._id %></strong>
+                            </div>
+                        </div>
+
+                        <div class="report-actions">
+
+                            <% if (item.doc.file_url) { %>
+                            <a href="<%= item.doc.file_url %>" target="_blank" class="btn btn-secondary">
+                                Open PDF
+                            </a>
+                            <% } else { %>
+                            <span class="btn btn-disabled">No File</span>
+                            <% } %>
+
+                            <!-- ✅ REVIEW / UNREVIEW -->
+                            <form action="/dev/docs/<%= item.doc._id %>/<%= item.doc.reviewed ? 'unreview' : 'review' %>" method="POST">
+                                <input type="hidden" name="redirectTo" value="/reports">
+                                <button type="submit" class="btn <%= item.doc.reviewed ? 'btn-secondary' : 'btn-primary' %>">
+                                    <%= item.doc.reviewed ? 'Mark Unreviewed' : 'Mark Reviewed' %>
+                                </button>
+                            </form>
+
+                            <!-- ✅ DISMISS REPORT ONLY -->
+                            <form action="/dev/reports/<%= item._id %>/delete" method="POST"
+                                  onsubmit="return confirm('Remove this report only?')">
+                                <input type="hidden" name="redirectTo" value="/dev/reports">
+                                <button type="submit" class="btn btn-secondary">
+                                    Dismiss Report
+                                </button>
+                            </form>
+
+                            <!-- ❌ DELETE FULL DOC -->
+                            <form action="/dev/reports/<%= item._id %>/delete-doc" method="POST"
+                                  onsubmit="return confirm('Delete the full reported doc and all related reports?')">
+                                <input type="hidden" name="redirectTo" value="/dev/reports">
+                                <button type="submit" class="btn btn-danger">
+                                    Delete Doc
+                                </button>
+                            </form>
+
+                        </div>
+                    </div>
+                    <% } else { %>
+                    <div class="missing-doc-box">
+                        <p>This report points to a doc that no longer exists.</p>
+
+                        <form action="/dev/reports/<%= item._id %>/delete" method="POST" onsubmit="return confirm('Remove this orphaned report?')">
+                            <button type="submit" class="btn btn-secondary">
+                                Remove Report
+                            </button>
+                        </form>
+                    </div>
+                    <% } %>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <h3>No reports found</h3>
+                <p>There are currently no flagged docs in the system.</p>
+            </div>
+            <% } %>
+        </section>
+    </main>
+</div>
+
+<script>
+    const searchInput = document.getElementById("reportSearch");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    const cards = document.querySelectorAll(".report-card");
+
+    let activeFilter = "all";
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const searchValue = searchInput.value.toLowerCase();
+
+        cards.forEach(card => {
+            const text = card.dataset.search;
+            const reviewed = card.dataset.reviewed === "true";
+            const missing = card.dataset.missing === "true";
+
+            let visible = true;
+
+            if (!text.includes(searchValue)) visible = false;
+            if (activeFilter === "reviewed" && !reviewed) visible = false;
+            if (activeFilter === "unreviewed" && (reviewed || missing)) visible = false;
+            if (activeFilter === "missing" && !missing) visible = false;
+
+            card.style.display = visible ? "block" : "none";
+        });
+    }
+</script>
+</body>
+</html>

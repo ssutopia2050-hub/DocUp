@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dev_dashboard.css">
+</head>
+<body>
+<div class="mod-shell">
+
+    <aside class="mod-sidebar">
+        <div style="display: flex; align-items: flex-end; justify-content: center; flex-direction: row; padding-bottom: 20px;" class="box">
+            <h1 style="font-size: 3rem;font-family: 'Archivo Black',sans-serif;">DocUp</h1>
+            <h3 style="color: orangered;">Dev</h3>
+        </div>
+
+        <nav class="mod-nav">
+            <a href="/dev/dashboard" class="active">Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity">Activity</a>
+        </nav>
+    </aside>
+
+    <main class="mod-main">
+
+        <header class="mod-topbar">
+            <div class="top-left">
+                <h2>Dashboard</h2>
+                <p class="subtitle">DocUp platform overview</p>
+            </div>
+
+            <div class="top-right">
+                <div class="status-pill">Live</div>
+            </div>
+        </header>
+
+        <section class="mod-content">
+
+            <section class="hero-strip">
+                <div class="hero-card hero-primary">
+                    <span class="hero-label">Total Platform Users</span>
+                    <h2><%= totalUsers || 0 %></h2>
+                    <p>All registered users across DocUp</p>
+                </div>
+
+                <div class="hero-card">
+                    <span class="hero-label">Total Docs</span>
+                    <h2><%= totalDocs || 0 %></h2>
+                    <p>Documents currently in the database</p>
+                </div>
+
+                <div class="hero-card hero-warn">
+                    <span class="hero-label">Total Reports</span>
+                    <h2><%= totalReports || 0 %></h2>
+                    <p>Reported docs waiting for review</p>
+                </div>
+
+                <div class="hero-card">
+                    <span class="hero-label">Comments</span>
+                    <h2><%= totalComments || 0 %></h2>
+                    <p>Total comments across all docs</p>
+                </div>
+            </section>
+
+            <section class="section-block" id="users-section">
+                <div class="section-head">
+                    <h3>User Breakdown</h3>
+                    <span>Role-based platform overview</span>
+                </div>
+
+                <div class="stats-grid four">
+                    <div class="stat-card">
+                        <span class="label">Admins</span>
+                        <h3><%= totalAdmins || 0 %></h3>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="label">Developers</span>
+                        <h3><%= totalDevelopers || 0 %></h3>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="label">Verified Uploaders</span>
+                        <h3><%= totalVerifiedUploaders || 0 %></h3>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="label">Regular Users</span>
+                        <h3><%= (totalUsers || 0) - (totalAdmins || 0) - (totalDevelopers || 0) - (totalVerifiedUploaders || 0) %></h3>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-block" id="docs-section">
+                <div class="section-head">
+                    <h3>Docs Overview</h3>
+                    <span>Moderation-facing document health</span>
+                </div>
+
+                <div class="stats-grid three">
+                    <div class="stat-card">
+                        <span class="label">Reviewed Docs</span>
+                        <h3><%= reviewedDocs || 0 %></h3>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="label">Unreviewed Docs</span>
+                        <h3><%= unreviewedDocs || 0 %></h3>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="label">Chat Messages</span>
+                        <h3><%= totalMessages || 0 %></h3>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-grid">
+                <div class="panel" id="reports-section">
+                    <div class="panel-head">
+                        <h3>Recent Docs</h3>
+                        <span>Latest uploaded content</span>
+                    </div>
+
+                    <div class="recent-list">
+                        <% if (recentDocs && recentDocs.length > 0) { %>
+                        <% recentDocs.forEach(doc => { %>
+                        <div class="recent-item">
+                            <div class="recent-main">
+                                <h4><%= doc.subject || "Untitled Subject" %></h4>
+                                <p>Uploaded by <%= doc.uploaded_by || "Unknown" %></p>
+                            </div>
+
+                            <div class="recent-side">
+                                <% if (doc.reviewed) { %>
+                                <span class="badge good">Reviewed</span>
+                                <% } else { %>
+                                <span class="badge warn">Unreviewed</span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <% }) %>
+                        <% } else { %>
+                        <div class="empty-state">
+                            <p>No recent docs found.</p>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="panel" id="activity-section">
+                    <div class="panel-head">
+                        <h3>Quick Summary</h3>
+                        <span>Important platform signals</span>
+                    </div>
+
+                    <div class="summary-list">
+                        <div class="summary-item">
+                            <span class="summary-key">Report Load</span>
+                            <strong><%= totalReports || 0 %></strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-key">Comments Volume</span>
+                            <strong><%= totalComments || 0 %></strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-key">Docs Pending Review</span>
+                            <strong><%= unreviewedDocs || 0 %></strong>
+                        </div>
+
+                        <div class="summary-item">
+                            <span class="summary-key">Community Chat Messages</span>
+                            <strong><%= totalMessages || 0 %></strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </section>
+    </main>
+</div>
+</body>
+</html>

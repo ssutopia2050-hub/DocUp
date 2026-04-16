@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DocUp | SignIn</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/dev_signin.css">
+    <link rel="shortcut icon" href="/images/favicon-32x32.png" type="image/x-icon">
+</head>
+
+<body>
+<div class="box">
+
+    <!-- Logo -->
+    <div style="display: flex; align-items: flex-end; justify-content: center; flex-direction: row;">
+        <h1>DocUp</h1>
+        <h3 style="color: orangered;">Dev</h3>
+    </div>
+
+    <!-- Form -->
+    <form method="post" action="/dev/signin" id="signin-form">
+        <input type="email" placeholder="Email Address" name="email" required>
+        <input type="password" placeholder="Enter Password" name="password" required minlength="6" maxlength="10">
+
+        <% if (err) { %>
+        <p style="color:#ffb100">
+            <%= err %>
+            <a href="/contact">Contact us</a>
+        </p>
+        <% } %>
+
+
+        <button type="submit">Sign In</button>
+
+        <a href="/signup">Not a Member? Sign Up</a>
+        <a href="/forgot_password">Forgot Password? Retrieve Password</a>
+    </form>
+
+    <!-- Version -->
+    <p style="color: rgba(255,255,255,0.15)">
+        You are currently on version <%= process.env.VERSION %> of DocUp
+    </p>
+
+</div>
+
+<!-- Redirect handling -->
+<script>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        const next = params.get("next");
+        if (!next) return;
+
+        const form = document.getElementById("signin-form");
+
+        if (form) {
+            form.action = "/signin?next=" + encodeURIComponent(next);
+        }
+    })();
+</script>
+
+</body>
+</html>

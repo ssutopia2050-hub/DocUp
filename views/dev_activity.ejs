@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Activity</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=Archivo+Black&family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/dev_activity.css">
+</head>
+<body>
+<div class="activity-shell">
+
+    <aside class="activity-sidebar">
+        <div class="box">
+            <h1 style="font-size: 3rem;font-family: 'Archivo Black',sans-serif;">DocUp</h1>
+            <h3 style="color: orangered;">Dev</h3>
+        </div>
+
+        <nav class="activity-nav">
+            <a href="/dev/dashboard">Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity" class="active">Activity</a>
+        </nav>
+    </aside>
+
+    <main class="activity-main">
+        <header class="activity-topbar">
+            <div>
+                <h2>User Activity Analytics</h2>
+                <p class="subtitle">Open each user card to inspect personal graphs and behavior</p>
+            </div>
+
+            <div class="top-controls">
+                <input type="text" id="searchInput" placeholder="Search users..." class="search-input">
+
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="admin">Admins</button>
+                    <button class="filter-btn" data-filter="developer">Developers</button>
+                    <button class="filter-btn" data-filter="verified">Verified</button>
+                    <button class="filter-btn" data-filter="creator">Creators</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="activity-content">
+            <% if (usersAnalytics && usersAnalytics.length > 0) { %>
+            <div class="activity-grid">
+                <% usersAnalytics.forEach((user, index) => { %>
+                <div class="activity-card"
+                     data-type="<%= (user.user_type || '').toLowerCase() %>"
+                     data-search="<%= (
+                                (user.name || '') + ' ' +
+                                (user.email || '') + ' ' +
+                                (user.user_type || '') + ' ' +
+                                (user.subscription || '')
+                             ).toLowerCase() %>">
+
+                    <div class="activity-card-head">
+                        <div class="activity-user-head">
+                            <div class="avatar-wrap">
+                                <% if (user.avatar_img_path) { %>
+                                <img src="<%= user.avatar_img_path %>" alt="avatar" class="avatar-img">
+                                <% } else { %>
+                                <div class="avatar-fallback">
+                                    <%= (user.name && user.name[0]) ? user.name[0].toUpperCase() : "U" %>
+                                </div>
+                                <% } %>
+                            </div>
+
+                            <div class="user-title-block">
+                                <h3><%= user.name || "Unnamed User" %></h3>
+                                <p class="user-email"><%= user.email || "No Email" %></p>
+                            </div>
+                        </div>
+
+                        <div class="badge-group">
+                            <span class="badge role"><%= user.user_type || "DocUp Member" %></span>
+                            <% if (user.subscription && user.subscription !== "Free Tier") { %>
+                            <span class="badge premium"><%= user.subscription %></span>
+                            <% } else { %>
+                            <span class="badge free">Free Tier</span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="summary-metrics">
+                        <div class="metric-box">
+                            <span>Uploads</span>
+                            <strong><%= user.uploadCount || 0 %></strong>
+                        </div>
+                        <div class="metric-box">
+                            <span>Viewed Docs</span>
+                            <strong><%= user.viewedDocsCount || 0 %></strong>
+                        </div>
+                        <div class="metric-box">
+                            <span>Notifications</span>
+                            <strong><%= user.notificationCount || 0 %></strong>
+                        </div>
+                        <div class="metric-box">
+                            <span>Payments</span>
+                            <strong><%= user.paymentCount || 0 %></strong>
+                        </div>
+                    </div>
+
+                    <div class="activity-actions">
+                        <button type="button" class="btn btn-primary analytics-toggle-btn">View Analytics</button>
+                    </div>
+
+                    <div class="analytics-panel">
+                        <div class="analytics-top-grid">
+                            <div class="mini-stat">
+                                <span>DocScore</span>
+                                <strong><%= user.Doc_score || 0 %></strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span>Saved Docs</span>
+                                <strong><%= user.savedDocsCount || 0 %></strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span>Saved Profiles</span>
+                                <strong><%= user.savedProfilesCount || 0 %></strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span>Unread Notifications</span>
+                                <strong><%= user.unreadNotificationCount || 0 %></strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span>Google Auth</span>
+                                <strong><%= user.google_auth ? "Yes" : "No" %></strong>
+                            </div>
+                            <div class="mini-stat">
+                                <span>Last Payment</span>
+                                <strong><%= user.latestPayment ? (user.latestPayment.plan || "Plan") : "None" %></strong>
+                            </div>
+                        </div>
+
+                        <div class="charts-grid">
+                            <div class="chart-card">
+                                <div class="chart-head">
+                                    <h4>Uploads Over Time</h4>
+                                </div>
+                                <canvas id="uploadsChart-<%= index %>"></canvas>
+                            </div>
+
+                            <div class="chart-card">
+                                <div class="chart-head">
+                                    <h4>Notifications Over Time</h4>
+                                </div>
+                                <canvas id="notificationsChart-<%= index %>"></canvas>
+                            </div>
+
+                            <div class="chart-card">
+                                <div class="chart-head">
+                                    <h4>Payments Over Time</h4>
+                                </div>
+                                <canvas id="paymentsChart-<%= index %>"></canvas>
+                            </div>
+
+                            <div class="chart-card">
+                                <div class="chart-head">
+                                    <h4>Activity Mix</h4>
+                                </div>
+                                <canvas id="mixChart-<%= index %>"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="note-box">
+                            <span class="note-label">Note</span>
+                            <p>
+                                Viewed docs are shown as a total count only. A time graph for views is not possible yet because the current schema stores viewed doc IDs but not per-view timestamps.
+                            </p>
+                        </div>
+                    </div>
+
+                    <script>
+                        window.__userCharts = window.__userCharts || [];
+                        window.__userCharts.push({
+                            index: <%= index %>,
+                            uploadsTimeline: <%- JSON.stringify(user.uploadsTimeline || []) %>,
+                            notificationsTimeline: <%- JSON.stringify(user.notificationsTimeline || []) %>,
+                            paymentsTimeline: <%- JSON.stringify(user.paymentsTimeline || []) %>,
+                            totals: {
+                            uploads: <%= user.uploadCount || 0 %>,
+                                viewedDocs: <%= user.viewedDocsCount || 0 %>,
+                                notifications: <%= user.notificationCount || 0 %>,
+                                payments: <%= user.paymentCount || 0 %>
+                        }
+                        });
+                    </script>
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <h3>No users found</h3>
+                <p>There are currently no users to analyze.</p>
+            </div>
+            <% } %>
+        </section>
+    </main>
+</div>
+
+<script>
+    const searchInput = document.getElementById("searchInput");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    const cards = document.querySelectorAll(".activity-card");
+    const toggleBtns = document.querySelectorAll(".analytics-toggle-btn");
+    const chartInstances = {};
+
+    let activeFilter = "all";
+
+    function matchesFilter(type) {
+        if (activeFilter === "all") return true;
+        if (activeFilter === "admin") return type === "docup admin";
+        if (activeFilter === "developer") return type === "docup developer";
+        if (activeFilter === "verified") return type === "verified uploader";
+        if (activeFilter === "creator") return type === "creator";
+        return true;
+    }
+
+    function applyFilters() {
+        const value = searchInput.value.toLowerCase();
+
+        cards.forEach(card => {
+            const text = card.dataset.search;
+            const type = card.dataset.type;
+            const visible = text.includes(value) && matchesFilter(type);
+            card.style.display = visible ? "block" : "none";
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    function makeLineChart(canvasId, labels, values, labelText, color) {
+        const el = document.getElementById(canvasId);
+        if (!el) return null;
+
+        return new Chart(el, {
+            type: "line",
+            data: {
+                labels,
+                datasets: [{
+                    label: labelText,
+                    data: values,
+                    borderColor: color,
+                    backgroundColor: color,
+                    tension: 0.35,
+                    fill: false,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: "#eef5f8" }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "rgba(238,245,248,0.7)" },
+                        grid: { color: "rgba(255,255,255,0.05)" }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: "rgba(238,245,248,0.7)" },
+                        grid: { color: "rgba(255,255,255,0.05)" }
+                    }
+                }
+            }
+        });
+    }
+
+    function makeBarChart(canvasId, labels, values, labelText, color) {
+        const el = document.getElementById(canvasId);
+        if (!el) return null;
+
+        return new Chart(el, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{
+                    label: labelText,
+                    data: values,
+                    backgroundColor: color,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // 🔥 THIS FIXES EVERYTHING
+                plugins: {
+                    legend: {
+                        labels: { color: "#eef5f8" }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "rgba(238,245,248,0.7)" },
+                        grid: { color: "rgba(255,255,255,0.05)" }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: "rgba(238,245,248,0.7)" },
+                        grid: { color: "rgba(255,255,255,0.05)" }
+                    }
+                }
+            }
+        });
+    }
+
+    function makeDoughnutChart(canvasId, totals) {
+        const el = document.getElementById(canvasId);
+        if (!el) return null;
+
+        return new Chart(el, {
+            type: "doughnut",
+            data: {
+                labels: ["Uploads", "Viewed Docs", "Notifications", "Payments"],
+                datasets: [{
+                    data: [
+                        totals.uploads || 0,
+                        totals.viewedDocs || 0,
+                        totals.notifications || 0,
+                        totals.payments || 0
+                    ],
+                    backgroundColor: [
+                        "#ff6a00",
+                        "#39d98a",
+                        "#4dabf7",
+                        "#ff9e2c"
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: "#eef5f8" }
+                    }
+                }
+            }
+        });
+    }
+
+    function initChartsFor(index) {
+        if (chartInstances[index]) return;
+
+        const data = (window.__userCharts || []).find(x => x.index === index);
+        if (!data) return;
+
+        const uploadsLabels = data.uploadsTimeline.map(x => x.date);
+        const uploadsValues = data.uploadsTimeline.map(x => x.count);
+
+        const notificationsLabels = data.notificationsTimeline.map(x => x.date);
+        const notificationsValues = data.notificationsTimeline.map(x => x.count);
+
+        const paymentsLabels = data.paymentsTimeline.map(x => x.date);
+        const paymentsValues = data.paymentsTimeline.map(x => x.count);
+
+        chartInstances[index] = {
+            uploads: makeLineChart(`uploadsChart-${index}`, uploadsLabels, uploadsValues, "Uploads", "#ff6a00"),
+            notifications: makeLineChart(`notificationsChart-${index}`, notificationsLabels, notificationsValues, "Notifications", "#4dabf7"),
+            payments: makeBarChart(`paymentsChart-${index}`, paymentsLabels, paymentsValues, "Payments", "#39d98a"),
+            mix: makeDoughnutChart(`mixChart-${index}`, data.totals)
+        };
+    }
+
+    toggleBtns.forEach((btn, index) => {
+        btn.addEventListener("click", () => {
+            const card = btn.closest(".activity-card");
+            const isOpen = card.classList.toggle("open");
+            btn.textContent = isOpen ? "Hide Analytics" : "View Analytics";
+
+            if (isOpen) {
+                initChartsFor(index);
+            }
+        });
+    });
+</script>
+</body>
+</html>

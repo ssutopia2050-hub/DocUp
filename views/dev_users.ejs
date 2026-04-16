@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Users</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=Archivo+Black&family=Saira:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/dev_users.css">
+</head>
+<body>
+<div class="users-shell">
+
+    <aside class="users-sidebar">
+        <div class="box">
+            <h1 style="font-size: 3rem;font-family: 'Archivo Black',sans-serif;">DocUp</h1>
+            <h3 style="color: orangered;">Dev</h3>
+        </div>
+
+        <nav class="users-nav">
+            <a href="/dev/dashboard">Dashboard</a>
+            <a href="/dev/users" class="active">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity">Activity</a>
+        </nav>
+    </aside>
+
+    <main class="users-main">
+        <header class="users-topbar">
+            <div>
+                <h2>Users</h2>
+                <p class="subtitle">Inspect account data, engagement and moderation signals</p>
+            </div>
+
+            <div class="top-controls">
+                <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="admin">Admins</button>
+                    <button class="filter-btn" data-filter="developer">Developers</button>
+                    <button class="filter-btn" data-filter="verified">Verified</button>
+                    <button class="filter-btn" data-filter="creator">Creators</button>
+                </div>
+            </div>
+        </header>
+
+        <section class="users-content">
+            <% if (usersData && usersData.length > 0) { %>
+            <div class="users-grid">
+                <% usersData.forEach(user => { %>
+                <div class="user-card"
+                     data-type="<%= (user.user_type || '').toLowerCase() %>"
+                     data-search="<%= (
+                                (user.name || '') + ' ' +
+                                (user.email || '') + ' ' +
+                                (user.user_type || '') + ' ' +
+                                (user.subscription || '')
+                             ).toLowerCase() %>">
+
+                    <div class="user-head">
+                        <div class="user-head-left">
+                            <div class="avatar-wrap">
+                                <% if (user.avatar_img_path) { %>
+                                <img src="<%= user.avatar_img_path %>" alt="avatar" class="avatar-img">
+                                <% } else { %>
+                                <div class="avatar-fallback">
+                                    <%= (user.name && user.name[0]) ? user.name[0].toUpperCase() : "U" %>
+                                </div>
+                                <% } %>
+                            </div>
+
+                            <div class="user-title-block">
+                                <h3><%= user.name || "Unnamed User" %></h3>
+                                <p class="user-email"><%= user.email || "No Email" %></p>
+                            </div>
+                        </div>
+
+                        <div class="badge-group">
+                            <span class="badge role"><%= user.user_type || "DocUp Member" %></span>
+
+                            <% if (user.subscription && user.subscription !== "Free Tier") { %>
+                            <span class="badge premium"><%= user.subscription %></span>
+                            <% } else { %>
+                            <span class="badge free">Free Tier</span>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <div class="user-meta-grid compact-grid">
+                        <div class="meta-box highlight">
+                            <span class="meta-label">DocScore</span>
+                            <strong><%= user.Doc_score || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Uploads</span>
+                            <strong><%= user.uploadCount || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Saved Docs</span>
+                            <strong><%= user.savedDocsCount || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Payments</span>
+                            <strong><%= user.paymentCount || 0 %></strong>
+                        </div>
+                    </div>
+
+                    <div class="user-actions">
+                        <button type="button" class="btn btn-primary view-user-btn">Inspect</button>
+
+                        <form action="/dev/users/<%= user._id %>/delete" method="POST" onsubmit="return confirm('Delete this account permanently?')">
+                            <button type="submit" class="btn btn-danger">Delete Account</button>
+                        </form>
+                    </div>
+
+                    <div class="inspect-panel">
+
+                        <div class="inspect-grid">
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Account Overview</h4>
+                                </div>
+
+                                <div class="user-meta-grid">
+                                    <div class="meta-box">
+                                        <span class="meta-label">Name</span>
+                                        <strong><%= user.name || "—" %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Email</span>
+                                        <strong><%= user.email || "—" %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">User Type</span>
+                                        <strong><%= user.user_type || "DocUp Member" %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Subscription</span>
+                                        <strong><%= user.subscription || "Free Tier" %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Google Auth</span>
+                                        <strong><%= user.google_auth ? "Enabled" : "Disabled" %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">DocScore</span>
+                                        <strong><%= user.Doc_score || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box full">
+                                        <span class="meta-label">User ID</span>
+                                        <strong class="mono"><%= user._id %></strong>
+                                    </div>
+
+                                    <div class="meta-box full">
+                                        <span class="meta-label">Avatar Path</span>
+                                        <strong class="mono"><%= user.avatar_img_path || "No avatar image" %></strong>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Activity Signals</h4>
+                                </div>
+
+                                <div class="user-meta-grid">
+                                    <div class="meta-box">
+                                        <span class="meta-label">Uploads</span>
+                                        <strong><%= user.uploadCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Saved Docs</span>
+                                        <strong><%= user.savedDocsCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Saved Profiles</span>
+                                        <strong><%= user.savedProfilesCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Viewed Docs</span>
+                                        <strong><%= user.viewHistoryCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Notifications</span>
+                                        <strong><%= user.notificationCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Unread Notifications</span>
+                                        <strong><%= user.unreadNotificationCount || 0 %></strong>
+                                    </div>
+
+                                    <div class="meta-box">
+                                        <span class="meta-label">Payments</span>
+                                        <strong><%= user.paymentCount || 0 %></strong>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Uploads</h4>
+                                    <span><%= user.uploadCount || 0 %></span>
+                                </div>
+
+                                <% if (user.uploads && user.uploads.length > 0) { %>
+                                <div class="list-stack">
+                                    <% user.uploads.forEach(upload => { %>
+                                    <div class="list-item">
+                                        <div class="list-main">
+                                            <strong><%= upload.subject || "Untitled Subject" %></strong>
+                                            <p>
+                                                <span><%= upload.college || "Unknown College" %></span>
+                                                <span>•</span>
+                                                <span><%= upload.url || "No URL" %></span>
+                                            </p>
+                                        </div>
+                                        <div class="list-side mono">
+                                            <%= upload.doc_id || "No Doc ID" %>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No uploads found</div>
+                                <% } %>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Saved Docs</h4>
+                                    <span><%= user.savedDocsCount || 0 %></span>
+                                </div>
+
+                                <% if (user.saved_documents && user.saved_documents.length > 0) { %>
+                                <div class="pill-list">
+                                    <% user.saved_documents.forEach(docId => { %>
+                                    <span class="mini-pill mono"><%= docId %></span>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No saved docs</div>
+                                <% } %>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Saved Profiles</h4>
+                                    <span><%= user.savedProfilesCount || 0 %></span>
+                                </div>
+
+                                <% if (user.saved_profiles && user.saved_profiles.length > 0) { %>
+                                <div class="list-stack compact">
+                                    <% user.saved_profiles.forEach(profile => { %>
+                                    <div class="list-item">
+                                        <div class="list-main">
+                                            <strong><%= profile.email || "No email" %></strong>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No saved profiles</div>
+                                <% } %>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Notifications</h4>
+                                    <span><%= user.notificationCount || 0 %></span>
+                                </div>
+
+                                <% if (user.notifications && user.notifications.length > 0) { %>
+                                <div class="list-stack">
+                                    <% user.notifications.forEach(notification => { %>
+                                    <div class="list-item">
+                                        <div class="list-main">
+                                            <strong><%= notification.email || "Unknown sender" %></strong>
+                                            <p><%= notification.content || "No content" %></p>
+                                        </div>
+                                        <div class="list-side">
+                                                            <span class="small-badge <%= notification.isRead ? 'read' : 'unread' %>">
+                                                                <%= notification.isRead ? "Read" : "Unread" %>
+                                                            </span>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No notifications</div>
+                                <% } %>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Payment History</h4>
+                                    <span><%= user.paymentCount || 0 %></span>
+                                </div>
+
+                                <% if (user.payment_history && user.payment_history.length > 0) { %>
+                                <div class="list-stack">
+                                    <% user.payment_history.forEach(payment => { %>
+                                    <div class="list-item">
+                                        <div class="list-main">
+                                            <strong><%= payment.plan || "Unknown Plan" %></strong>
+                                            <p>
+                                                Amount: <%= payment.amount || 0 %> •
+                                                Status: <%= payment.status || "SUCCESS" %> •
+                                                DocScore: <%= payment.docscore_added || 0 %>
+                                            </p>
+                                        </div>
+                                        <div class="list-side mono">
+                                            <%= payment.order_id || "No Order ID" %>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No payment history</div>
+                                <% } %>
+                            </section>
+
+                            <section class="inspect-card">
+                                <div class="inspect-card-head">
+                                    <h4>Viewed Docs</h4>
+                                    <span><%= user.viewHistoryCount || 0 %></span>
+                                </div>
+
+                                <% if (user.doc_view_history && user.doc_view_history.length > 0) { %>
+                                <div class="pill-list">
+                                    <% user.doc_view_history.forEach(viewedDocId => { %>
+                                    <span class="mini-pill mono"><%= viewedDocId %></span>
+                                    <% }) %>
+                                </div>
+                                <% } else { %>
+                                <div class="empty-mini">No viewed docs</div>
+                                <% } %>
+                            </section>
+
+                        </div>
+                    </div>
+
+                </div>
+                <% }) %>
+            </div>
+            <% } else { %>
+            <div class="empty-state">
+                <h3>No users found</h3>
+                <p>There are currently no users in the database.</p>
+            </div>
+            <% } %>
+        </section>
+    </main>
+</div>
+
+<script>
+    const searchInput = document.getElementById("userSearch");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+    const userCards = document.querySelectorAll(".user-card");
+    const inspectBtns = document.querySelectorAll(".view-user-btn");
+
+    let activeFilter = "all";
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applyFilters);
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const searchValue = searchInput.value.toLowerCase();
+
+        userCards.forEach(card => {
+            const text = card.dataset.search;
+            const type = card.dataset.type;
+
+            let visible = true;
+
+            if (!text.includes(searchValue)) visible = false;
+            if (activeFilter === "admin" && type !== "docup admin") visible = false;
+            if (activeFilter === "developer" && type !== "docup developer") visible = false;
+            if (activeFilter === "verified" && type !== "verified uploader") visible = false;
+            if (activeFilter === "creator" && type !== "creator") visible = false;
+
+            card.style.display = visible ? "block" : "none";
+        });
+    }
+
+    inspectBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const card = btn.closest(".user-card");
+            const isOpen = card.classList.toggle("inspect-open");
+            btn.textContent = isOpen ? "Hide Inspect" : "Inspect";
+        });
+    });
+</script>
+</body>
+</html>
