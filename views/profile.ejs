@@ -280,8 +280,13 @@ return "Document";
 
             <div class="action-row">
                 <a href="/dashboard" class="action-btn primary-btn">Explore Documents</a>
+
+                <% if ((user.user_type === 'DocUp Admin') || (user.user_type === 'DocUp Developer')) { %>
+                <a  href="/dev/signin" class="action-btn secondary-btn">DocUp Developer's Portal</a>
+                <% }  %>
                 <a href="/all_uploads_view_second_pov_profile/<%= user._id %>" class="action-btn secondary-btn">View All your Uploads</a>
                 <a style="border-color:rgba(255,0,0,0.32)" href="/logout" class="action-btn secondary-btn">Logout</a>
+
             </div>
         </div>
         <div class="view-history-card glass-card">
