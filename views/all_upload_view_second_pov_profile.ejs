@@ -379,5 +379,36 @@
 
     applyFiltersAndSort();
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+
+        // 🔥 match ALL doc view links automatically
+        const viewLinks = document.querySelectorAll('a[href^="/view/"]');
+
+        viewLinks.forEach(link => {
+            link.addEventListener("click", function (e) {
+
+                // already clicked → block
+                if (this.dataset.clicked === "true") {
+                    e.preventDefault();
+                    return;
+                }
+
+                // mark clicked
+                this.dataset.clicked = "true";
+
+                // disable interaction
+                this.style.pointerEvents = "none";
+                this.style.opacity = "0.6";
+
+                // change text if possible
+                if (this.textContent.trim().length < 30) {
+                    this.textContent = "Opening...";
+                }
+            });
+        });
+
+    });
+</script>
 </body>
 </html>

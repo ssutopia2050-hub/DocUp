@@ -146,6 +146,18 @@ const user_profile = new mongoose.Schema({
         type: String,
         default: null
     },
+    last_doc_views: [
+        {
+            doc_id: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Docs"
+            },
+            viewed_at: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
 });
 
 export default mongoose.model("user_profile", user_profile);

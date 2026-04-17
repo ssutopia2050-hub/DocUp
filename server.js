@@ -1848,23 +1848,98 @@ app.get("/view/:id", async (req, res) => {
             return res.status(404).render("404");
         }
 
-        const user_data = await user_profile.findOne({ email: req.session.email });
+        const cooldownMs = 2 * 60 * 1000; // 2 minutes
+        const cooldownDate = new Date(Date.now() - cooldownMs);
+        const now = new Date();
 
-        if (!user_data) {
-            return res.redirect(`/signin?next=${encodeURIComponent(`/view/${req.params.id}`)}`);
-        }
+        const chargedUser = await user_profile.findOneAndUpdate(
+            {
+                email: req.session.email,
+                Doc_score: { $gt: 0 },
+                $or: [
+                    { last_doc_views: { $not: { $elemMatch: { doc_id: docId } } } },
+                    {
+                        last_doc_views: {
+                            $elemMatch: {
+                                doc_id: docId,
+                                viewed_at: { $lte: cooldownDate }
+                            }
+                        }
+                    }
+                ]
+            },
+            [
+                {
+                    $set: {
+                        Doc_score: { $subtract: ["$Doc_score", 1] },
+                        last_doc_views: {
+                            $concatArrays: [
+                                [
+                                    {
+                                        doc_id: docId,
+                                        viewed_at: now
+                                    }
+                                ],
+                                {
+                                    $slice: [
+                                        {
+                                            $filter: {
+                                                input: { $ifNull: ["$last_doc_views", []] },
+                                                as: "item",
+                                                cond: {
+                                                    $ne: [
+                                                        { $toString: "$$item.doc_id" },
+                                                        String(docId)
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        99
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            ],
+            {
+                returnDocument: "after",
+                updatePipeline: true
+            }
+        );
+        let renderUser = chargedUser;
 
-        if (user_data.Doc_score <= 0) {
-            const msg = { err: "Insufficient DocScore" };
-            const clg = await college.find({});
+        if (!chargedUser) {
+            const freshUser = await user_profile.findOne({ email: req.session.email });
 
-            return res.render("dashboard", {
-                data: user_data,
-                colleges: collegesList,
-                results: [],
-                college_specific_data: clg,
-                msg
-            });
+            if (!freshUser) {
+                return res.redirect(`/signin?next=${encodeURIComponent(`/view/${req.params.id}`)}`);
+            }
+
+            const existingViewEntry = Array.isArray(freshUser.last_doc_views)
+                ? freshUser.last_doc_views.find(entry => String(entry.doc_id) === String(docId))
+                : null;
+
+            const lastViewedAt = existingViewEntry?.viewed_at
+                ? new Date(existingViewEntry.viewed_at).getTime()
+                : 0;
+
+            const stillInCooldown = lastViewedAt && (Date.now() - lastViewedAt < cooldownMs);
+
+            if (!stillInCooldown && freshUser.Doc_score <= 0) {
+                const msg = { err: "Insufficient DocScore" };
+                const clg = await college.find({});
+
+                return res.render("dashboard", {
+                    data: freshUser,
+                    colleges: collegesList,
+                    results: [],
+                    college_specific_data: clg,
+                    msg
+                });
+            }
+
+            renderUser = freshUser;
         }
 
         await user_profile.findOneAndUpdate(
@@ -1884,13 +1959,6 @@ app.get("/view/:id", async (req, res) => {
                 }
             }
         );
-
-        await user_profile.findOneAndUpdate(
-            { email: req.session.email },
-            { $inc: { Doc_score: -1 } }
-        );
-
-        user_data.Doc_score = Math.max(0, (user_data.Doc_score || 0) - 1);
 
         const collegeName = (document.college || "").trim();
         const safeCollegeName = escapeRegex(collegeName);
@@ -1912,6 +1980,7 @@ app.get("/view/:id", async (req, res) => {
         await docs_view_data.create({
             email: req.session.email,
         });
+
         let uploaderProfile = null;
 
         if (document.uploaded_by) {
@@ -1922,17 +1991,18 @@ app.get("/view/:id", async (req, res) => {
                 ]
             }).select("_id name avatar_img_path user_type");
         }
-        res.render("docview", {
+
+        return res.render("docview", {
             doc: document,
             college_data: collegeData || {},
-            user: user_data,
+            user: renderUser,
             uploaderProfile,
-            shareDocLink: `${req.protocol}://${req.get("host")}/view/${req.params.id}`,
+            shareDocLink: `${req.protocol}://${req.get("host")}/view/${docId}`,
         });
 
     } catch (err) {
         console.error(err);
-        res.status(500).send("Server Error");
+        return res.status(500).send("Server Error");
     }
 });
 app.get("/save/:id", async (req, res) => {
