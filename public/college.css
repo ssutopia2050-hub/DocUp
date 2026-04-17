@@ -562,7 +562,8 @@ body{
 .docs-grid{
     display:flex;
     flex-wrap:wrap;
-    gap:90px;
+    row-gap:20px;
+    column-gap:10px;
     margin-bottom:0;
     align-items:stretch;
     flex-direction:row;
