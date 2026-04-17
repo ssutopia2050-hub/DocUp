@@ -87,6 +87,10 @@ const Docs = new mongoose.Schema({
     reviewed:{
         type:Boolean,
         default:false
+    },
+    protected:{
+        type:Boolean,
+        default:true
     }
 });
 

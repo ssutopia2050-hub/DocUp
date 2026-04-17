@@ -1557,6 +1557,7 @@ app.get("/uploads", async (req, res) => {
 });
 app.post("/upload_docs", upload.single("file"), async (req, res) => {
     try {
+        // 🔐 AUTH CHECK
         if (!req.session.email) {
             return res.status(401).json({
                 success: false,
@@ -1564,6 +1565,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             });
         }
 
+        // 📄 FILE CHECK
         if (!req.file) {
             return res.status(400).json({
                 success: false,
@@ -1583,15 +1585,21 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             });
         }
 
+        // 📦 EXTRACT DATA
         const {
             college,
             year,
             semester,
             branch,
             subject,
-            chapter
+            chapter,
+            protected: isProtected
         } = req.body;
 
+        // 🔥 CONVERT STRING → BOOLEAN (CRITICAL FIX)
+        const protectedValue = isProtected === "true";
+
+        // ❌ VALIDATION
         if (!college || !year || !semester || !branch || !subject || !chapter) {
             if (req.file?.path && fs.existsSync(req.file.path)) {
                 fs.unlinkSync(req.file.path);
@@ -1602,6 +1610,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             });
         }
 
+        // 📁 FILE PROCESSING
         const originalName = req.file.originalname || "file";
         const extension = path.extname(originalName).replace(".", "").toLowerCase();
         const baseName = path.basename(originalName, path.extname(originalName));
@@ -1618,6 +1627,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         const fileBuffer = fs.readFileSync(req.file.path);
 
+        // ☁️ UPLOAD TO SUPABASE
         const { error: uploadError } = await supabase.storage
             .from(process.env.SUPABASE_BUCKET)
             .upload(storagePath, fileBuffer, {
@@ -1638,12 +1648,14 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             });
         }
 
+        // 🌍 GET PUBLIC URL
         const { data: publicUrlData } = supabase.storage
             .from(process.env.SUPABASE_BUCKET)
             .getPublicUrl(storagePath);
 
         const fileUrl = publicUrlData?.publicUrl;
 
+        // 🧠 SAVE TO DB (WITH PROTECTED FIELD)
         const doc = await Docs.create({
             college,
             year,
@@ -1653,9 +1665,11 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             chapter,
             file_url: fileUrl,
             uploaded_by: user.email,
-            reviewed:false
+            reviewed: false,
+            protected: protectedValue // ✅ FIXED
         });
 
+        // 🔥 UPDATE USER
         await user_profile.updateOne(
             { email: req.session.email },
             {
@@ -1672,6 +1686,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             }
         );
 
+        // 🧹 CLEAN TEMP FILE
         if (req.file?.path && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
@@ -3725,16 +3740,35 @@ app.get("/dev/docs", async (req, res) => {
 });
 
 app.post("/dev/docs/:id/review", async (req, res) => {
-    if(!req.session.dev_email){
+    if (!req.session.dev_email) {
         return res.redirect("/dev/signin");
     }
+
     try {
-        await Docs.findByIdAndUpdate(req.params.id, {
-            reviewed: true
-        });
+        const doc = await Docs.findByIdAndUpdate(
+            req.params.id,
+            { reviewed: true },
+            { new: true }
+        );
+
+        if (doc?.uploaded_by) {
+            await user_profile.updateOne(
+                { email: doc.uploaded_by },
+                {
+                    $push: {
+                        notifications: {
+                            content: `✅ Your document "${doc.chapter}" (${doc.subject}) has been verified by DocUp Moderation Team.`,
+                            createdAt: new Date(),
+                            isRead: false
+                        }
+                    }
+                }
+            );
+        }
 
         const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
         res.redirect(redirectTo);
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Error marking doc as reviewed");
@@ -3742,16 +3776,35 @@ app.post("/dev/docs/:id/review", async (req, res) => {
 });
 
 app.post("/dev/docs/:id/unreview", async (req, res) => {
-    if(!req.session.dev_email){
+    if (!req.session.dev_email) {
         return res.redirect("/dev/signin");
     }
+
     try {
-        await Docs.findByIdAndUpdate(req.params.id, {
-            reviewed: false
-        });
+        const doc = await Docs.findByIdAndUpdate(
+            req.params.id,
+            { reviewed: false },
+            { new: true }
+        );
+
+        if (doc?.uploaded_by) {
+            await user_profile.updateOne(
+                { email: doc.uploaded_by },
+                {
+                    $push: {
+                        notifications: {
+                            content: `⚠️ Your document "${doc.chapter}" (${doc.subject}) has been set to unreviewed by DocUp Moderation Team.`,
+                            createdAt: new Date(),
+                            isRead: false
+                        }
+                    }
+                }
+            );
+        }
 
         const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
         res.redirect(redirectTo);
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Error marking doc as unreviewed");
@@ -3759,15 +3812,63 @@ app.post("/dev/docs/:id/unreview", async (req, res) => {
 });
 
 app.post("/dev/docs/:id/delete", async (req, res) => {
-    if(!req.session.dev_email){
+    if (!req.session.dev_email) {
         return res.redirect("/dev/signin");
     }
+
     try {
-        await reports.deleteMany({ doc_id: req.params.id });
-        await Docs.findByIdAndDelete(req.params.id);
+        const docId = req.params.id;
+
+        const doc = await Docs.findById(docId);
+
+        if (!doc) {
+            return res.status(404).send("Document not found");
+        }
+
+        await reports.deleteMany({ doc_id: docId });
+        await Docs.findByIdAndDelete(docId);
+
+        let message = `❌ Your document "${doc.chapter}" (${doc.subject}) was removed by the DocUp Moderation Team.`;
+
+        // Deduct score ONLY if protected
+        if (doc.protected && doc.uploaded_by) {
+            await user_profile.updateOne(
+                { email: doc.uploaded_by },
+                { $inc: { Doc_score: -1 } }
+            );
+
+            message += ` 1 DocScore has been deducted.`;
+        }
+
+        // Remove from uploads
+        await user_profile.updateOne(
+            { email: doc.uploaded_by },
+            {
+                $pull: {
+                    uploads: { doc_id: docId }
+                }
+            }
+        );
+
+        // Send notification
+        if (doc.uploaded_by) {
+            await user_profile.updateOne(
+                { email: doc.uploaded_by },
+                {
+                    $push: {
+                        notifications: {
+                            content: message,
+                            createdAt: new Date(),
+                            isRead: false
+                        }
+                    }
+                }
+            );
+        }
 
         const redirectTo = req.body.redirectTo || req.get("Referrer") || "/dev/docs";
         res.redirect(redirectTo);
+
     } catch (error) {
         console.error(error);
         res.status(500).send("Error deleting doc");

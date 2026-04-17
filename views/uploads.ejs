@@ -276,6 +276,24 @@
                         <label for="chapter" class="required">Chapter / Topic</label>
                         <input type="text" placeholder="e.g. Unit 3 Notes / Mid Sem / Trees" id="chapter" required>
                     </div>
+                    <div class="form-field form-field-full">
+                        <label>Document Access</label>
+
+                        <div class="toggle-row">
+                            <span class="toggle-label">Public</span>
+
+                            <label class="switch">
+                                <input type="checkbox" id="protected-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+
+                            <span class="toggle-label">Protected</span>
+                        </div>
+
+                        <p class="toggle-help">
+                            Protected = Requires DocScore / restrictions. Public = Free for everyone.
+                        </p>
+                    </div>
                 </div>
 
                 <button class="upload-btn" id="upload-btn" aria-label="Upload document">
@@ -1013,6 +1031,10 @@
         );
 
         const formData = new FormData();
+
+// 🔥 GET TOGGLE VALUE
+        const isProtected = document.getElementById("protected-toggle").checked;
+
         formData.append("file", renamedFile);
         formData.append("college", canonicalCollege);
         formData.append("year", year);
@@ -1020,6 +1042,9 @@
         formData.append("branch", branch);
         formData.append("subject", subject);
         formData.append("chapter", chapter);
+
+// 🔥 SEND TO BACKEND
+        formData.append("protected", isProtected);
 
         try {
             const res = await fetch("/upload_docs", {
