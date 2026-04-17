@@ -16,5 +16,6 @@
     <orderEntry type="library" name="pdf.js" level="application" />
     <orderEntry type="library" name="checkout" level="application" />
     <orderEntry type="library" name="Python 3.14 interpreter library" level="application" />
+    <orderEntry type="library" name="script" level="application" />
   </component>
 </module>
