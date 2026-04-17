@@ -767,7 +767,7 @@ function expandAliases(text = "") {
     };
 
     const words = normalizeSearchText(text).split(" ");
-    return words.map(word => aliases[word] || word).join(" ");
+    return words.map(word => COLLEGE_SLUG_ALIASES[word] || word).join(" ");
 }
 
 function buildSearchDoc(doc) {
