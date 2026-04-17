@@ -259,7 +259,7 @@ return "Document";
 
                 <div class="info-box">
                     <span class="info-label">Subscription</span>
-                    <span class="info-value"><%= user.subscription || "Free Tier" %></span>
+                    <a href="/upgrade-plans"><span class="info-value"><%= user.subscription || "Free Tier" %></span></a>
                 </div>
 
                 <div class="info-box">
@@ -481,7 +481,7 @@ return "Document";
         <div class="doc-score-display-container glass-card">
             <div class="score-top">
                 <p class="small-heading">Your Doc Score</p>
-                <h2><%= safeDocScore %>/<%= maxDocScore %></h2>
+<!--                <h2><%= safeDocScore %>/<%= maxDocScore %></h2>-->
             </div>
 
             <div
@@ -576,13 +576,15 @@ return "Document";
                 <h3><%= savedCount %></h3>
             </div>
 
-            <div class="stat-box">
-                <div>
-                    <p class="stat-title">Uploads</p>
-                    <span class="stat-subtext">Your contributions on DocUp</span>
+            <a href="/all_uploads_view_second_pov_profile/<%= user._id %>">
+                <div class="stat-box">
+                    <div>
+                        <p class="stat-title">Uploads</p>
+                        <span class="stat-subtext">Your contributions on DocUp</span>
+                    </div>
+                    <h3><%= uploadCount %></h3>
                 </div>
-                <h3><%= uploadCount %></h3>
-            </div>
+            </a>
 
             <div class="stat-box">
                 <div>
@@ -592,13 +594,15 @@ return "Document";
                 <h3><%= viewHistoryCount %></h3>
             </div>
 
-            <div class="stat-box">
-                <div>
-                    <p class="stat-title">Subscription</p>
-                    <span class="stat-subtext">Current account plan</span>
+            <a href="/upgrade-plans">
+                <div class="stat-box">
+                    <div>
+                        <p class="stat-title">Subscription</p>
+                        <span class="stat-subtext">Current account plan</span>
+                    </div>
+                    <h3 class="plan-text"><%= user.subscription || "Free Tier" %></h3>
                 </div>
-                <h3 class="plan-text"><%= user.subscription || "Free Tier" %></h3>
-            </div>
+            </a>
         </div>
 
         <div class="membership-card glass-card">
@@ -634,33 +638,38 @@ return "Document";
 <script src="/profile.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-
-        // 🔥 match ALL doc view links automatically
         const viewLinks = document.querySelectorAll('a[href^="/view/"]');
 
-        viewLinks.forEach(link => {
-            link.addEventListener("click", function (e) {
+        function resetViewLinks() {
+            document.querySelectorAll('a[href^="/view/"]').forEach(link => {
+                link.dataset.clicked = "false";
+                link.style.pointerEvents = "";
+                link.style.opacity = "";
+            });
+        }
 
-                // already clicked → block
+        viewLinks.forEach(link => {
+            link.addEventListener("click", function(e) {
                 if (this.dataset.clicked === "true") {
                     e.preventDefault();
                     return;
                 }
 
-                // mark clicked
                 this.dataset.clicked = "true";
-
-                // disable interaction
                 this.style.pointerEvents = "none";
                 this.style.opacity = "0.6";
 
-                // change text if possible
-                if (this.textContent.trim().length < 30) {
-                    this.textContent = "Opening...";
-                }
+                setTimeout(() => {
+                    if (!document.hidden) {
+                        this.dataset.clicked = "false";
+                        this.style.pointerEvents = "";
+                        this.style.opacity = "";
+                    }
+                }, 3000);
             });
         });
 
+        window.addEventListener("pageshow", resetViewLinks);
     });
 </script>
 </html>

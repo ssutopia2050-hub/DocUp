@@ -396,6 +396,12 @@ user-select:none;
     document.addEventListener("DOMContentLoaded", () => {
         const dashboardViewLocks = new Set();
 
+        function resetDashboardViewLinks() {
+            document.querySelectorAll('a[href^="/view/"]').forEach(link => {
+                link.classList.remove("is-opening");
+            });
+        }
+
         document.addEventListener("click", (e) => {
             const link = e.target.closest('a[href^="/view/"]');
             if (!link) return;
@@ -410,13 +416,18 @@ user-select:none;
 
             dashboardViewLocks.add(href);
 
-            // optional light visual feedback without corrupting saved HTML
             link.classList.add("is-opening");
 
             setTimeout(() => {
                 dashboardViewLocks.delete(href);
                 link.classList.remove("is-opening");
-            }, 10000);
+            }, 3000);
+        });
+
+        // 🔥 VERY IMPORTANT
+        window.addEventListener("pageshow", () => {
+            resetDashboardViewLinks();
+            dashboardViewLocks.clear();
         });
     });
 </script>

@@ -2157,4 +2157,7 @@ a.view-doc-link:hover {
 .suggestions-box div:hover {
     background: rgba(255,106,0,0.10);
     color: white;
-}
+}a.is-opening {
+     opacity: 0.6;
+     pointer-events: none;
+ }

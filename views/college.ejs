@@ -465,33 +465,38 @@
 </script>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-
-        // 🔥 match ALL doc view links automatically
         const viewLinks = document.querySelectorAll('a[href^="/view/"]');
 
-        viewLinks.forEach(link => {
-            link.addEventListener("click", function (e) {
+        function resetViewLinks() {
+            document.querySelectorAll('a[href^="/view/"]').forEach(link => {
+                link.dataset.clicked = "false";
+                link.style.pointerEvents = "";
+                link.style.opacity = "";
+            });
+        }
 
-                // already clicked → block
+        viewLinks.forEach(link => {
+            link.addEventListener("click", function(e) {
                 if (this.dataset.clicked === "true") {
                     e.preventDefault();
                     return;
                 }
 
-                // mark clicked
                 this.dataset.clicked = "true";
-
-                // disable interaction
                 this.style.pointerEvents = "none";
                 this.style.opacity = "0.6";
 
-                // change text if possible
-                if (this.textContent.trim().length < 30) {
-                    this.textContent = "Opening...";
-                }
+                setTimeout(() => {
+                    if (!document.hidden) {
+                        this.dataset.clicked = "false";
+                        this.style.pointerEvents = "";
+                        this.style.opacity = "";
+                    }
+                }, 3000);
             });
         });
 
+        window.addEventListener("pageshow", resetViewLinks);
     });
 </script>
 </html>

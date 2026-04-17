@@ -294,6 +294,12 @@ button {
     justify-content: center;
     gap: 7px;
 }
+.info-box a span{
+    transition: 0.2s ease;
+}
+.info-box a span:hover{
+    color: #f48a61;
+}
 
 .info-label{
     color: rgba(255,255,255,0.56);
