@@ -650,24 +650,120 @@ function normalizeSearchText(text = "") {
 }
 
 function expandAliases(text = "") {
-    const aliases = {
-        os: "operating system",
-        oop: "object oriented programming",
-        oops: "object oriented programming",
-        dbms: "database management system",
-        dsa: "data structures and algorithms",
-        cn: "computer networks",
-        coa: "computer organization and architecture",
-        toc: "theory of computation",
-        se: "software engineering",
-        ai: "artificial intelligence",
-        ml: "machine learning",
-        dl: "deep learning",
-        em: "engineering mathematics",
-        maths: "mathematics",
-        math: "mathematics",
-        phy: "physics",
-        chem: "chemistry"
+    const COLLEGE_SLUG_ALIASES = {
+        // India
+        upes: "University of Petroleum and Energy Studies,UPES",
+        "iit-delhi": "Indian Institute of Technology Delhi",
+        "iit-bombay": "Indian Institute of Technology Bombay",
+        "iit-madras": "Indian Institute of Technology Madras",
+        "iit-kanpur": "Indian Institute of Technology Kanpur",
+        "iit-kharagpur": "Indian Institute of Technology Kharagpur",
+        "iit-roorkee": "Indian Institute of Technology Roorkee",
+        "iit-guwahati": "Indian Institute of Technology Guwahati",
+        "iit-hyderabad": "Indian Institute of Technology Hyderabad",
+        "iit-indore": "Indian Institute of Technology Indore",
+        "iit-bhu": "Indian Institute of Technology (BHU) Varanasi",
+        "iit-bhubaneswar": "Indian Institute of Technology Bhubaneswar",
+        "iit-gandhinagar": "Indian Institute of Technology Gandhinagar",
+        "iit-jodhpur": "Indian Institute of Technology Jodhpur",
+        "iit-patna": "Indian Institute of Technology Patna",
+        "iit-ropar": "Indian Institute of Technology Ropar",
+        "iit-mandi": "Indian Institute of Technology Mandi",
+        "iit-palakad": "Indian Institute of Technology Palakkad",
+        "iit-tirupati": "Indian Institute of Technology Tirupati",
+        "iit-jammu": "Indian Institute of Technology Jammu",
+        "iit-dhanbad": "Indian Institute of Technology (ISM) Dhanbad",
+        "iit-ism-dhanbad": "Indian Institute of Technology (ISM) Dhanbad",
+
+        "nit-trichy": "National Institute of Technology Tiruchirappalli",
+        "nit-surathkal": "National Institute of Technology Karnataka Surathkal",
+        "nit-warangal": "National Institute of Technology Warangal",
+        "nit-calicut": "National Institute of Technology Calicut",
+        "nit-rourkela": "National Institute of Technology Rourkela",
+        "nit-allahabad": "Motilal Nehru National Institute of Technology Allahabad",
+        "nit-kurukshetra": "National Institute of Technology Kurukshetra",
+        "nit-jaipur": "Malaviya National Institute of Technology Jaipur",
+        "nit-bhopal": "Maulana Azad National Institute of Technology Bhopal",
+        "nit-jalandhar": "Dr B R Ambedkar National Institute of Technology Jalandhar",
+        "nit-durgapur": "National Institute of Technology Durgapur",
+        "nit-silchar": "National Institute of Technology Silchar",
+        "nit-hamirpur": "National Institute of Technology Hamirpur",
+        "nit-patna": "National Institute of Technology Patna",
+        "nit-raipur": "National Institute of Technology Raipur",
+
+        bits: "Birla Institute of Technology and Science Pilani",
+        "bits-pilani": "Birla Institute of Technology and Science Pilani",
+        "bits-goa": "Birla Institute of Technology and Science, Goa",
+        "bits-hyderabad": "Birla Institute of Technology and Science, Hyderabad",
+
+        "iiit-hyderabad": "International Institute of Information Technology Hyderabad",
+        "iiit-bangalore": "International Institute of Information Technology Bangalore",
+        "iiit-delhi": "Indraprastha Institute of Information Technology Delhi",
+        "iiit-allahabad": "Indian Institute of Information Technology Allahabad",
+        "iiit-lucknow": "Indian Institute of Information Technology Lucknow",
+        "iiit-gwalior": "ABV-Indian Institute of Information Technology and Management Gwalior",
+
+        vit: "Vellore Institute of Technology",
+        "vit-vellore": "Vellore Institute of Technology",
+        "vit-chennai": "Vellore Institute of Technology Chennai",
+        srm: "SRM Institute of Science and Technology",
+        "srm-ktr": "SRM Institute of Science and Technology",
+        manipal: "Manipal Institute of Technology",
+        "manipal-university": "Manipal University Jaipur",
+        thapar: "Thapar Institute of Engineering and Technology",
+        amity: "Amity University",
+        lpu: "Lovely Professional University",
+        kiit: "Kalinga Institute of Industrial Technology",
+        jadavpur: "Jadavpur University",
+        "jadavpur-university": "Jadavpur University",
+        "anna-university": "Anna University",
+        "delhi-university": "University of Delhi",
+        du: "University of Delhi",
+        nsut: "Netaji Subhas University of Technology",
+        dtu: "Delhi Technological University",
+        "jamia-millia-islamia": "Jamia Millia Islamia",
+        "banaras-hindu-university": "Banaras Hindu University",
+        bhu: "Banaras Hindu University",
+        "aligarh-muslim-university": "Aligarh Muslim University",
+        amu: "Aligarh Muslim University",
+        "calcutta-university": "University of Calcutta",
+        "osmania-university": "Osmania University",
+        "punjab-university": "Panjab University",
+        "christ-university": "Christ University",
+        "shiv-nadar-university": "Shiv Nadar University",
+        "flame-university": "FLAME University",
+        ashoka: "Ashoka University",
+        "shivaji-college": "Shivaji College",
+        "st-stephens": "St. Stephen's College",
+        "miranda-house": "Miranda House",
+        "hindu-college": "Hindu College",
+
+        // Global
+        mit: "Massachusetts Institute of Technology",
+        harvard: "Harvard University",
+        stanford: "Stanford University",
+        oxford: "University of Oxford",
+        cambridge: "University of Cambridge",
+        caltech: "California Institute of Technology",
+        princeton: "Princeton University",
+        yale: "Yale University",
+        columbia: "Columbia University",
+        cornell: "Cornell University",
+        upenn: "University of Pennsylvania",
+        penn: "University of Pennsylvania",
+        berkeley: "University of California, Berkeley",
+        "uc-berkeley": "University of California, Berkeley",
+        ucla: "University of California, Los Angeles",
+        "carnegie-mellon": "Carnegie Mellon University",
+        cmu: "Carnegie Mellon University",
+        imperial: "Imperial College London",
+        "imperial-college-london": "Imperial College London",
+        nus: "National University of Singapore",
+        ntu: "Nanyang Technological University",
+        eth: "ETH Zurich",
+        "eth-zurich": "ETH Zurich",
+        toronto: "University of Toronto",
+        "university-of-toronto": "University of Toronto"
     };
 
     const words = normalizeSearchText(text).split(" ");
@@ -781,22 +877,7 @@ io.engine.use(sessionMiddleware);
 // server.listen(port, () => {
 //     console.log(`Server running on url: http://localhost:${port}/`);
 // });
-app.get("/sitemap.xml", (req, res) => {
-    res.header("Content-Type", "application/xml");
-    res.send(`
-        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-            <url>
-                <loc>https://www.docup.in/</loc>
-            </url>
-            <url>
-                <loc>https://www.docup.in/dashboard</loc>
-            </url>
-            <url>
-                <loc>https://www.docup.in/search</loc>
-            </url>
-        </urlset>
-    `);
-});
+
 /******************************
  Database + Server Start
  ******************************/
@@ -3823,5 +3904,410 @@ app.get("/dev/activity", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Activity error");
+    }
+});
+function escapeRegexSEO(str = "") {
+    return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeText(str) {
+    return String(str || "")
+        .toLowerCase()
+        .trim()
+        .replace(/,/g, "")
+        .replace(/\s+/g, " ");
+}
+
+function normalizeCompact(str) {
+    return normalizeText(str).replace(/\s/g, "");
+}
+
+function slugifyText(str = "") {
+    return String(str || "")
+        .toLowerCase()
+        .trim()
+        .replace(/&/g, " and ")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+}
+
+const COLLEGE_SLUG_ALIASES = {
+    // India
+    upes: "University of Petroleum and Energy Studies,UPES",
+    "iit-delhi": "Indian Institute of Technology Delhi",
+    "iit-bombay": "Indian Institute of Technology Bombay",
+    "iit-madras": "Indian Institute of Technology Madras",
+    "iit-kanpur": "Indian Institute of Technology Kanpur",
+    "iit-kharagpur": "Indian Institute of Technology Kharagpur",
+    "iit-roorkee": "Indian Institute of Technology Roorkee",
+    "iit-guwahati": "Indian Institute of Technology Guwahati",
+    "iit-hyderabad": "Indian Institute of Technology Hyderabad",
+    "iit-indore": "Indian Institute of Technology Indore",
+    "iit-bhu": "Indian Institute of Technology (BHU) Varanasi",
+    "iit-bhubaneswar": "Indian Institute of Technology Bhubaneswar",
+    "iit-gandhinagar": "Indian Institute of Technology Gandhinagar",
+    "iit-jodhpur": "Indian Institute of Technology Jodhpur",
+    "iit-patna": "Indian Institute of Technology Patna",
+    "iit-ropar": "Indian Institute of Technology Ropar",
+    "iit-mandi": "Indian Institute of Technology Mandi",
+    "iit-palakad": "Indian Institute of Technology Palakkad",
+    "iit-tirupati": "Indian Institute of Technology Tirupati",
+    "iit-jammu": "Indian Institute of Technology Jammu",
+    "iit-dhanbad": "Indian Institute of Technology (ISM) Dhanbad",
+    "iit-ism-dhanbad": "Indian Institute of Technology (ISM) Dhanbad",
+
+    "nit-trichy": "National Institute of Technology Tiruchirappalli",
+    "nit-surathkal": "National Institute of Technology Karnataka Surathkal",
+    "nit-warangal": "National Institute of Technology Warangal",
+    "nit-calicut": "National Institute of Technology Calicut",
+    "nit-rourkela": "National Institute of Technology Rourkela",
+    "nit-allahabad": "Motilal Nehru National Institute of Technology Allahabad",
+    "nit-kurukshetra": "National Institute of Technology Kurukshetra",
+    "nit-jaipur": "Malaviya National Institute of Technology Jaipur",
+    "nit-bhopal": "Maulana Azad National Institute of Technology Bhopal",
+    "nit-jalandhar": "Dr B R Ambedkar National Institute of Technology Jalandhar",
+    "nit-durgapur": "National Institute of Technology Durgapur",
+    "nit-silchar": "National Institute of Technology Silchar",
+    "nit-hamirpur": "National Institute of Technology Hamirpur",
+    "nit-patna": "National Institute of Technology Patna",
+    "nit-raipur": "National Institute of Technology Raipur",
+
+    bits: "Birla Institute of Technology and Science Pilani",
+    "bits-pilani": "Birla Institute of Technology and Science Pilani",
+    "bits-goa": "Birla Institute of Technology and Science, Goa",
+    "bits-hyderabad": "Birla Institute of Technology and Science, Hyderabad",
+
+    "iiit-hyderabad": "International Institute of Information Technology Hyderabad",
+    "iiit-bangalore": "International Institute of Information Technology Bangalore",
+    "iiit-delhi": "Indraprastha Institute of Information Technology Delhi",
+    "iiit-allahabad": "Indian Institute of Information Technology Allahabad",
+    "iiit-lucknow": "Indian Institute of Information Technology Lucknow",
+    "iiit-gwalior": "ABV-Indian Institute of Information Technology and Management Gwalior",
+
+    vit: "Vellore Institute of Technology",
+    "vit-vellore": "Vellore Institute of Technology",
+    "vit-chennai": "Vellore Institute of Technology Chennai",
+    srm: "SRM Institute of Science and Technology",
+    "srm-ktr": "SRM Institute of Science and Technology",
+    manipal: "Manipal Institute of Technology",
+    "manipal-university": "Manipal University Jaipur",
+    thapar: "Thapar Institute of Engineering and Technology",
+    amity: "Amity University",
+    lpu: "Lovely Professional University",
+    kiit: "Kalinga Institute of Industrial Technology",
+    jadavpur: "Jadavpur University",
+    "jadavpur-university": "Jadavpur University",
+    "anna-university": "Anna University",
+    "delhi-university": "University of Delhi",
+    du: "University of Delhi",
+    nsut: "Netaji Subhas University of Technology",
+    dtu: "Delhi Technological University",
+    "jamia-millia-islamia": "Jamia Millia Islamia",
+    "banaras-hindu-university": "Banaras Hindu University",
+    bhu: "Banaras Hindu University",
+    "aligarh-muslim-university": "Aligarh Muslim University",
+    amu: "Aligarh Muslim University",
+    "calcutta-university": "University of Calcutta",
+    "osmania-university": "Osmania University",
+    "punjab-university": "Panjab University",
+    "christ-university": "Christ University",
+    "shiv-nadar-university": "Shiv Nadar University",
+    "flame-university": "FLAME University",
+    ashoka: "Ashoka University",
+    "shivaji-college": "Shivaji College",
+    "st-stephens": "St. Stephen's College",
+    "miranda-house": "Miranda House",
+    "hindu-college": "Hindu College",
+
+    // Global
+    mit: "Massachusetts Institute of Technology",
+    harvard: "Harvard University",
+    stanford: "Stanford University",
+    oxford: "University of Oxford",
+    cambridge: "University of Cambridge",
+    caltech: "California Institute of Technology",
+    princeton: "Princeton University",
+    yale: "Yale University",
+    columbia: "Columbia University",
+    cornell: "Cornell University",
+    upenn: "University of Pennsylvania",
+    penn: "University of Pennsylvania",
+    berkeley: "University of California, Berkeley",
+    "uc-berkeley": "University of California, Berkeley",
+    ucla: "University of California, Los Angeles",
+    "carnegie-mellon": "Carnegie Mellon University",
+    cmu: "Carnegie Mellon University",
+    imperial: "Imperial College London",
+    "imperial-college-london": "Imperial College London",
+    nus: "National University of Singapore",
+    ntu: "Nanyang Technological University",
+    eth: "ETH Zurich",
+    "eth-zurich": "ETH Zurich",
+    toronto: "University of Toronto",
+    "university-of-toronto": "University of Toronto"
+};
+
+function getCollegeSlug(realCollegeName = "") {
+    const aliasEntry = Object.entries(COLLEGE_SLUG_ALIASES).find(
+        ([, realName]) => normalizeText(realName) === normalizeText(realCollegeName)
+    );
+
+    if (aliasEntry) return aliasEntry[0];
+    return slugifyText(realCollegeName);
+}
+
+function resolveCollegeNameFromSlug(slug = "") {
+    const loweredSlug = String(slug || "").trim().toLowerCase();
+    if (!loweredSlug) return null;
+    return COLLEGE_SLUG_ALIASES[loweredSlug] || null;
+}
+
+async function renderCollegeSeoPage(req, res) {
+    try {
+        const rawCollegeSlug = decodeURIComponent(req.params.collegeSlug || "").trim();
+        const rawSubjectSlug = decodeURIComponent(req.params.subjectSlug || "").trim();
+
+        if (!rawCollegeSlug) {
+            return res.status(404).send("Page not found");
+        }
+
+        let resolvedCollegeName = resolveCollegeNameFromSlug(rawCollegeSlug);
+
+        const allCollegeRows = await college.find({}).lean();
+
+        if (!resolvedCollegeName) {
+            const matchedCollege =
+                allCollegeRows.find(c => slugifyText(c.college_name) === slugifyText(rawCollegeSlug)) ||
+                allCollegeRows.find(c => normalizeText(c.college_name) === normalizeText(rawCollegeSlug)) ||
+                null;
+
+            resolvedCollegeName = matchedCollege?.college_name || null;
+        }
+
+        if (!resolvedCollegeName) {
+            return res.status(404).send("Page not found");
+        }
+
+        const requestedName = normalizeText(resolvedCollegeName);
+        const requestedCompact = normalizeCompact(resolvedCollegeName);
+
+        const collegeData =
+            allCollegeRows.find(c => normalizeText(c.college_name) === requestedName) ||
+            allCollegeRows.find(c => normalizeCompact(c.college_name) === requestedCompact) ||
+            null;
+
+        const allCollegeDocs = await Docs.find({
+            college: {
+                $regex: `^${escapeRegexSEO(resolvedCollegeName)}$`,
+                $options: "i"
+            }
+        }).lean();
+
+        if (!allCollegeDocs.length) {
+            return res.status(404).send("Page not found");
+        }
+
+        const subjectMap = new Map();
+
+        for (const doc of allCollegeDocs) {
+            const rawSubject = (doc.subject || "Other").trim() || "Other";
+            const subjectSlug = slugifyText(rawSubject);
+
+            if (!subjectMap.has(subjectSlug)) {
+                subjectMap.set(subjectSlug, {
+                    subject: rawSubject,
+                    subjectSlug,
+                    items: []
+                });
+            }
+
+            subjectMap.get(subjectSlug).items.push({
+                ...doc,
+                shareHref: `/view/${doc._id}`
+            });
+        }
+
+        let filteredDocs = allCollegeDocs;
+        let selectedSubjectGroup = null;
+
+        if (rawSubjectSlug) {
+            selectedSubjectGroup = subjectMap.get(slugifyText(rawSubjectSlug)) || null;
+
+            if (!selectedSubjectGroup) {
+                return res.status(404).send("Page not found");
+            }
+
+            filteredDocs = selectedSubjectGroup.items;
+        }
+
+        const groupedBySubject = {};
+        const branchesSet = new Set();
+        const yearsSet = new Set();
+
+        for (const doc of filteredDocs) {
+            const subjectKey = (doc.subject || "Other").trim() || "Other";
+
+            if (!groupedBySubject[subjectKey]) {
+                groupedBySubject[subjectKey] = [];
+            }
+
+            groupedBySubject[subjectKey].push({
+                ...doc,
+                shareHref: `/view/${doc._id}`
+            });
+
+            if (doc.branch) branchesSet.add(doc.branch);
+            if (doc.year) yearsSet.add(doc.year);
+        }
+
+        const groupedSubjects = Object.entries(groupedBySubject)
+            .map(([subject, items]) => ({
+                subject,
+                subjectSlug: slugifyText(subject),
+                items: items.sort((a, b) => {
+                    const aScore = (typeof a.likes === "number" ? a.likes : 0) + (a.reviewed ? 10 : 0);
+                    const bScore = (typeof b.likes === "number" ? b.likes : 0) + (b.reviewed ? 10 : 0);
+                    return bScore - aScore;
+                })
+            }))
+            .sort((a, b) => b.items.length - a.items.length);
+
+        const allSubjectsForChips = Array.from(subjectMap.values())
+            .map(group => ({
+                subject: group.subject,
+                subjectSlug: group.subjectSlug,
+                count: group.items.length
+            }))
+            .sort((a, b) => b.count - a.count);
+
+        const canonicalCollegeSlug = getCollegeSlug(resolvedCollegeName);
+        const canonicalPath = rawSubjectSlug
+            ? `/notes/${canonicalCollegeSlug}/${slugifyText(rawSubjectSlug)}`
+            : `/notes/${canonicalCollegeSlug}`;
+
+        const canonicalUrl = `${req.protocol}://${req.get("host")}${canonicalPath}`;
+
+        const seoTitle = rawSubjectSlug
+            ? `${selectedSubjectGroup?.subject || rawSubjectSlug} Notes for ${resolvedCollegeName} | DocUp`
+            : `${resolvedCollegeName} Notes, Study Material & PDFs | DocUp`;
+
+        const seoDescription = rawSubjectSlug
+            ? `Explore ${selectedSubjectGroup?.subject || rawSubjectSlug} notes, PDFs, chapter resources and study material for ${resolvedCollegeName} on DocUp.`
+            : `Explore ${resolvedCollegeName} notes, study material, PDFs and semester-wise resources on DocUp.`;
+
+        return res.render("college_notes_seo", {
+            seoData: {
+                pageTitle: seoTitle,
+                metaDescription: seoDescription,
+                canonicalUrl,
+                ogImage: collegeData?.image || "/images/default.png",
+                selectedSubject: selectedSubjectGroup?.subject || null
+            },
+            collegeInfo: {
+                name: resolvedCollegeName,
+                slug: canonicalCollegeSlug,
+                image: collegeData?.image || "/images/default.png"
+            },
+            stats: {
+                totalDocs: filteredDocs.length,
+                totalSubjects: rawSubjectSlug ? 1 : groupedSubjects.length,
+                totalBranches: branchesSet.size,
+                totalYears: yearsSet.size
+            },
+            groupedSubjects,
+            allSubjectsForChips,
+            selectedSubjectSlug: rawSubjectSlug ? slugifyText(rawSubjectSlug) : null
+        });
+
+    } catch (error) {
+        console.log("SEO college notes page error:", error);
+        return res.status(500).send("Server error");
+    }
+}
+
+app.get("/notes/:collegeSlug", async (req, res) => {
+    return renderCollegeSeoPage(req, res);
+});
+
+app.get("/notes/:collegeSlug/:subjectSlug", async (req, res) => {
+    return renderCollegeSeoPage(req, res);
+});
+app.get("/sitemap.xml", async (req, res) => {
+    try {
+        const allDocs = await Docs.find({}, "college subject updatedAt createdAt").lean();
+
+        const urlMap = new Map();
+
+        urlMap.set("home", {
+            loc: "https://www.docup.in/",
+            priority: "1.0",
+            lastmod: new Date().toISOString().split("T")[0]
+        });
+
+        const grouped = new Map();
+
+        for (const doc of allDocs) {
+            const collegeName = (doc.college || "").trim();
+            const subjectName = (doc.subject || "").trim();
+            const docDate = new Date(doc.updatedAt || doc.createdAt || Date.now())
+                .toISOString()
+                .split("T")[0];
+
+            if (!collegeName) continue;
+
+            const collegeSlug = getCollegeSlug(collegeName);
+            const collegeKey = `college:${collegeSlug}`;
+
+            if (!urlMap.has(collegeKey)) {
+                urlMap.set(collegeKey, {
+                    loc: `https://www.docup.in/notes/${collegeSlug}`,
+                    priority: "0.9",
+                    lastmod: docDate
+                });
+            } else {
+                const existing = urlMap.get(collegeKey);
+                if (docDate > existing.lastmod) {
+                    existing.lastmod = docDate;
+                }
+            }
+
+            if (subjectName) {
+                const subjectSlug = slugifyText(subjectName);
+                const subjectKey = `subject:${collegeSlug}:${subjectSlug}`;
+
+                if (!urlMap.has(subjectKey)) {
+                    urlMap.set(subjectKey, {
+                        loc: `https://www.docup.in/notes/${collegeSlug}/${subjectSlug}`,
+                        priority: "0.8",
+                        lastmod: docDate
+                    });
+                } else {
+                    const existing = urlMap.get(subjectKey);
+                    if (docDate > existing.lastmod) {
+                        existing.lastmod = docDate;
+                    }
+                }
+            }
+        }
+
+        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${Array.from(urlMap.values())
+            .map(url => `    <url>
+        <loc>${url.loc}</loc>
+        <lastmod>${url.lastmod}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>${url.priority}</priority>
+    </url>`)
+            .join("\n")}
+</urlset>`;
+
+        res.header("Content-Type", "application/xml");
+        return res.send(xml);
+    } catch (error) {
+        console.log("Sitemap error:", error);
+        return res.status(500).send("Server error");
     }
 });

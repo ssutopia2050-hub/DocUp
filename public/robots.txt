@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://docup.in/sitemap.xml
+Sitemap: https://www.docup.in/sitemap.xml

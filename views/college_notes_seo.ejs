@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= seoData.pageTitle %></title>
+    <meta name="description" content="<%= seoData.metaDescription %>">
+    <link rel="canonical" href="<%= seoData.canonicalUrl %>">
+
+    <meta property="og:title" content="<%= seoData.pageTitle %>">
+    <meta property="og:description" content="<%= seoData.metaDescription %>">
+    <meta property="og:image" content="<%= seoData.ogImage %>">
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": "<%= seoData.selectedSubject ? `${seoData.selectedSubject} Notes for ${collegeInfo.name}` : `${collegeInfo.name} Notes & Study Material` %>",
+            "description": "<%= seoData.selectedSubject ? `${seoData.selectedSubject} notes, PDFs and study resources for ${collegeInfo.name} students — organised by subject, branch and semester.` : `Notes, PDFs and study resources for ${collegeInfo.name} students — organised by subject, branch and semester.` %>",
+            "url": "<%= seoData.canonicalUrl %>"
+        }
+    </script>
+
+    <link rel="stylesheet" href="/college_notes_seo.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body id="top">
+<div class="seo-page-shell">
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <header class="topbar">
+        <a href="/" class="brand-wrap" aria-label="DocUp home">
+            <div class="brand-mark">D</div>
+            <div class="brand-text">DocUp</div>
+        </a>
+        <div class="topbar-actions">
+            <a href="/signin" class="topbar-link">Sign In</a>
+            <a href="/signup" class="topbar-btn">Get Started Free</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero compact-hero" aria-label="Notes search for <%= collegeInfo.name %>">
+            <div class="hero-copy">
+                <div class="eyebrow">
+                    <% if (seoData.selectedSubject) { %>
+                    📚 <%= seoData.selectedSubject %> notes · <%= collegeInfo.name %>
+                    <% } else { %>
+                    📚 Notes hub · <%= collegeInfo.name %>
+                    <% } %>
+                </div>
+
+                <h1>
+                    <% if (seoData.selectedSubject) { %>
+                    <%= seoData.selectedSubject %> notes &amp; study material for<br>
+                    <span class="h1-college"><%= collegeInfo.name %></span>
+                    <% } else { %>
+                    Free notes &amp; study material for<br>
+                    <span class="h1-college"><%= collegeInfo.name %></span>
+                    <% } %>
+                </h1>
+
+                <p class="hero-text">
+                    <% if (seoData.selectedSubject) { %>
+                    Find <strong><%= seoData.selectedSubject %></strong> notes, chapter PDFs and study resources uploaded by students of <strong><%= collegeInfo.name %></strong>. Search below and open the most relevant note quickly.
+                    <% } else { %>
+                    Find semester notes, chapter PDFs and subject-wise study resources uploaded by students of <strong><%= collegeInfo.name %></strong>. Search below and open the most relevant note quickly.
+                    <% } %>
+                </p>
+
+                <div class="notes-search-shell" role="search">
+                    <label for="notesSearchInput" class="sr-only">Search notes by subject, chapter, branch or semester</label>
+                    <div class="notes-search-bar">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input
+                                type="text"
+                                id="notesSearchInput"
+                                placeholder="e.g. &quot;Maths Unit 3&quot;, &quot;CSE Sem 4&quot;, &quot;Data Structures&quot;…"
+                                aria-label="Search notes by subject, chapter, branch or semester"
+                                autocomplete="off"
+                                spellcheck="false"
+                        >
+                        <span class="search-clear" id="searchClear" aria-label="Clear search" role="button" tabindex="0" style="display:none">✕</span>
+                    </div>
+                    <p class="search-hint" id="searchHint" aria-live="polite"></p>
+                </div>
+
+                <div class="stat-strip" aria-label="Content overview">
+                    <div class="stat-pill">
+                        <strong><%= stats.totalDocs %></strong>
+                        <span>notes</span>
+                    </div>
+                    <div class="stat-sep" aria-hidden="true">·</div>
+                    <div class="stat-pill">
+                        <strong><%= stats.totalSubjects %></strong>
+                        <span>subjects</span>
+                    </div>
+                    <div class="stat-sep" aria-hidden="true">·</div>
+                    <div class="stat-pill">
+                        <strong><%= stats.totalBranches %></strong>
+                        <span>branches</span>
+                    </div>
+                    <div class="stat-sep" aria-hidden="true">·</div>
+                    <div class="stat-pill">
+                        <strong><%= stats.totalYears %></strong>
+                        <span>years</span>
+                    </div>
+                </div>
+
+                <nav class="quick-subject-links" aria-label="Browse by subject">
+                    <span class="jump-label">Browse:</span>
+                    <% allSubjectsForChips.slice(0, 10).forEach(subjectItem => { %>
+                    <a
+                            href="/notes/<%= collegeInfo.slug %>/<%= subjectItem.subjectSlug %>"
+                            class="quick-chip <%= selectedSubjectSlug === subjectItem.subjectSlug ? 'active-chip' : '' %>"
+                    ><%= subjectItem.subject %></a>
+                    <% }) %>
+                </nav>
+            </div>
+
+            <aside class="hero-visual hero-visual-small" aria-label="College info">
+                <div class="college-card compact-college-card">
+                    <div class="college-badge">✅ Verified student content</div>
+
+                    <div class="college-image-shell">
+                        <img src="<%= collegeInfo.image %>" alt="<%= collegeInfo.name %> campus" loading="eager">
+                    </div>
+
+                    <div class="college-name"><%= collegeInfo.name %></div>
+
+                    <ul class="college-features">
+                        <li>📄 PDFs, handwritten &amp; typed notes</li>
+                        <li>🎓 Semester &amp; year-wise organised</li>
+                        <li>⭐ Reviewed &amp; liked by students</li>
+                        <li>🔎 Publicly searchable notes hub</li>
+                    </ul>
+
+                    <a href="/signup" class="college-cta">Upload your notes →</a>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-block featured-block" aria-labelledby="featured-heading">
+            <div class="section-head compact-section-head">
+                <h2 id="featured-heading">
+                    <% if (seoData.selectedSubject) { %>
+                    ⭐ Top <%= seoData.selectedSubject %> notes at <%= collegeInfo.name %>
+                    <% } else { %>
+                    ⭐ Top-rated notes at <%= collegeInfo.name %>
+                    <% } %>
+                </h2>
+                <p class="section-desc">
+                    The most liked and reviewed notes uploaded by fellow students — start here.
+                </p>
+            </div>
+
+            <div class="notes-grid featured-notes-grid">
+                <%
+                const featuredDocs = groupedSubjects
+                .flatMap(group => group.items)
+                .sort((a, b) => {
+                const aScore = (a.likes || 0) + (a.reviewed ? 10 : 0);
+                const bScore = (b.likes || 0) + (b.reviewed ? 10 : 0);
+                return bScore - aScore;
+                })
+                .slice(0, 6);
+                %>
+
+                <% featuredDocs.forEach(doc => { %>
+                <article class="note-card searchable-note"
+                         data-search="<%= `${doc.subject || ''} ${doc.chapter || ''} ${doc.branch || ''} ${doc.year || ''} ${doc.semester || ''}`.toLowerCase() %>"
+                         itemscope itemtype="https://schema.org/DigitalDocument">
+
+                    <div class="note-top">
+                        <div class="note-badges">
+                            <% if (doc.reviewed) { %>
+                            <span class="badge badge-reviewed">✔ Reviewed</span>
+                            <% } %>
+                            <% if (doc.subject) { %>
+                            <span class="badge"><%= doc.subject %></span>
+                            <% } %>
+                            <% if ((doc.likes || 0) > 10) { %>
+                            <span class="badge badge-hot">🔥 Popular</span>
+                            <% } %>
+                        </div>
+
+                        <h3 itemprop="name"><%= doc.chapter || "Untitled Note" %></h3>
+
+                        <p class="note-desc">
+                            <% if (doc.branch) { %><%= doc.branch %><% } %>
+                            <% if (doc.year) { %> · Year <%= doc.year %><% } %>
+                            <% if (doc.semester) { %> · Sem <%= doc.semester %><% } %>
+                        </p>
+                    </div>
+
+                    <div class="note-actions">
+                        <a href="<%= doc.shareHref %>" class="open-note-btn" itemprop="url" aria-label="Open <%= doc.chapter || 'note' %>">
+                            Open Note →
+                        </a>
+                    </div>
+                </article>
+                <% }) %>
+            </div>
+        </section>
+
+        <section class="section-block" id="notes" aria-labelledby="browse-heading">
+            <div class="section-head compact-section-head">
+                <h2 id="browse-heading">
+                    <% if (seoData.selectedSubject) { %>
+                    Browse all <%= seoData.selectedSubject %> notes
+                    <% } else { %>
+                    Browse all notes by subject
+                    <% } %>
+                </h2>
+                <p class="section-desc">
+                    <% if (seoData.selectedSubject) { %>
+                    Every uploaded <strong><%= seoData.selectedSubject %></strong> note for <strong><%= collegeInfo.name %></strong>. Use the search bar above to narrow results faster.
+                    <% } else { %>
+                    Every uploaded note for <strong><%= collegeInfo.name %></strong>, grouped by subject. Use the search bar above or pick a subject below.
+                    <% } %>
+                </p>
+            </div>
+
+            <% if (!groupedSubjects.length) { %>
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>No notes yet for this college</h3>
+                <p>Be the first to upload study material for <%= collegeInfo.name %> and help your batchmates.</p>
+                <a href="/signup" class="empty-btn">Upload Notes →</a>
+            </div>
+            <% } %>
+
+            <% groupedSubjects.forEach(group => { %>
+            <section
+                    class="subject-block searchable-subject"
+                    id="subject-<%= group.subject.toLowerCase().replace(/[^a-z0-9]+/g, '-') %>"
+                    data-subject="<%= group.subject.toLowerCase() %>"
+                    aria-label="<%= group.subject %> notes"
+            >
+                <div class="subject-head">
+                    <div>
+                        <h3><%= group.subject %></h3>
+                        <p class="subject-count">
+                            <span><%= group.items.length %> resource<%= group.items.length !== 1 ? 's' : '' %></span>
+                            <span class="subject-pipe" aria-hidden="true">·</span>
+                            <span><%= collegeInfo.name %></span>
+                        </p>
+                    </div>
+                    <a href="#top" class="mini-link" aria-label="Back to top of page">↑ Top</a>
+                </div>
+
+                <div class="notes-grid">
+                    <% group.items.forEach(doc => { %>
+                    <article
+                            class="note-card searchable-note"
+                            data-search="<%= `${doc.subject || ''} ${doc.chapter || ''} ${doc.branch || ''} ${doc.year || ''} ${doc.semester || ''}`.toLowerCase() %>"
+                            itemscope itemtype="https://schema.org/DigitalDocument"
+                    >
+                        <div class="note-top">
+                            <div class="note-badges">
+                                <% if (doc.reviewed) { %>
+                                <span class="badge badge-reviewed">✔ Reviewed</span>
+                                <% } %>
+                                <% if (doc.year) { %>
+                                <span class="badge">Year <%= doc.year %></span>
+                                <% } %>
+                                <% if (doc.semester) { %>
+                                <span class="badge">Sem <%= doc.semester %></span>
+                                <% } %>
+                            </div>
+
+                            <h3 itemprop="name"><%= doc.chapter || "Untitled Note" %></h3>
+
+                            <p class="note-desc">
+                                <%= doc.subject || "General Subject" %>
+                                <% if (doc.branch) { %> · <%= doc.branch %><% } %>
+                            </p>
+                        </div>
+
+                        <div class="note-meta">
+<!--                            <div class="meta-row">-->
+<!--                                <span class="meta-label">Shared by</span>-->
+<!--                                <span class="meta-value"><%= doc.uploaded_by || "DocUp Student" %></span>-->
+<!--                            </div>-->
+<!--                            <div class="meta-row">-->
+<!--                                <span class="meta-label">👍 Likes</span>-->
+<!--                                <span class="meta-value likes-count"><%= doc.likes || 0 %></span>-->
+<!--                            </div>-->
+                        </div>
+
+                        <div class="note-actions">
+                            <a href="<%= doc.shareHref %>" class="open-note-btn" itemprop="url" aria-label="Open <%= doc.chapter || 'note' %>">
+                                Open Note →
+                            </a>
+                        </div>
+                    </article>
+                    <% }) %>
+                </div>
+            </section>
+            <% }) %>
+        </section>
+
+        <section class="section-block info-band" aria-label="Why use DocUp">
+            <div class="info-card">
+                <div class="info-kicker">🔎 Instant access</div>
+                <h3>Find the exact note you need in seconds</h3>
+                <p>
+                    Search across uploaded notes by subject, chapter name, branch or semester — no need to scroll through endless lists.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-kicker">🎓 Student-first</div>
+                <h3>Notes made by students, for students</h3>
+                <p>
+                    Every resource is uploaded directly by college peers, so the content is more likely to match actual syllabus and exam needs.
+                </p>
+            </div>
+
+            <div class="info-card">
+                <div class="info-kicker">📤 Contribute &amp; share</div>
+                <h3>Share your notes with your college</h3>
+                <p>
+                    Upload your own notes and study material to help batchmates and build a stronger resource base for your college community.
+                </p>
+            </div>
+        </section>
+
+        <section class="faq-block" aria-labelledby="faq-heading">
+            <div class="section-head compact-section-head">
+                <h2 id="faq-heading">Frequently asked questions</h2>
+                <p class="section-desc">Everything students ask about DocUp notes for <%= collegeInfo.name %>.</p>
+            </div>
+
+            <div class="faq-grid">
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">Do I need to sign in to view notes?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">You can browse and search notes on this page without an account. Opening a document continues through DocUp’s normal access flow, which may ask you to sign in.</p>
+                    </div>
+                </div>
+
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">Are these notes specific to <%= collegeInfo.name %>?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">Yes. Every note on this page was uploaded by a student associated with <%= collegeInfo.name %> and is tagged with subject, branch, semester and year for easier discovery.</p>
+                    </div>
+                </div>
+
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">Can I upload my own notes here?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">Yes. Create a free DocUp account, upload your PDFs or handwritten scans, tag them with your college, subject and semester, and they can appear here for other students to discover.</p>
+                    </div>
+                </div>
+
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">What kind of study material is available?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">You may find semester notes, chapter PDFs, handwritten class notes, revision summaries, lab manuals, assignment material and other academic documents organised by subject and semester.</p>
+                    </div>
+                </div>
+
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">How do I know which notes are reliable?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">Look for the Reviewed badge and higher like counts. Those can help you spot resources that students found more useful.</p>
+                    </div>
+                </div>
+
+                <div class="faq-card" itemscope itemtype="https://schema.org/Question">
+                    <h3 itemprop="name">Is DocUp free to use?</h3>
+                    <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+                        <p itemprop="text">Browsing this notes page is free. Opening a document continues through DocUp’s standard document flow inside the platform.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-band" aria-label="Get started">
+            <div class="cta-inner">
+                <h2>Can’t find what you’re looking for?</h2>
+                <p>Upload the notes yourself and help the next student — it takes only a couple of minutes.</p>
+                <a href="/signup" class="cta-btn">Create a free account →</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <nav class="footer-nav" aria-label="Footer navigation">
+            <a href="/privacy_policy">Privacy Policy</a>
+            <a href="/uploads">Upload Notes</a>
+            <a href="/contact">Contact</a>
+            <a href="/signin">Sign In</a>
+        </nav>
+        <div class="footer-brand">DocUp</div>
+        <p>The student notes platform helping learners at <%= collegeInfo.name %> and colleges across India discover useful study material faster.</p>
+    </footer>
+</div>
+
+<script>
+    (function () {
+        const searchInput = document.getElementById("notesSearchInput");
+        const searchClear = document.getElementById("searchClear");
+        const searchHint = document.getElementById("searchHint");
+        const noteCards = document.querySelectorAll(".searchable-note");
+        const subjectBlocks = document.querySelectorAll(".searchable-subject");
+
+        if (!searchInput) return;
+
+        function runSearch(query) {
+            let total = 0;
+
+            noteCards.forEach(card => {
+                const haystack = card.dataset.search || "";
+                const match = !query || haystack.includes(query);
+                card.style.display = match ? "" : "none";
+                if (match) total++;
+            });
+
+            subjectBlocks.forEach(subject => {
+                const visible = [...subject.querySelectorAll(".searchable-note")]
+                    .some(card => card.style.display !== "none");
+                subject.style.display = visible ? "" : "none";
+            });
+
+            if (searchClear) {
+                searchClear.style.display = query ? "inline-flex" : "none";
+            }
+
+            if (searchHint) {
+                if (query) {
+                    searchHint.textContent = total
+                        ? `${total} note${total !== 1 ? "s" : ""} found for "${query}"`
+                        : `No notes found for "${query}" — try a different keyword.`;
+                } else {
+                    searchHint.textContent = "";
+                }
+            }
+        }
+
+        searchInput.addEventListener("input", function () {
+            runSearch(this.value.trim().toLowerCase());
+        });
+
+        if (searchClear) {
+            searchClear.addEventListener("click", function () {
+                searchInput.value = "";
+                runSearch("");
+                searchInput.focus();
+            });
+
+            searchClear.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    this.click();
+                }
+            });
+        }
+    })();
+</script>
+</body>
+</html>
