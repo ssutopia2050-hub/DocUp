@@ -372,8 +372,8 @@ return "Document";
         </div>
         <div class="recent-uploads-card glass-card">
             <div class="section-header">
-                <h2>Recent Uploads</h2>
-                <span class="mini-tag"><%= uploadCount %> Uploads</span>
+                <h2>Uploads</h2>
+                <a href="/all_uploads_view_second_pov_profile/<%= user._id %>"><span class="mini-tag view-all">View all Uploads</span></a>
             </div>
 
             <% if (uploadCount > 0) { %>
@@ -538,16 +538,19 @@ return "Document";
                                     <span class="saved-profile-badge neutral-badge">
                                 <%= profile.user_type || "DocUp Member" %>
                             </span>
+                                    <span class="saved-profile-badge neutral-badge">
+                               <strong><%= Array.isArray(profile.uploads) ? profile.uploads.length : 0 %> <span>↑</span></strong>
+                            </span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="saved-profile-stats-row">
-                        <div class="saved-profile-mini-stat">
-                            <span>Uploads</span>
-                            <strong><%= Array.isArray(profile.uploads) ? profile.uploads.length : 0 %></strong>
-                        </div>
+                    <div style="display: flex;justify-content: flex-start" class="saved-profile-stats-row">
+<!--                        <div class="saved-profile-mini-stat">-->
+<!--                            <span>Uploads</span>-->
+<!--                            <strong><%= Array.isArray(profile.uploads) ? profile.uploads.length : 0 %></strong>-->
+<!--                        </div>-->
                         <a href="/all_uploads_view_second_pov_profile/<%= profile._id %>" class="visit-profile-btn">
                             View Uploads
                         </a>

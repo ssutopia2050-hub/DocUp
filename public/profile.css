@@ -369,7 +369,7 @@ button {
     padding: 8px 12px;
     border-radius: 999px;
     background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.76);
+    color: rgba(255, 255, 255, 0.67);
     font-size: 0.76rem;
     font-family: "Saira", sans-serif;
     white-space: nowrap;
@@ -1442,12 +1442,12 @@ button {
     border-radius: 50%;
 }
 
-.saved-profile-info{
+.saved-profile-info {
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    flex: 1;
+    flex: 1; /* 🔥 THIS is key */
 }
 
 .saved-profile-name{
@@ -1469,7 +1469,9 @@ button {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    margin-top: 6px;
+    margin-top: 20px;
+    /*width: 300px;*/
+    margin-left:-70px;
 }
 
 .saved-profile-badge{
@@ -1853,4 +1855,11 @@ button {
     border-radius: 16px;
     border: 1px dashed rgba(255,255,255,0.08);
     background: rgba(255,255,255,0.02);
+}
+.view-all{
+    transition: 0.3s ease-in-out all;
+}
+.view-all:hover{
+    cursor: pointer;
+color: rgb(255, 255, 255);
 }
