@@ -3986,6 +3986,26 @@ app.post("/dev/reports/:id/delete-doc", async (req, res) => {
         res.status(500).send("Error deleting reported doc");
     }
 });
+app.post("/dev/reports/:id/delete", async (req, res) => {
+    if(!req.session.dev_email){
+        return res.redirect("/dev/signin");
+    }
+    try {
+        const reportDoc = await reports.findById(req.params.id);
+
+        if (!reportDoc) {
+            return res.status(404).send("Report not found");
+        }
+
+        await reports.deleteMany({ doc_id: reportDoc.doc_id });
+        // await Docs.findByIdAndDelete(reportDoc.doc_id);
+
+        res.redirect("/dev/reports");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error deleting reported doc");
+    }
+});
 app.post("/dev/contact/:id/delete", async (req, res) => {
     if (!req.session.dev_email) {
         return res.redirect("/dev/signin");
