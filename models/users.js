@@ -68,7 +68,7 @@ const user_profile = new mongoose.Schema({
     Doc_score: {
         type: Number,
         required: true,
-        default: 10
+        default: 15
     },
 
     uploads: [
