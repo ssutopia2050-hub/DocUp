@@ -5,7 +5,7 @@ const Contact = new mongoose.Schema({
     name: String,
     topic: String,
     message: String,
-    created_at: {
+    createdAt: {
         type: Date,
         default: Date.now
     }

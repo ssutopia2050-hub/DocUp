@@ -3900,73 +3900,69 @@ app.post("/dev/docs/:id/delete", async (req, res) => {
  Reports
  *****************/
 app.get("/dev/reports", async (req, res) => {
-    if(!req.session.dev_email){
+    if (!req.session.dev_email) {
         return res.redirect("/dev/signin");
     }
-    try {
-        const allReports = await reports.find().sort({ createdAt: -1 });
 
-        const reportedDocIds = allReports.map(report => report.doc_id);
+    try {
+        // 🔹 Fetch both collections
+        const allReports = await reports.find().sort({ createdAt: -1 });
+        const allContacts = await Contact.find().sort({ createdAt: -1 });
+
+        // 🔹 Get valid doc IDs only
+        const reportedDocIds = allReports
+            .map(r => r.doc_id)
+            .filter(id => id); // remove null/undefined
 
         const relatedDocs = await Docs.find({
             _id: { $in: reportedDocIds }
         });
 
+        // 🔹 Build doc map
         const docMap = new Map();
         relatedDocs.forEach(doc => {
             docMap.set(doc._id.toString(), doc);
         });
 
+        // 🔹 Map report cards
         const reportCards = allReports.map(report => {
-            const linkedDoc = docMap.get(report.doc_id.toString());
+            const linkedDoc = report.doc_id
+                ? docMap.get(report.doc_id.toString())
+                : null;
 
             return {
+                type: "report",
                 _id: report._id,
                 reported_by_email: report.reported_by_email,
                 report: report.report,
-                createdAt: report.createdAt,
+                createdAt: report.createdAt || new Date(),
                 doc_id: report.doc_id,
-                doc: linkedDoc
-                    ? {
-                        _id: linkedDoc._id,
-                        subject: linkedDoc.subject,
-                        college: linkedDoc.college,
-                        branch: linkedDoc.branch,
-                        uploaded_by: linkedDoc.uploaded_by,
-                        chapter: linkedDoc.chapter,
-                        year: linkedDoc.year,
-                        semester: linkedDoc.semester,
-                        likes: linkedDoc.likes,
-                        dislikes: linkedDoc.dislikes,
-                        reviewed: linkedDoc.reviewed,
-                        file_url: linkedDoc.file_url,
-                        commentCount: Array.isArray(linkedDoc.comment_section)
-                            ? linkedDoc.comment_section.length
-                            : 0
-                    }
-                    : null
+                doc: linkedDoc || null
             };
         });
 
-        res.render("dev_reports", {
-            reportsData: reportCards
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Error loading reports page");
-    }
-});
+        // 🔹 Map contact cards (FIXED)
+        const contactCards = allContacts.map(contact => ({
+            type: "contact",
+            _id: contact._id,
+            reported_by_email: contact.email || "Unknown",
+            report: `[${contact.topic || "General"}] ${contact.message || ""}`,
+            createdAt: contact.createdAt || new Date(), // ✅ FIXED
+            doc: null
+        }));
 
-app.post("/dev/reports/:id/delete", async (req, res) => {
-    if(!req.session.dev_email){
-        return res.redirect("/dev/signin");
-    }
-    try {
-        await reports.findByIdAndDelete(req.params.id);
-        res.redirect("/dev/reports");
+        // 🔹 Merge + SAFE sort
+        const combined = [...reportCards, ...contactCards].sort(
+            (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        );
+
+        res.render("dev_reports", {
+            reportsData: combined
+        });
+
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Error deleting report");
+        console.error("DEV REPORTS ERROR:", error);
+        res.status(500).send("Error loading reports page");
     }
 });
 
@@ -3988,6 +3984,19 @@ app.post("/dev/reports/:id/delete-doc", async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).send("Error deleting reported doc");
+    }
+});
+app.post("/dev/contact/:id/delete", async (req, res) => {
+    if (!req.session.dev_email) {
+        return res.redirect("/dev/signin");
+    }
+
+    try {
+        await Contact.findByIdAndDelete(req.params.id);
+        res.redirect("/dev/reports");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Error deleting contact message");
     }
 });
 /****************
