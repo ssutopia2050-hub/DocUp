@@ -8,6 +8,7 @@ import docs_view_data from "./models/docs_view_data.js";
 import ChatMessage from "./models/chatMessage.js";
 import DocAI from "./models/DocAI.js";
 import reports from "./models/Reports.js"
+import Contact from "./models/contacts.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -3437,6 +3438,27 @@ app.post("/report_doc", async (req, res) => {
     }
 });
 
+app.post("/contact", async (req, res) => {
+    if (!req.session.email) {
+        return res.status(401).json({ success: false });
+    }
+
+    try {
+        const { name, topic, message } = req.body;
+
+        await Contact.create({
+            email: req.session.email,
+            name,
+            topic,
+            message
+        });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ success: false });
+    }
+});
 
 /*******************
 Subscription Plans

@@ -1,28 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/dashboard.css">
-
+<!--    <link rel="stylesheet" href="/dashboard.css">-->
+    <link rel="stylesheet" href="/contact.css">
     <meta charset="UTF-8">
     <title>DocUp | Contact</title>
-
 </head>
 <body>
 
 <div class="topbar">
     <div style="font-family: Archivo Black , sans-serif;font-size: 2rem" class="logo-text-container">DocUp</div>
-
     <div style="display: flex;gap: 10px;font-family: 'DM Sans',sans-serif" class="pg-links">
         <a href="/dashboard">FindDocs</a>
         <a href="/uploads">Upload</a>
@@ -30,30 +24,88 @@
 </div>
 
 <div class="contact-page">
+    <div class="contact-wrapper">
 
-    <div class="contact-left glass-card">
+        <div class="contact-left">
+            <div class="contact-left-header">
+                <h1>Contact Us</h1>
+                <p>Facing issues with payments, document access or uploads? Want to report a bug or suggest improvements? We're always happy to help.</p>
+            </div>
 
-        <h1 style="color: #f49671">Contact Us</h1>
-
-        <p class="contact-desc">
-            Facing issues with payments, document access or uploads?
-            Want to report a bug or suggest improvements?
-            We are always happy to help.
-        </p>
-
-        <div class="contact-info-block">
-            <span class="contact-label">Support Email</span>
-            <span class="contact-value">ssbiology26@gmail.com</span>
+            <div class="contact-info-blocks">
+                <div class="contact-info-block">
+                    <span class="contact-label">Support Email</span>
+                    <a href="#" class="contact-value email-link" onclick="openGmailCompose(event)">
+                        docup.ltd@gmail.com
+                    </a>
+                </div>
+                <div class="contact-info-block">
+                    <span class="contact-label">Business Queries</span>
+                    <a href="#" class="contact-value email-link" onclick="openGmailComposeBusiness(event)">
+                        ssbiology26@gmail.com
+                    </a>
+                </div>
+                <div class="contact-info-block">
+                    <span class="contact-label">Average Response Time</span>
+                    <span class="response-badge">Within 1 Hour</span>
+                </div>
+            </div>
         </div>
 
-        <div class="contact-info-block">
-            <span class="contact-label">Business Queries</span>
-            <span class="contact-value">ssbiology26@gmail.com</span>
-        </div>
+        <div class="contact-right">
+            <h2>Send us a message</h2>
+            <p class="form-subtitle">We'll get back to you shortly.</p>
 
-        <div class="contact-info-block">
-            <span class="contact-label">Average Response Time</span>
-            <span class="contact-value">Within 24 Hours</span>
+            <div id="contact-form-inner">
+                <div class="form-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Your Name</label>
+                            <input type="text" id="contact-name" placeholder="e.g. Riya Sharma" />
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="contact-email" placeholder="you@example.com" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Topic</label>
+                        <select id="contact-topic">
+                            <option value="" disabled selected>Select a topic</option>
+                            <option value="payment">Payment / Billing</option>
+                            <option value="access">Document Access</option>
+                            <option value="upload">Upload Issues</option>
+                            <option value="bug">Bug Report</option>
+                            <option value="suggestion">Suggestion / Feedback</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="contact-message" placeholder="Describe your issue or question in detail..."></textarea>
+                    </div>
+
+                    <button class="contact-submit" onclick="handleContactSubmit()">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Send Message
+                    </button>
+                </div>
+            </div>
+
+            <div class="contact-success" id="contact-success">
+                <div class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6fcf8e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+                <h3>Message sent!</h3>
+                <p>Thanks for reaching out. We'll get back to you within an hour.</p>
+            </div>
         </div>
 
     </div>
@@ -73,6 +125,73 @@
         <a href="/logout">Logout</a>
     </div>
 </div>
+
+<script>
+    async function handleContactSubmit() {
+        const name = document.getElementById('contact-name').value.trim();
+        const email = document.getElementById('contact-email').value.trim();
+        const topic = document.getElementById('contact-topic').value;
+        const message = document.getElementById('contact-message').value.trim();
+
+        if (!name || !email || !topic || !message) {
+            alert('Please fill in all fields before sending.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    topic: topic,
+                    message: message
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById('contact-form-inner').style.display = 'none';
+                document.getElementById('contact-success').style.display = 'flex';
+            } else {
+                alert('Something went wrong.');
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Server error.');
+        }
+    }
+</script>
+<script>
+    function openGmailCompose(e) {
+        e.preventDefault();
+
+        const email = "docup.ltd@gmail.com";
+        const subject = encodeURIComponent("Support Request - DocUp");
+        const body = encodeURIComponent("Hi DocUp Team ,\n\n");
+
+        const gmailURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+
+        window.open(gmailURL, "_blank");
+    }
+</script>
+<script>
+    function openGmailComposeBusiness(e) {
+        e.preventDefault();
+
+        const email = "ssbiology26@gmail.com";
+        const subject = encodeURIComponent("Business Query - DocUp");
+        const body = encodeURIComponent("Hi DocUp Team ,\n\n");
+
+        const gmailURL = `https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=${subject}&body=${body}`;
+
+        window.open(gmailURL, "_blank");
+    }
+</script>
 
 </body>
 </html>
