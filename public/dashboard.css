@@ -2161,3 +2161,104 @@ a.view-doc-link:hover {
      opacity: 0.6;
      pointer-events: none;
  }
+
+.back-to-top-btn{
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    cursor: pointer;
+
+    /* 🔥 DOCUP SIGNATURE GRADIENT */
+    background:
+            radial-gradient(circle at 30% 30%, #ff9a00 0%, #ff6a00 35%, #ff3d00 75%),
+            linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+
+    color: white;
+
+    /* sharper separation from bg */
+    border: 1px solid rgba(255,106,0,0.35);
+
+    /* 🔥 layered glow (this is the real upgrade) */
+    box-shadow:
+            0 10px 30px rgba(255,106,0,0.35),
+            0 0 0 6px rgba(255,106,0,0.10),
+            inset 0 1px 0 rgba(255,255,255,0.12);
+
+    backdrop-filter: blur(12px);
+
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px) scale(0.9);
+
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 1500;
+}
+
+.back-to-top-btn.show{
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+.back-to-top-btn:hover{
+    background:
+            radial-gradient(circle at 30% 30%, #ffb347 0%, #ff7a1a 40%, #ff4d00 80%),
+            linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+
+    box-shadow:
+            0 18px 55px rgba(255,106,0,0.5),
+            0 0 0 10px rgba(255,106,0,0.14),
+            inset 0 1px 0 rgba(255,255,255,0.18);
+}
+.back-to-top-btn:hover{
+    background:
+            radial-gradient(circle at 30% 30%, #ffb347 0%, #ff7a1a 40%, #ff4d00 80%),
+            linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+
+    box-shadow:
+            0 18px 55px rgba(255,106,0,0.5),
+            0 0 0 10px rgba(255,106,0,0.14),
+            inset 0 1px 0 rgba(255,255,255,0.18);
+}
+
+/* center icon */
+.btn-center-icon{
+    position: absolute;
+    z-index: 2;
+}
+
+/* ===== Progress Ring ===== */
+.progress-ring{
+    position: absolute;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg{
+    fill: transparent;
+    stroke: rgba(255,255,255,0.12);
+    stroke-width: 3;
+}
+
+.progress-ring-circle{
+    fill: transparent;
+    stroke: white;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 163;
+    stroke-dashoffset: 163;
+    transition: stroke-dashoffset 0.2s linear;
+}
+
+/*!* ===== Magnetic hover ===== *!*/
+/*.back-to-top-btn:hover{*/
+/*    box-shadow:*/
+/*            0 18px 60px rgba(255,80,0,0.45),*/
+/*            0 0 0 10px rgba(255,80,0,0.12);*/
+/*}*/

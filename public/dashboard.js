@@ -15,6 +15,71 @@ document.addEventListener("DOMContentLoaded", function () {
     const suggestionBar = document.getElementById("search-suggestion-bar");
     const suggestionBtn = document.getElementById("search-suggestion-btn");
 
+    const backToTopBtn = document.getElementById("backToTopBtn");
+    const searchBar = document.querySelector(".search-param-container");
+    const progressCircle = document.querySelector(".progress-ring-circle");
+
+    const radius = 26;
+    const circumference = 2 * Math.PI * radius;
+
+    if (progressCircle) {
+        progressCircle.style.strokeDasharray = circumference;
+    }
+
+    function updateScrollProgress() {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+        const progress = scrollTop / docHeight;
+        const offset = circumference - progress * circumference;
+
+        if (progressCircle) {
+            progressCircle.style.strokeDashoffset = offset;
+        }
+    }
+
+    function toggleBackToTop() {
+        if (!searchBar || !backToTopBtn) return;
+
+        const rect = searchBar.getBoundingClientRect();
+
+        if (rect.bottom < 0) {
+            backToTopBtn.classList.add("show");
+        } else {
+            backToTopBtn.classList.remove("show");
+        }
+    }
+
+    window.addEventListener("scroll", () => {
+        toggleBackToTop();
+        updateScrollProgress();
+    });
+
+    /* ===== Click scroll ===== */
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener("click", () => {
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        });
+    }
+
+    // /* ===== Magnetic Hover ===== */
+    // if (backToTopBtn) {
+    //     backToTopBtn.addEventListener("mousemove", (e) => {
+    //         const rect = backToTopBtn.getBoundingClientRect();
+    //         const x = e.clientX - rect.left - rect.width / 2;
+    //         const y = e.clientY - rect.top - rect.height / 2;
+    //
+    //         backToTopBtn.style.transform =
+    //             `translate(${x * 0.25}px, ${y * 0.25}px) scale(1.05)`;
+    //     });
+    //
+    //     backToTopBtn.addEventListener("mouseleave", () => {
+    //         backToTopBtn.style.transform = "";
+    //     });
+    // }
     const colleges = JSON.parse(
         document.getElementById("colleges-data").textContent
     );
@@ -505,6 +570,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <div class="tags-container">
                             <div class="tags">${escapeHTML(doc.branch || "")}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
+                            <div class="tags">${escapeHTML(capitalizeFirst(doc.semester || ""))}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
                             <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
 
