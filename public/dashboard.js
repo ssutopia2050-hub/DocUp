@@ -480,18 +480,23 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <a href="/college/${encodeURIComponent(doc.college || "")}">
                                     ${escapeHTML(doc.college || "")}
                                 </a>
+                                <p class="result-tab-label" style="color:white;">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</p>
                             </div>
                         </div>
 
-                        <div class="result-tab-badge">DOC</div>
+                        <div class="result-tab-badge"> ${escapeHTML(doc.special_tag || "")} </div>
                     </div>
 
                     <div class="result-tab-body">
-                        <p class="result-tab-body-label">Open Document</p>
+<!--                        <p class="result-tab-body-label">Open Document</p>-->
 
                         <div class="file-link-result-tab">
-                            <a href="/view/${doc._id}" class="view-doc-link">
-                                Click here to view the doc on your browser
+                            <a href="/view/${doc._id}" class="view-doc-link" style="display: flex;justify-content: center;align-items: center;gap:4%;width:150px;">
+                                Open Doc
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
+                                </svg>
                             </a>
                         </div>
                     </div>

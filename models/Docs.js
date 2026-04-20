@@ -91,6 +91,11 @@ const Docs = new mongoose.Schema({
     protected:{
         type:Boolean,
         default:true
+    },
+    special_tag:{
+        type:String,
+        trim:true,
+        default:"9+ CGPA"
     }
 });
 

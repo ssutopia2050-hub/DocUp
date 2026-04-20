@@ -1995,6 +1995,7 @@ app.get("/view/:id", async (req, res) => {
 
         await docs_view_data.create({
             email: req.session.email,
+            doc_id: docId,
         });
 
         let uploaderProfile = null;
@@ -2007,6 +2008,8 @@ app.get("/view/:id", async (req, res) => {
                 ]
             }).select("_id name avatar_img_path user_type");
         }
+        // Count directly (fast)
+        const total_views = await docs_view_data.countDocuments({ doc_id: docId });
 
         return res.render("docview", {
             doc: document,
@@ -2014,6 +2017,7 @@ app.get("/view/:id", async (req, res) => {
             user: renderUser,
             uploaderProfile,
             shareDocLink: `${req.protocol}://${req.get("host")}/view/${docId}`,
+            views: total_views,
         });
 
     } catch (err) {

@@ -11,7 +11,7 @@ async function run() {
 
         const result = await doc.updateMany(
             {},
-            { $set: { protected:true } }
+            { $set: { reviewed: true } },
         );
 
         console.log("Update result:", result);
