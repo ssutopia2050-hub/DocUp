@@ -37,7 +37,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
 import os from "os";
 /******************************
-           Middleware
+ Middleware
  ******************************/
 app.set("view engine", "ejs");
 app.set("views", "./views");
@@ -898,7 +898,7 @@ async function startServer() {
 
 startServer();
 /******************************
-           Routes
+ Routes
  ******************************/
 app.get("/", async (req, res) => {
     if (req.session.email) {
@@ -910,7 +910,7 @@ app.get("/", async (req, res) => {
     return res.render("seo", { err: null });
 });
 /******************************
-          Signup
+ Signup
  ******************************/
 app.get("/signup", (req, res) => {
     res.render('signup',{err:null});
@@ -995,7 +995,7 @@ app.post('/signup', async (req, res) => {
     res.redirect('/email_verify');
 });
 /******************************
-        SignIn
+ SignIn
  ******************************/
 app.get('/signin', (req, res) => {
     res.render('signin', {
@@ -1038,7 +1038,7 @@ app.post('/signin', async (req, res) => {
     });
 });
 /******************************
-    Email Verification
+ Email Verification
  ******************************/
 app.get("/email_verify", (req, res) => {
 
@@ -1138,11 +1138,11 @@ app.post("/resend_otp", async (req, res) => {
     res.redirect("/email_verify");
 });
 /******************************
-      Forgot Password
+ Forgot Password
  ******************************/
- app.get("/forgot_password", async (req, res) => {
-     res.render('forgot_password', {err:null});
- })
+app.get("/forgot_password", async (req, res) => {
+    res.render('forgot_password', {err:null});
+})
 app.post("/forgot_password", async (req, res) => {
 
     const { email } = req.body;
@@ -1262,17 +1262,50 @@ app.get("/dashboard", async (req, res) => {
     }
 
     try {
-        const data = await user_profile.findOne({ email: req.session.email });
+        const data = await user_profile
+            .findOne({ email: req.session.email })
+            .populate("saved_documents", "college subject chapter reviewed");
+
         const clg = await college.find({});
-        const msg ={
-            err:null
-        }
+        const msg = { err: null };
+// 🔥 create map: { "IIT Delhi": "image-url", ... }
+        const collegeImageMap = {};
+        clg.forEach(c => {
+            collegeImageMap[c.college_name.toLowerCase()] = c.image;
+        });
+
+        // Trending colleges: most-viewed docs in last 7 days
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const trendingColleges = await docs_view_data.aggregate([
+            { $match: { DocViewedAt: { $gte: oneWeekAgo } } },
+            { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+            { $unwind: "$doc" },
+            { $group: { _id: "$doc.college", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 6 },
+            { $project: { _id: 0, college: "$_id", count: 1 } }
+        ]);
+
+        // Most viewed colleges: all-time doc views
+        const mostViewedColleges = await docs_view_data.aggregate([
+            { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+            { $unwind: "$doc" },
+            { $group: { _id: "$doc.college", views: { $sum: 1 } } },
+            { $sort: { views: -1 } },
+            { $limit: 6 },
+            { $project: { _id: 0, college: "$_id", views: 1 } }
+        ]);
+
+
         res.render("dashboard", {
             data,
             colleges: collegesList,
             results: [],
             college_specific_data: clg,
-            msg
+            collegeImageMap, // ✅ send this
+            msg,
+            trendingColleges,
+            mostViewedColleges,
         });
 
     } catch (err) {
@@ -1524,7 +1557,7 @@ app.get("/college/:collegeName", async (req, res) => {
     }
 });
 /******************************
-      Uploads
+ Uploads
  ******************************/
 app.get("/uploads", async (req, res) => {
     if (!req.session.email) {
@@ -1714,7 +1747,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
     }
 });
 /******************************
-      Profile
+ Profile
  ******************************/
 
 // app.get("/profile", async (req, res) => {
@@ -1811,7 +1844,7 @@ app.post("/set_avatar", async (req, res) => {
     }
 });
 /******************************
-    Privacy Policy
+ Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
     res.render("privacy_policy");
@@ -1834,7 +1867,7 @@ app.get("/logout", (req, res) => {
 
 });
 /******************************
-   Pdf_viewer
+ Pdf_viewer
  ******a************************/
 function escapeRegex(str) {
     return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -2270,7 +2303,7 @@ app.post("/add_comment/:id", async (req, res) => {
     }
 });
 /****************************
-Helper routes
+ Helper routes
  ****************************/
 const RECHARGE_PLANS = {
     starter: {
@@ -2526,7 +2559,7 @@ app.post("/payment/verify", async (req, res) => {
     }
 });
 /****************************
-     contact us
+ contact us
  ****************************/
 app.get("/contact",(req,res)=>{
     res.render("contact");
@@ -2535,7 +2568,7 @@ app.get("/contact",(req,res)=>{
  Version Report
  ****************************/
 app.get("/version_report",(req,res)=>{
-res.render("version_report");
+    res.render("version_report");
 })
 app.get("/auth/google", (req, res, next) => {
     const nextPath = req.query.next || "/dashboard";
@@ -3465,7 +3498,7 @@ app.post("/contact", async (req, res) => {
 });
 
 /*******************
-Subscription Plans
+ Subscription Plans
  *****************/
 
 app.get("/upgrade-plans", async (req, res) => {
@@ -3637,7 +3670,7 @@ app.post("/subscription/verify", async (req, res) => {
 
 
 /*************************
-DOC UP DEV Routes
+ DOC UP DEV Routes
  ***************************/
 /****************
  Sign In

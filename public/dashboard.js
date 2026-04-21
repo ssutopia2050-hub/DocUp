@@ -253,13 +253,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function showLoading() {
+        // ✅ Hide initial college grid
+        const grid = document.getElementById("initial-college-grid");
+        if (grid) grid.style.display = "none";
+
+        // ✅ Hide college strip (search suggestions row)
         if (collegeResultsStrip) {
             collegeResultsStrip.style.display = "none";
         }
 
+        // ✅ Disable search button
         setSearchButtonLoading(true);
 
-        resultsContainer.innerHTML = `
+        // ✅ Show loading UI
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `
             <div class="search-ui-state search-loader-state">
                 <div class="search-ui-glow"></div>
 
@@ -270,47 +278,35 @@ document.addEventListener("DOMContentLoaded", function () {
                 </div>
 
                 <p class="search-ui-eyebrow">DocUp Search</p>
-                <h2 style="font-family: 'DM Sans',sans-serif">Searching through documents</h2>
+                <h2 style="font-family: 'DM Sans', sans-serif;">
+                    Searching through documents
+                </h2>
                 <p class="search-ui-text">
                     Finding notes, PYQs, semester material and useful docs for you...
                 </p>
             </div>
         `;
+        }
     }
 
     function showInputHintState() {
         setSearchButtonLoading(false);
 
+        // ✅ Show initial college grid again
+        const grid = document.getElementById("initial-college-grid");
+        if (grid) grid.style.display = "grid";
+
+        // ✅ Hide college strip
         if (collegeResultsStrip) {
             collegeResultsStrip.style.display = "none";
         }
 
-        resultsContainer.innerHTML = `
-            <div class="search-ui-state no-results-state">
-                <div class="search-ui-glow"></div>
+        // ✅ Clear results instead of showing empty state UI
+        if (resultsContainer) {
+            resultsContainer.innerHTML = "";
+        }
 
-                <div class="no-results-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="54" height="54" viewBox="0 0 24 24" fill="none">
-                        <path d="M10 17a7 7 0 1 1 4.95-2.05L21 21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 8V12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-                        <circle cx="12" cy="16" r="0.8" fill="currentColor"/>
-                    </svg>
-                </div>
-
-                <p class="search-ui-eyebrow">Search Required</p>
-                <h2>Enter a search parameter first</h2>
-                <p class="search-ui-text">
-                    Use a college name, subject name, chapter name, or refine using filters.
-                </p>
-
-                <div class="no-results-tips">
-                    <div class="no-results-tip"><span>/c</span> College Name</div>
-                    <div class="no-results-tip"><span>/s</span> Subject Name</div>
-                    <div class="no-results-tip"><span>/ch</span> Chapter Name</div>
-                </div>
-            </div>
-        `;
-
+        // ✅ Save state
         saveDashboardState();
     }
 
@@ -481,17 +477,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderResults(results) {
         const collegeLogoMap = getCollegeLogoMap(collegeSpecificData);
-        resultsContainer.innerHTML = "";
+
+        // ✅ Always hide initial grid when results are being rendered
+        const grid = document.getElementById("initial-college-grid");
+        if (grid) grid.style.display = "none";
+
+        // ✅ Reset container + button
+        if (resultsContainer) resultsContainer.innerHTML = "";
         setSearchButtonLoading(false);
 
+        // ✅ Render top college strip
         renderCollegeCards(results);
 
+        // =========================
+        // ❌ NO RESULTS STATE
+        // =========================
         if (!results || results.length === 0) {
             if (collegeResultsStrip) {
                 collegeResultsStrip.style.display = "none";
             }
 
-            resultsContainer.innerHTML = `
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
                 <div class="search-ui-state no-results-state">
                     <div class="search-ui-glow"></div>
 
@@ -516,10 +523,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                 </div>
             `;
+            }
+
             saveDashboardState();
             return;
         }
 
+        // =========================
+        // ✅ RESULTS FOUND
+        // =========================
         results.forEach(doc => {
             const logoUrl =
                 collegeLogoMap[(doc.college || "").trim().toLowerCase()] ||
@@ -529,66 +541,72 @@ document.addEventListener("DOMContentLoaded", function () {
             card.className = "result-tab-container";
 
             card.innerHTML = `
-                <div class="result-tab">
-                    <div class="result-tab-top">
-                        <div class="result-tab-identity">
-                            <div class="college-logo">
-                                <img
-                                    src="${logoUrl}"
-                                    alt="${escapeHTML(doc.college || "College Logo")}"
-                                    onerror="this.onerror=null; this.src='/images/default.png';"
-                                >
-                            </div>
-
-                            <div class="result-tab-title-wrap">
-                                <p class="result-tab-label">Institution</p>
-                                <a href="/college/${encodeURIComponent(doc.college || "")}">
-                                    ${escapeHTML(doc.college || "")}
-                                </a>
-                                <p class="result-tab-label" style="color:white;">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</p>
-                            </div>
+            <div class="result-tab">
+                <div class="result-tab-top">
+                    <div class="result-tab-identity">
+                        <div class="college-logo">
+                            <img
+                                src="${logoUrl}"
+                                alt="${escapeHTML(doc.college || "College Logo")}"
+                                onerror="this.onerror=null; this.src='/images/default.png';"
+                            >
                         </div>
 
-                        <div class="result-tab-badge"> ${escapeHTML(doc.special_tag || "")} </div>
-                    </div>
-
-                    <div class="result-tab-body">
-<!--                        <p class="result-tab-body-label">Open Document</p>-->
-
-                        <div class="file-link-result-tab">
-                            <a href="/view/${doc._id}" class="view-doc-link" style="display: flex;justify-content: center;align-items: center;gap:4%;width:150px;">
-                                Open Doc
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
-                                </svg>
+                        <div class="result-tab-title-wrap">
+                            <p class="result-tab-label">Institution</p>
+                            <a href="/college/${encodeURIComponent(doc.college || "")}">
+                                ${escapeHTML(doc.college || "")}
                             </a>
+                            <p class="result-tab-label" style="color:white;">
+                                ${escapeHTML(capitalizeFirst(doc.chapter || ""))}
+                            </p>
                         </div>
                     </div>
 
-                    <div class="result-tab-footer">
-                        <div class="tags-container">
-                            <div class="tags">${escapeHTML(doc.branch || "")}</div>
-                            <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
-                            <div class="tags">${escapeHTML(capitalizeFirst(doc.semester || ""))}</div>
-                            <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
-                            <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
+                    <div class="result-tab-badge">
+                        ${escapeHTML(doc.special_tag || "")}
+                    </div>
+                </div>
 
-                            ${doc.reviewed
-                                ? `<div class="verif-status verified">Verified</div>`
-                                : `<div class="verif-status not-verified">To be Verified</div>`
-                            }
+                <div class="result-tab-body">
+                    <div class="file-link-result-tab">
+                        <a href="/view/${doc._id}" class="view-doc-link"
+                           style="display:flex;justify-content:center;align-items:center;gap:4%;width:150px;">
+                            Open Doc
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                      stroke="currentColor" stroke-width="1.7"
+                                      stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="3"
+                                        stroke="currentColor" stroke-width="1.7"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
 
-                            <div style="display:flex;align-items:center;gap:8px;" class="tags">
-                                ${escapeHTML(String(doc.likes ?? 0))}
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5z"/>
-                                </svg>
-                            </div>
+                <div class="result-tab-footer">
+                    <div class="tags-container">
+                        <div class="tags">${escapeHTML(doc.branch || "")}</div>
+                        <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
+                        <div class="tags">${escapeHTML(capitalizeFirst(doc.semester || ""))}</div>
+                        <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
+                        <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
+
+                        ${doc.reviewed
+                ? `<div class="verif-status verified">Verified</div>`
+                : `<div class="verif-status not-verified">To be Verified</div>`
+            }
+
+                        <div style="display:flex;align-items:center;gap:8px;" class="tags">
+                            ${escapeHTML(String(doc.likes ?? 0))}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF4500FF">
+                                <path d="M15.9 4.5C15.9 3 14.418 2 13.26 2c-.806 0-.869.612-.993 1.82-.055.53-.121 1.174-.267 1.93-.386 2.002-1.72 4.56-2.996 5.325V17C9 19.25 9.75 20 13 20h3.773c2.176 0 2.703-1.433 2.899-1.964l.013-.036c.114-.306.358-.547.638-.82.31-.306.664-.653.927-1.18.311-.623.27-1.177.233-1.67-.023-.299-.044-.575.017-.83.064-.27.146-.475.225-.671.143-.356.275-.686.275-1.329 0-1.5-.748-2.498-2.315-2.498H15.5S15.9 6 15.9 4.5z"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
 
             resultsContainer.appendChild(card);
         });
