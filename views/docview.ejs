@@ -440,6 +440,13 @@ college_data.image : '/images/default.png' %>"
                         Summarize
 
                     </button>
+                    <button class="ptb-btn ptb-ai" id="exit-zen-btn" aria-label="Exit Zen Mode">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Exit Zen
+                    </button>
+                    <button id="toggle-topbar-btn" class="ptb-btn ptb-ai">
+                        <span id="hide-topbar-text">Hide Topbar</span>
+                    </button>
                 </div>
             </div>
 
@@ -802,11 +809,6 @@ item.user_id.email : '' %>">
 
 <div id="theme-transition-overlay" class="theme-transition-overlay" aria-hidden="true"></div>
 <div id="copy-toast" class="copy-toast">Link copied !</div>
-
-<button id="exit-zen-btn" class="exit-zen-btn" aria-label="Exit Zen Mode">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    Exit Zen Mode
-</button>
 
 <script>
 
@@ -1483,24 +1485,69 @@ item.user_id.email : '' %>">
 </script>
 
 <script>
-    // ZEN MODE LOGIC
-    const zenModeBtn = document.getElementById("zen-mode-btn");
-    const exitZenBtn = document.getElementById("exit-zen-btn");
+    /* ═══════════════════════════════════════════════════
+       ZEN MODE CONTROLLER — CLEAN & SINGLE SOURCE
+    ═══════════════════════════════════════════════════ */
 
+    const body = document.body;
+
+    const zenModeBtn      = document.getElementById("zen-mode-btn");
+    const exitZenBtn      = document.getElementById("exit-zen-btn");
+    const toggleTopbarBtn = document.getElementById("toggle-topbar-btn");
+    const hideTopbarText  = document.getElementById("hide-topbar-text");
+
+    /* ───────── ENTER / EXIT ZEN ───────── */
     function toggleZenMode() {
-        document.body.classList.toggle("zen-mode");
+        const isZen = body.classList.toggle("zen-mode");
+
+        if (isZen) {
+            // Start with toolbar visible (better UX)
+            body.classList.add("zen-pinned");
+            body.classList.remove("zen-hover");
+
+            if (hideTopbarText) {
+                hideTopbarText.textContent = "Hide Topbar";
+            }
+        } else {
+            // Clean reset
+            body.classList.remove("zen-pinned", "zen-hover");
+        }
     }
 
     zenModeBtn?.addEventListener("click", toggleZenMode);
     exitZenBtn?.addEventListener("click", toggleZenMode);
 
+    /* ───────── HOVER DETECTION (TOP AREA) ───────── */
+    document.addEventListener("mousemove", (e) => {
+        if (!body.classList.contains("zen-mode")) return;
+
+        if (e.clientY < 80) {
+            body.classList.add("zen-hover");
+        } else {
+            body.classList.remove("zen-hover");
+        }
+    });
+
+    /* ───────── TOGGLE TOPBAR (PIN / UNPIN) ───────── */
+    toggleTopbarBtn?.addEventListener("click", () => {
+        const isPinned = body.classList.toggle("zen-pinned");
+
+        if (hideTopbarText) {
+            hideTopbarText.textContent = isPinned
+                ? "Hide Topbar"     // when visible → allow hiding
+                : "Pin Topbar";     // when hidden → allow pinning
+        }
+
+        toggleTopbarBtn.blur();
+    });
+
+    /* ───────── ESC TO EXIT (PREMIUM UX) ───────── */
     document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && document.body.classList.contains("zen-mode")) {
-            document.body.classList.remove("zen-mode");
+        if (e.key === "Escape" && body.classList.contains("zen-mode")) {
+            body.classList.remove("zen-mode", "zen-hover", "zen-pinned");
         }
     });
 </script>
-
 <script src="/dashboard3.js"></script>
 <script src="/docview.js"></script>
 </body>
