@@ -2204,6 +2204,108 @@ app.get("/update_dislikes/:id", async (req, res) => {
         return res.status(500).send("Server Error");
     }
 });
+// ── AJAX: like (no page reload) ──────────────────────────────
+app.post("/api/like/:id", async (req, res) => {
+    try {
+        const userEmail = req.session.email;
+        if (!userEmail) return res.status(401).json({ success: false, message: "Not signed in" });
+
+        const doc = await Docs.findById(req.params.id);
+        if (!doc) return res.status(404).json({ success: false, message: "Doc not found" });
+
+        if (!doc.liked_by)  doc.liked_by  = [];
+        if (!doc.disliked_by) doc.disliked_by = [];
+        if (typeof doc.likes    !== "number") doc.likes    = 0;
+        if (typeof doc.dislikes !== "number") doc.dislikes = 0;
+
+        const alreadyLiked    = doc.liked_by.some(e => e.email === userEmail);
+        const alreadyDisliked = doc.disliked_by.some(e => e.email === userEmail);
+
+        if (alreadyLiked) {
+            return res.json({ success: true, likes: doc.likes, dislikes: doc.dislikes, alreadyLiked: true });
+        }
+
+        if (alreadyDisliked) {
+            doc.disliked_by = doc.disliked_by.filter(e => e.email !== userEmail);
+            doc.dislikes    = Math.max(0, doc.dislikes - 1);
+        }
+
+        doc.likes += 1;
+        doc.liked_by.push({ email: userEmail });
+        await doc.save();
+        // await user_profile.updateOne({ email: userEmail }, { $inc: { Doc_score: 1 } });
+
+        return res.json({ success: true, likes: doc.likes, dislikes: doc.dislikes });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ── AJAX: dislike (no page reload) ───────────────────────────
+app.post("/api/dislike/:id", async (req, res) => {
+    try {
+        const userEmail = req.session.email;
+        if (!userEmail) return res.status(401).json({ success: false, message: "Not signed in" });
+
+        const doc = await Docs.findById(req.params.id);
+        if (!doc) return res.status(404).json({ success: false, message: "Doc not found" });
+
+        if (!doc.liked_by)    doc.liked_by    = [];
+        if (!doc.disliked_by) doc.disliked_by = [];
+        if (typeof doc.likes    !== "number") doc.likes    = 0;
+        if (typeof doc.dislikes !== "number") doc.dislikes = 0;
+
+        const alreadyLiked    = doc.liked_by.some(e => e.email === userEmail);
+        const alreadyDisliked = doc.disliked_by.some(e => e.email === userEmail);
+
+        if (alreadyDisliked) {
+            return res.json({ success: true, likes: doc.likes, dislikes: doc.dislikes, alreadyDisliked: true });
+        }
+
+        if (alreadyLiked) {
+            doc.liked_by = doc.liked_by.filter(e => e.email !== userEmail);
+            doc.likes    = Math.max(0, doc.likes - 1);
+        }
+
+        doc.dislikes += 1;
+        doc.disliked_by.push({ email: userEmail });
+        await doc.save();
+        // await user_profile.updateOne({ email: userEmail }, { $inc: { Doc_score: 1 } });
+
+        return res.json({ success: true, likes: doc.likes, dislikes: doc.dislikes });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ── AJAX: save (no page reload) ───────────────────────────────
+app.post("/api/save/:id", async (req, res) => {
+    try {
+        const userEmail = req.session.email;
+        if (!userEmail) return res.status(401).json({ success: false, message: "Not signed in" });
+
+        const user = await user_profile.findOne({ email: userEmail });
+        if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+        const docId       = req.params.id;
+        const alreadySaved = user.saved_documents.some(id => id.toString() === docId);
+
+        if (!alreadySaved) {
+            await user_profile.findOneAndUpdate(
+                { email: userEmail },
+                { $addToSet: { saved_documents: docId } }
+            );
+        }
+
+        return res.json({ success: true, alreadySaved });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
 app.post("/add_comment/:id", async (req, res) => {
     try {
         const docId = req.params.id;
