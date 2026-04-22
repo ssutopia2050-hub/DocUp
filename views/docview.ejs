@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DocUp | ViewDoc</title>
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/docview.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body class="theme-dark">
+
+<!-- ═══════════════ TOPBAR ═══════════════ -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <span class="topbar-breadcrumb">
+            <a href="/college/<%= encodeURIComponent(doc.college) %>"><%= doc.college %></a>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="breadcrumb-current"><%= doc.subject %></span>
+        </span>
+    </div>
+
+    <div class="topbar-right">
+        <button class="icon-btn" aria-label="Search"
+                onclick="window.location.href='/dashboard'">
+
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <!-- Notifications -->
+        <div class="notification-wrap">
+            <button class="icon-btn notification-btn" aria-label="Notifications">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                <% } %>
+            </button>
+
+            <div class="notification-dropdown">
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="nd-view-all">See all</a>
+                    <% } %>
+                </div>
+                <div class="nd-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="nd-item-row">
+                            <span class="nd-dot"></span>
+                            <span class="nd-when">
+                                <%= item.createdAt ? new Date(item.createdAt).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"}) : "Just now" %>
+                            </span>
+                        </div>
+                        <p class="nd-text"><%= item.content %></p>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="nd-empty">No notifications yet.</div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="avatar-btn">
+            <% if (user.avatar_img_path) { %>
+            <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+            <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<!-- Avatar dropdown -->
+<div class="avatar-dropdown">
+    <a href="/profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Profile
+    </a>
+    <a href="/pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Recharge DocScore
+    </a>
+    <a href="/upgrade-plans">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                  stroke-width="1.6"/>
+        </svg>
+        Upgrade Plans
+    </a>
+    <a href="/contact">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2
+                 19.79 19.79 0 0 1-8.63-3.07
+                 19.5 19.5 0 0 1-6-6
+                 19.79 19.79 0 0 1-3.07-8.67
+                 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72
+                 c.12.89.32 1.76.6 2.6
+                 a2 2 0 0 1-.45 2.11L8.09 9.91
+                 a16 16 0 0 0 6 6l1.48-1.17
+                 a2 2 0 0 1 2.11-.45
+                 c.84.28 1.71.48 2.6.6
+                 a2 2 0 0 1 1.72 2z"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        Contact Us / Feedback
+    </a>
+</div>
+
+<!-- ═══════════════ HERO STRIP ═══════════════ -->
+<div class="hero-strip">
+    <div class="hero-strip-inner">
+        <div class="hero-left">
+            <div class="college-logo-wrap">
+                <img
+                        src="<%= college_data && college_data.image ? college_data.image : '/images/default.png' %>"
+                        alt="college logo"
+                        onerror="this.onerror=null;this.src='/images/default.png';"
+                >
+            </div>
+            <div class="hero-meta">
+                <div class="hero-meta-top">
+                    <span class="college-chip"><%= doc.college %></span>
+                    <% if (doc.reviewed) { %>
+                    <span class="status-chip verified">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Verified
+                    </span>
+                    <% } else { %>
+                    <span class="status-chip pending">Under Review</span>
+                    <% } %>
+                </div>
+                <h1 class="hero-title"><%= doc.title || doc.chapter %></h1>
+                <p class="hero-sub"><%= doc.subject %> &nbsp;·&nbsp; <%= doc.branch %> &nbsp;·&nbsp;  <%= doc.year %> &nbsp;·&nbsp;  <%= doc.semester %></p>
+                <div class="hero-tags">
+                    <span class="htag"><%= doc.subject %></span>
+                    <span class="htag"><%= doc.branch %></span>
+                    <span class="htag"><%= doc.year %></span>
+                    <span class="htag"><%= doc.chapter %></span>
+                    <span class="htag"><%= views %> Views</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-actions">
+            <a href="/college/<%= encodeURIComponent(doc.college) %>" class="ha-btn ghost">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                More Docs from <span style="color:orangered"><%= doc.college %></span>
+            </a>
+            <% if (uploaderProfile && uploaderProfile._id) { %>
+            <a href="/all_uploads_view_second_pov_profile/<%= uploaderProfile._id %>" class="ha-btn ghost">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+                More Docs from <span style="color:orangered"><%= uploaderProfile.name %></span>
+            </a>
+            <% } %>
+            <button type="button" class="ha-btn ghost report-trigger" id="open-report-modal">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 21V5M5 5h10l-1.6 3L15 11H5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Report
+            </button>
+            <button type="button" id="open-share-doc-modal" class="ha-btn accent"
+                    data-doc-id="<%= doc._id %>"
+                    data-doc-college="<%= doc.college %>"
+                    data-doc-subject="<%= doc.subject %>"
+                    data-doc-chapter="<%= doc.chapter %>">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Share to <%= doc.college %> Chat
+            </button>
+
+            <div class="vote-cluster">
+                <button type="button" class="vote-btn like" id="like-btn" data-doc-id="<%= doc._id %>">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span id="like-count"><%= doc.likes %></span>
+                </button>
+                <span class="vote-sep"></span>
+                <button type="button" class="vote-btn dislike" id="dislike-btn" data-doc-id="<%= doc._id %>">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10zM17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span id="dislike-count"><%= doc.dislikes %></span>
+                </button>
+            </div>
+
+            <button type="button" class="ha-btn ghost save-btn" id="save-btn" data-doc-id="<%= doc._id %>">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span id="save-btn-label">Save</span>
+            </button>
+
+            <button type="button" id="reading-mode-btn" class="ha-btn ghost reading-mode-btn" aria-label="Toggle reading mode">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22V4.5A2.5 2.5 0 0 1 6.5 2Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span id="reading-mode-text">Reading Mode</span>
+            </button>
+
+            <div class="theme-menu" id="theme-menu">
+                <button type="button" id="theme-menu-btn" class="ha-btn ghost theme-menu-btn" aria-label="Open theme menu" aria-expanded="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3v2.2M12 18.8V21M3 12h2.2M18.8 12H21M5.64 5.64l1.55 1.55M16.81 16.81l1.55 1.55M5.64 18.36l1.55-1.55M16.81 7.19l1.55-1.55" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/>
+                    </svg>
+                    <span id="theme-menu-label">Theme</span>
+                </button>
+
+                <div class="theme-popover" id="theme-popover">
+                    <div class="theme-popover-head">
+                        <div>
+                            <div class="theme-popover-title">Choose theme</div>
+                            <div class="theme-popover-sub">Reader UI only — PDF stays original</div>
+                        </div>
+                        <span class="theme-current-chip" id="theme-current-chip">Light</span>
+                    </div>
+
+                    <div class="theme-swatch-list">
+                        <button type="button" class="theme-swatch" data-theme="theme-dark" data-theme-label="Midnight">
+                            <span class="theme-preview-dots">
+                                <span class="theme-dot theme-dot-dark-1"></span>
+                                <span class="theme-dot theme-dot-dark-2"></span>
+                                <span class="theme-dot theme-dot-dark-3"></span>
+                            </span>
+                            <span class="theme-swatch-copy">
+                                <span class="theme-swatch-name">Midnight</span>
+                                <span class="theme-swatch-desc">Deep dark DocUp look</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="theme-swatch" data-theme="theme-light" data-theme-label="Light">
+                            <span class="theme-preview-dots">
+                                <span class="theme-dot theme-dot-light-1"></span>
+                                <span class="theme-dot theme-dot-light-2"></span>
+                                <span class="theme-dot theme-dot-light-3"></span>
+                            </span>
+                            <span class="theme-swatch-copy">
+                                <span class="theme-swatch-name">Light</span>
+                                <span class="theme-swatch-desc">Clean daylight reading</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="theme-swatch" data-theme="theme-sepia" data-theme-label="Paper">
+                            <span class="theme-preview-dots">
+                                <span class="theme-dot theme-dot-sepia-1"></span>
+                                <span class="theme-dot theme-dot-sepia-2"></span>
+                                <span class="theme-dot theme-dot-sepia-3"></span>
+                            </span>
+                            <span class="theme-swatch-copy">
+                                <span class="theme-swatch-name">Paper</span>
+                                <span class="theme-swatch-desc">Warm study session feel</span>
+                            </span>
+                        </button>
+
+                        <button type="button" class="theme-swatch" data-theme="theme-contrast" data-theme-label="Contrast">
+                            <span class="theme-preview-dots">
+                                <span class="theme-dot theme-dot-contrast-1"></span>
+                                <span class="theme-dot theme-dot-contrast-2"></span>
+                                <span class="theme-dot theme-dot-contrast-3"></span>
+                            </span>
+                            <span class="theme-swatch-copy">
+                                <span class="theme-swatch-name">Contrast</span>
+                                <span class="theme-swatch-desc">Maximum UI readability</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="share-doc-wrap">
+                <button type="button" id="share-doc-toggle" class="ha-btn ghost">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M14 5L19 5C20.1046 5 21 5.89543 21 7V18C21 19.1046 20.1046 20 19 20H7C5.89543 20 5 19.1046 5 18V13"
+                              stroke="currentColor"
+                              stroke-width="1.7"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <path d="M10 14L20 4"
+                              stroke="currentColor"
+                              stroke-width="1.7"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                        <path d="M14 4H20V10"
+                              stroke="currentColor"
+                              stroke-width="1.7"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"/>
+                    </svg>
+                    Share Doc
+                </button>
+
+                <div class="share-doc-dropdown" id="share-doc-dropdown">
+                    <div class="sdd-label">Share this document</div>
+
+                    <div class="sdd-link-row">
+                        <input
+                                type="text"
+                                id="share-doc-link-input"
+                                class="sdd-link-input"
+                                readonly
+                                value="<%= shareDocLink %>"
+                        >
+                        <button type="button" id="copy-share-doc-link" class="sdd-copy-btn">Copy Link</button>
+                    </div>
+
+                    <div class="sdd-note">
+                        Anyone with this link can open the doc after signing in.
+                    </div>
+                </div>
+<!--                <div class="ha-btn ghost " style="margin-left: 10px">-->
+<!--                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">-->
+<!--                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>-->
+<!--                    </svg>-->
+<!--                    <%= views %>-->
+<!--                </div>-->
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN WORKSPACE ═══════════════ -->
+<main class="workspace">
+
+    <!-- ── PDF COLUMN ── -->
+    <section class="pdf-column">
+
+        <!-- Floating toolbar -->
+        <div class="pdf-toolbar">
+            <div class="ptb-left">
+                <div class="ptb-zoom-group">
+                    <button class="ptb-btn" id="zoom-out" title="Zoom out">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                    <span class="ptb-zoom-pill" id="zoom-percentage">115%</span>
+                    <button class="ptb-btn" id="zoom-in" title="Zoom in">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                    <button class="ptb-btn ptb-fit" id="fit-width">Fit</button>
+                </div>
+
+                <div class="ptb-divider"></div>
+
+                <div class="ptb-ai-group">
+                    <button class="ptb-btn ptb-ai" id="ask-pdf-btn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.7"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Ask PDF
+                    </button>
+                    <button class="ptb-btn ptb-ai" id="explain-page-btn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Explain Page
+                    </button>
+                    <button class="ptb-btn ptb-ai" id="summarize-doc-btn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Summarize
+                    </button>
+                </div>
+            </div>
+
+            <div class="ptb-right">
+                <div class="ptb-page-nav">
+                    <span class="ptb-page-label">Page</span>
+                    <input id="page-jump-input" type="number" min="1" value="1">
+                    <span id="page-jump-total" class="ptb-page-total">/ 0</span>
+                </div>
+                <span id="page-status" class="ptb-status">Loading…</span>
+            </div>
+        </div>
+
+        <!-- Page counter bubble -->
+        <div style="display:none;" class="page-bubble-wrap">
+            <div class="page-bubble" id="pdf-page-indicator">
+                <span id="current-page-number">1</span>
+                <span class="pb-sep">/</span>
+                <span id="total-page-number">0</span>
+            </div>
+        </div>
+
+        <!-- PDF Canvas area -->
+        <div class="pdf-canvas-area" id="pdf-scroll-area">
+            <div class="reader-watermark-shell">
+                <div
+                        class="reader-watermark-layer"
+                        id="reader-watermark-layer"
+                        aria-hidden="true"
+                        data-watermark="DocUp • <%= user.email %> • Private View"
+                ></div>
+                <div id="pdf-container"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar">
+
+        <!-- AI Card -->
+        <div class="sc ai-sc">
+            <div class="sc-header">
+                <div class="sc-header-left">
+                    <span class="sc-icon-wrap">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </span>
+                    <h2>AI Explainer</h2>
+                </div>
+                <span id="ai-status-badge" class="ai-badge">In Development</span>
+            </div>
+
+            <div class="ai-input-row">
+                <input type="text" id="ask-pdf-input" placeholder="Ask anything from this PDF…">
+                <button type="button" id="ask-pdf-send-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+
+            <div class="ai-pill-row">
+                <button type="button" class="ai-pill" id="mini-explain-trigger">Explain this page</button>
+                <button type="button" class="ai-pill" id="mini-summary-trigger">Summarize doc</button>
+            </div>
+
+            <div id="ai-panel-content" class="ai-output">
+                <p class="ai-placeholder">Use Control + G (Mac) or Ctrl + G (Windows) to launch Gemini instantly on the latest version of Chrome to explain this page or summarize the document. More built-in AI features are coming soon 🚀</p>
+            </div>
+        </div>
+
+        <!-- Doc Info Card -->
+        <div class="sc info-sc">
+            <div class="sc-header">
+                <span class="sc-icon-wrap">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M9 21V9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </span>
+                <h2>Document Info</h2>
+            </div>
+            <dl class="info-dl">
+                <div class="info-row">
+                    <dt>College</dt>
+                    <dd><a href="/college/<%= encodeURIComponent(doc.college) %>"><%= doc.college %></a></dd>
+                </div>
+                <div class="info-row">
+                    <dt>Subject</dt>
+                    <dd><%= doc.subject %></dd>
+                </div>
+                <div class="info-row">
+                    <dt>Semester</dt>
+                    <dd>Semester <%= doc.semester %></dd>
+                </div>
+                <div class="info-row">
+                    <dt>Branch</dt>
+                    <dd><%= doc.branch %></dd>
+                </div>
+                <div class="info-row">
+                    <dt>Chapter</dt>
+                    <dd><%= doc.chapter %></dd>
+                </div>
+                <div class="info-row">
+                    <dt>Uploader</dt>
+                    <dd>
+                        <% if (uploaderProfile && uploaderProfile._id) { %>
+                        <a href="/all_uploads_view_second_pov_profile/<%= uploaderProfile._id %>">
+                            <%= uploaderProfile.name || doc.uploaded_by || "DocUp User" %>
+                        </a>
+                        <% } else { %>
+                        <%= doc.uploaded_by || "DocUp User" %>
+                        <% } %>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <!-- Discussion Card -->
+        <div class="sc discussion-sc">
+            <div class="sc-header">
+                <span class="sc-icon-wrap">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <h2>Discussion</h2>
+                <span class="comment-count-chip" id="comment-count-chip"><%= doc.comment_section ? doc.comment_section.length : 0 %></span>
+            </div>
+
+            <!-- Comment input -->
+            <div class="comment-input-wrap">
+                <input class="comment-input-container" type="text" placeholder="Join the discussion…">
+                <button class="comment-send-btn" aria-label="Send">
+                    <svg class="comment-send-button" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.3009 13.6949L20.102 3.89742M10.5795 14.1355L12.8019 18.5804C13.339 19.6545 13.6075 20.1916 13.9458 20.3356C14.2394 20.4606 14.575 20.4379 14.8492 20.2747C15.1651 20.0866 15.3591 19.5183 15.7472 18.3818L19.9463 6.08434C20.2845 5.09409 20.4535 4.59896 20.3378 4.27142C20.2371 3.98648 20.013 3.76234 19.7281 3.66167C19.4005 3.54595 18.9054 3.71502 17.9151 4.05315L5.61763 8.2523C4.48114 8.64037 3.91289 8.83441 3.72478 9.15032C3.56153 9.42447 3.53891 9.76007 3.66389 10.0536C3.80791 10.3919 4.34498 10.6605 5.41912 11.1975L9.86397 13.42C10.041 13.5085 10.1295 13.5527 10.2061 13.6118C10.2742 13.6643 10.3352 13.7253 10.3876 13.7933C10.4468 13.87 10.491 13.9585 10.5795 14.1355Z"
+                              stroke="#FF4500FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Comments list -->
+            <div class="comments-list" id="comments-list">
+                <% if (doc.comment_section && doc.comment_section.length > 0) { %>
+                <% doc.comment_section.forEach((item) => { %>
+                <div class="cmt">
+                    <div class="cmt-avatar">
+                        <img src="<%= item.user_id && item.user_id.avatar_img_path ? item.user_id.avatar_img_path : '/images/default-avatar.png' %>" alt="avatar">
+                    </div>
+                    <div class="cmt-body">
+                        <div class="cmt-top">
+                            <a class="cmt-name" href="/show_other_user_profile/<%= encodeURIComponent(item.user_id.email) %>">
+                                <%= item.user_id && item.user_id.name ? item.user_id.name : "DocUp User" %>
+                            </a>
+                            <span class="cmt-time"><%= new Date(item.createdAt).toLocaleString() %></span>
+                        </div>
+                        <p class="cmt-text"><%= item.comment %></p>
+                        <button class="cmt-reply-btn reply-btn"
+                                data-reply-name="<%= item.user_id && item.user_id.name ? item.user_id.name : 'DocUp User' %>"
+                                data-reply-email="<%= item.user_id && item.user_id.email ? item.user_id.email : '' %>">
+                            ↩ Reply
+                        </button>
+                    </div>
+                </div>
+                <% }) %>
+                <% } else { %>
+                <div class="cmt-empty">No comments yet. Start the discussion!</div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Scroll to top -->
+        <button id="scrollTopBtn" class="scroll-top-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Back to Top
+        </button>
+    </aside>
+</main>
+
+<!-- ═══════════════ SHARE MODAL ═══════════════ -->
+<div id="share-doc-modal" class="modal-overlay hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+        <div class="modal-card-head">
+            <span class="modal-eyebrow">DocUp Share</span>
+            <h2>Share to College Chat</h2>
+            <p>Send this document to your college room with a message.</p>
+        </div>
+
+        <div class="modal-doc-preview">
+            <div class="mdp-label">Sharing</div>
+            <div class="mdp-title"><%= doc.subject %></div>
+            <div class="mdp-sub"><%= doc.chapter %> · <%= doc.college %></div>
+        </div>
+
+        <textarea id="share-doc-text" class="modal-textarea" placeholder="Add a message about this document…" maxlength="300"></textarea>
+
+        <div class="modal-actions">
+            <button type="button" id="close-share-doc-modal" class="ma-btn ghost">Cancel</button>
+            <button type="button" id="confirm-share-doc" class="ma-btn accent">Share</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share success -->
+<div id="share-success-modal" class="modal-overlay hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card modal-success">
+        <div class="success-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h2>Document Shared!</h2>
+        <p>Successfully shared to your college chat room.</p>
+        <div class="modal-actions">
+            <button type="button" id="continue-reading-btn" class="ma-btn ghost">Continue Reading</button>
+            <a id="go-to-chat-room-btn" class="ma-btn accent" href="/college_chat/<%= encodeURIComponent(doc.college) %>">Go to Chat</a>
+        </div>
+    </div>
+</div>
+
+<div class="report-overlay" id="report-overlay">
+    <div class="report-modal">
+        <button class="report-close" id="close-report-modal" aria-label="Close report modal">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="report-modal-top">
+            <div class="report-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 21V5M5 5h10l-1.6 3L15 11H5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <h3 class="report-title">Report this doc</h3>
+                <p class="report-subtitle">
+                    <!--                    Help us keep DocUp clean and useful. Tell us what’s wrong with this document.-->
+                </p>
+            </div>
+        </div>
+
+        <form id="report-form" class="report-form">
+            <div class="report-reason-grid">
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Wrong content">
+                    <span>Wrong content</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Poor quality">
+                    <span>Poor quality</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Spam or irrelevant">
+                    <span>Spam or irrelevant</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Duplicate upload">
+                    <span>Duplicate upload</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Misleading title">
+                    <span>Misleading title</span>
+                </label>
+
+                <label class="report-option">
+                    <input type="radio" name="report_reason" value="Other">
+                    <span>Other</span>
+                </label>
+            </div>
+
+            <div class="report-textarea-wrap">
+                <label for="report-message" class="report-label">More details</label>
+                <textarea
+                        id="report-message"
+                        name="report_message"
+                        placeholder="Explain the issue in a few words..."
+                        maxlength="500"
+                ></textarea>
+                <div class="report-meta-row">
+                    <span class="report-hint">Be clear and short.</span>
+                    <span class="report-count" id="report-count">0 / 500</span>
+                </div>
+            </div>
+
+            <div class="report-actions">
+                <button type="button" class="report-btn ghost" id="cancel-report-modal">Cancel</button>
+                <button type="submit" class="report-btn accent" id="submit-report-btn">Submit Report</button>
+            </div>
+        </form>
+
+        <div class="report-success" id="report-success">
+            <div class="report-success-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h4>Report submitted</h4>
+            <p>Thanks. We’ll review this document soon.</p>
+            <button type="button" class="report-btn accent" id="done-report-modal">Done</button>
+        </div>
+    </div>
+</div>
+
+<!-- Global overlay popup -->
+<div id="docup-popup" class="docup-popup-overlay">
+    <div class="docup-popup-card">
+        <button type="button" class="docup-popup-close" id="docup-popup-close" aria-label="Close popup">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="docup-popup-icon" id="docup-popup-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <h3 id="docup-popup-title">Notice</h3>
+        <p id="docup-popup-message">This action is disabled on DocUp.</p>
+
+        <div class="docup-popup-actions">
+            <button type="button" class="docup-popup-btn" id="docup-popup-ok">Okay</button>
+        </div>
+    </div>
+</div>
+
+<div id="theme-transition-overlay" class="theme-transition-overlay" aria-hidden="true"></div>
+<div id="copy-toast" class="copy-toast">Link copied !</div>
+<!-- ═══════════════ SCRIPTS ═══════════════ -->
+<script>
+    const docupPopup = document.getElementById("docup-popup");
+    const docupPopupTitle = document.getElementById("docup-popup-title");
+    const docupPopupMessage = document.getElementById("docup-popup-message");
+    const docupPopupClose = document.getElementById("docup-popup-close");
+    const docupPopupOk = document.getElementById("docup-popup-ok");
+
+    function showDocupPopup(title, message) {
+        docupPopupTitle.textContent = title || "Notice";
+        docupPopupMessage.textContent = message || "This action is disabled on DocUp.";
+        docupPopup.classList.add("active");
+        document.body.classList.add("report-modal-open");
+    }
+
+    function hideDocupPopup() {
+        docupPopup.classList.remove("active");
+        document.body.classList.remove("report-modal-open");
+    }
+
+    docupPopupClose?.addEventListener("click", hideDocupPopup);
+    docupPopupOk?.addEventListener("click", hideDocupPopup);
+
+    docupPopup?.addEventListener("click", (e) => {
+        if (e.target === docupPopup) hideDocupPopup();
+    });
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && docupPopup.classList.contains("active")) {
+            hideDocupPopup();
+        }
+    });
+</script>
+
+<script>
+    window.DOC_SHARE_CONFIG = {
+        docId: <%- JSON.stringify(String(doc._id)) %>,
+        collegeName: <%- JSON.stringify(doc.college) %>
+    };
+</script>
+<script src="/doc_share.js"></script>
+<script>
+    const reportOverlay = document.getElementById("report-overlay");
+    const openReportModalBtn = document.getElementById("open-report-modal");
+    const closeReportModalBtn = document.getElementById("close-report-modal");
+    const cancelReportModalBtn = document.getElementById("cancel-report-modal");
+    const doneReportModalBtn = document.getElementById("done-report-modal");
+    const reportForm = document.getElementById("report-form");
+    const reportSuccess = document.getElementById("report-success");
+    const reportMessage = document.getElementById("report-message");
+    const reportCount = document.getElementById("report-count");
+    const submitReportBtn = document.getElementById("submit-report-btn");
+
+    function openReportModal() {
+        reportOverlay.classList.add("active");
+        document.body.classList.add("report-modal-open");
+    }
+
+    function closeReportModal() {
+        reportOverlay.classList.remove("active");
+        document.body.classList.remove("report-modal-open");
+
+        setTimeout(() => {
+            reportForm.style.display = "flex";
+            reportSuccess.classList.remove("active");
+            reportForm.reset();
+            reportCount.textContent = "0 / 500";
+            submitReportBtn.disabled = false;
+            submitReportBtn.textContent = "Submit Report";
+        }, 180);
+    }
+
+    if (openReportModalBtn) {
+        openReportModalBtn.addEventListener("click", openReportModal);
+    }
+
+    [closeReportModalBtn, cancelReportModalBtn, doneReportModalBtn].forEach((btn) => {
+        if (btn) btn.addEventListener("click", closeReportModal);
+    });
+
+    if (reportOverlay) {
+        reportOverlay.addEventListener("click", (e) => {
+            if (e.target === reportOverlay) {
+                closeReportModal();
+            }
+        });
+    }
+
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && reportOverlay.classList.contains("active")) {
+            closeReportModal();
+        }
+    });
+
+    if (reportMessage) {
+        reportMessage.addEventListener("input", () => {
+            reportCount.textContent = `${reportMessage.value.length} / 500`;
+        });
+    }
+
+    if (reportForm) {
+        reportForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const selectedReason = document.querySelector('input[name="report_reason"]:checked');
+            const details = reportMessage.value.trim();
+
+            if (!selectedReason) {
+                showDocupPopup("Select a Reason", "Please choose a report reason before submitting.");
+                return;
+            }
+
+            submitReportBtn.disabled = true;
+            submitReportBtn.textContent = "Submitting...";
+
+            try {
+                const response = await fetch("/report_doc", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: "<%= user.email %>",
+                        report_text: `${selectedReason.value}${details ? " — " + details : ""}`,
+                        doc_new_id: "<%= doc._id %>"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Failed to submit report.");
+                }
+
+                reportForm.style.display = "none";
+                reportSuccess.classList.add("active");
+            } catch (err) {
+                showDocupPopup("Submission Failed", err.message || "Something went wrong.");
+                submitReportBtn.disabled = false;
+                submitReportBtn.textContent = "Submit Report";
+            }
+        });
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const input = document.querySelector(".comment-input-container");
+
+        document.querySelectorAll(".reply-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                input.value = `@${btn.dataset.replyEmail}# : `;
+                input.focus();
+            });
+        });
+
+        document.getElementById("mini-explain-trigger")?.addEventListener("click", () => {
+            document.getElementById("explain-page-btn")?.click();
+        });
+        document.getElementById("mini-summary-trigger")?.addEventListener("click", () => {
+            document.getElementById("summarize-doc-btn")?.click();
+        });
+    });
+</script>
+
+<script src="/dashboard2.js"></script>
+<script>const DOC_ID = "<%= doc._id %>";</script>
+<script src="/doc_ai.js"></script>
+<script>
+(function () {
+    /* ── toast using existing docup-popup ───────────────────── */
+    function showToast(msg, type) {
+        const popup   = document.getElementById("docup-popup");
+        const title   = document.getElementById("docup-popup-title");
+        const message = document.getElementById("docup-popup-message");
+        const ok      = document.getElementById("docup-popup-ok");
+        if (!popup) return;
+        if (title)   title.textContent   = type === "error" ? "Oops!" : "DocUp";
+        if (message) message.textContent = msg;
+        popup.classList.add("active");
+        ok?.addEventListener("click", () => popup.classList.remove("active"), { once: true });
+    }
+
+    async function postJSON(url) {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        return res.json();
+    }
+
+    /* ── LIKE ───────────────────────────────────────────────── */
+    const likeBtn = document.getElementById("like-btn");
+    likeBtn?.addEventListener("click", async () => {
+        const docId = likeBtn.dataset.docId;
+        likeBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/like/${docId}`);
+            if (data.success) {
+                document.getElementById("like-count").textContent    = data.likes;
+                document.getElementById("dislike-count").textContent = data.dislikes;
+                likeBtn.classList.add("active");
+                if (data.alreadyLiked) showToast("You already liked this document.");
+            } else {
+                showToast(data.message || "Could not like. Try again.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            likeBtn.disabled = false;
+        }
+    });
+
+    /* ── DISLIKE ────────────────────────────────────────────── */
+    const dislikeBtn = document.getElementById("dislike-btn");
+    dislikeBtn?.addEventListener("click", async () => {
+        const docId = dislikeBtn.dataset.docId;
+        dislikeBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/dislike/${docId}`);
+            if (data.success) {
+                document.getElementById("like-count").textContent    = data.likes;
+                document.getElementById("dislike-count").textContent = data.dislikes;
+                dislikeBtn.classList.add("active");
+                if (data.alreadyDisliked) showToast("You already disliked this document.");
+            } else {
+                showToast(data.message || "Could not dislike. Try again.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            dislikeBtn.disabled = false;
+        }
+    });
+
+    /* ── SAVE ───────────────────────────────────────────────── */
+    const saveBtn = document.getElementById("save-btn");
+    saveBtn?.addEventListener("click", async () => {
+        const docId = saveBtn.dataset.docId;
+        saveBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/save/${docId}`);
+            if (data.success) {
+                const label = document.getElementById("save-btn-label");
+                if (data.alreadySaved) {
+                    showToast("Already in your saved docs!");
+                    saveBtn.disabled = false;
+                } else {
+                    if (label) label.textContent = "Saved ✓";
+                    saveBtn.classList.add("active");
+                }
+            } else {
+                showToast(data.message || "Could not save. Try again.", "error");
+                saveBtn.disabled = false;
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+            saveBtn.disabled = false;
+        }
+    });
+
+    /* ── COMMENT ────────────────────────────────────────────── */
+    const commentInput     = document.querySelector(".comment-input-container");
+    const commentSendBtn   = document.querySelector(".comment-send-btn");
+    const commentsList     = document.getElementById("comments-list");
+    const commentCountChip = document.getElementById("comment-count-chip");
+
+    async function submitComment() {
+        const docId = "<%= doc._id %>";
+        const text  = commentInput?.value?.trim();
+        if (!text) return;
+
+        commentSendBtn.disabled = true;
+        commentInput.disabled   = true;
+
+        try {
+            const res = await fetch(`/add_comment/${docId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comment: text })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                commentInput.value = "";
+
+                // Remove "no comments yet" placeholder if present
+                const empty = commentsList?.querySelector(".cmt-empty");
+                if (empty) empty.remove();
+
+                // Build new comment card and prepend it
+                const now = new Date().toLocaleString();
+                const div = document.createElement("div");
+                div.className = "cmt";
+                div.innerHTML = `
+                    <div class="cmt-avatar">
+                        <img src="<%= user.avatar_img_path ? user.avatar_img_path : '/images/default-avatar.png' %>" alt="avatar">
+                    </div>
+                    <div class="cmt-body">
+                        <div class="cmt-top">
+                            <span class="cmt-name"><%= user.name || 'DocUp User' %></span>
+                            <span class="cmt-time">${now}</span>
+                        </div>
+                        <p class="cmt-text">${text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>
+                    </div>`;
+                commentsList?.prepend(div);
+
+                // Bump count chip
+                if (commentCountChip) {
+                    const current = parseInt(commentCountChip.textContent, 10) || 0;
+                    commentCountChip.textContent = current + 1;
+                }
+            } else {
+                showToast(data.message || "Could not post comment.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            commentSendBtn.disabled = false;
+            commentInput.disabled   = false;
+            commentInput.focus();
+        }
+    }
+
+    commentSendBtn?.addEventListener("click", submitComment);
+    commentInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitComment();
+        }
+    });
+})();
+</script>
+
+<script>
+    // Scroll to top
+    const scrollBtn = document.getElementById("scrollTopBtn");
+    window.addEventListener("scroll", () => {
+        scrollBtn.classList.toggle("visible", window.scrollY > 400);
+    });
+    scrollBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+    // PDF URL
+    const pdfUrl = "<%= doc.file_url %>";
+
+    // Back/forward cache
+    window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
+    window.addEventListener("popstate", () => window.location.reload());
+
+    // Mouse tracking
+    document.addEventListener("mousemove", e => {
+        document.documentElement.style.setProperty("--mx", `${e.clientX}px`);
+        document.documentElement.style.setProperty("--my", `${e.clientY}px`);
+    });
+</script>
+
+<script>
+    document.addEventListener("contextmenu", e => {
+        e.preventDefault();
+        showDocupPopup("Action Blocked", "Printing, saving, and right-click actions are disabled for this page on DocUp");
+    });
+
+    document.addEventListener("keydown", e => {
+        const ctrl = e.ctrlKey || e.metaKey;
+        const key = e.key.toLowerCase();
+
+        const blockedBrowserShortcuts =
+            (ctrl && ["s", "p", "u"].includes(key)) ||
+            (ctrl && e.shiftKey && key === "i") ||
+            e.key === "F12";
+
+        const screenshotShortcuts =
+            (e.metaKey && e.shiftKey && (key === "3" || key === "4")) ||
+            (e.ctrlKey && e.shiftKey && key === "s") ||
+            (key === "printscreen");
+
+        if (blockedBrowserShortcuts) {
+            e.preventDefault();
+            showDocupPopup("Action Blocked", "Printing, saving, and developer shortcuts are disabled on DocUp.");
+            return;
+        }
+
+        if (screenshotShortcuts) {
+            e.preventDefault();
+            showDocupPopup("Screenshot Shortcut Detected", "System screenshot shortcuts cannot be fully blocked on web pages.");
+        }
+    });
+
+
+</script>
+<script>
+    (function () {
+        const wmLayer = document.getElementById("reader-watermark-layer");
+        if (!wmLayer) return;
+
+        const text = wmLayer.dataset.watermark || "DocUp • Private View";
+
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="420" height="220" viewBox="0 0 420 220">
+                <g transform="rotate(-28 210 110)">
+                    <text
+                        x="20"
+                        y="110"
+                        fill="rgba(255, 106, 0, 0.09)"
+                        font-size="16"
+                        font-family="Arial, sans-serif"
+                        font-weight="700"
+                        letter-spacing="1"
+                    >${text}</text>
+                </g>
+            </svg>
+        `;
+
+        const encoded = encodeURIComponent(svg)
+            .replace(/'/g, "%27")
+            .replace(/"/g, "%22");
+
+        wmLayer.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encoded}")`;
+    })();
+</script>
+<script>
+    const DOCUP_THEMES = ["theme-dark", "theme-light", "theme-sepia", "theme-contrast"];
+    const THEME_LABELS = {
+        "theme-dark": "Midnight",
+        "theme-light": "Light",
+        "theme-sepia": "Paper",
+        "theme-contrast": "Contrast"
+    };
+
+    const themeMenu = document.getElementById("theme-menu");
+    const themeMenuBtn = document.getElementById("theme-menu-btn");
+    const themePopover = document.getElementById("theme-popover");
+    const themeCurrentChip = document.getElementById("theme-current-chip");
+    const themeSwatches = document.querySelectorAll(".theme-swatch");
+    const readingModeBtn = document.getElementById("reading-mode-btn");
+    const readingModeText = document.getElementById("reading-mode-text");
+    const themeTransitionOverlay = document.getElementById("theme-transition-overlay");
+
+    function setThemeClasses(themeName) {
+        document.body.classList.remove(...DOCUP_THEMES);
+        document.body.classList.add(themeName);
+        document.body.classList.toggle("light-mode", themeName !== "theme-dark");
+    }
+
+    function syncThemeUi(themeName) {
+        const themeLabel = THEME_LABELS[themeName] || "Theme";
+
+        if (themeCurrentChip) {
+            themeCurrentChip.textContent = themeLabel;
+        }
+
+        themeSwatches.forEach((btn) => {
+            const active = btn.dataset.theme === themeName;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+    }
+
+    function animateThemeTransition(callback) {
+        if (!themeTransitionOverlay) {
+            callback();
+            return;
+        }
+
+        themeTransitionOverlay.classList.remove("animate");
+        void themeTransitionOverlay.offsetWidth;
+        themeTransitionOverlay.classList.add("animate");
+
+        callback();
+
+        window.setTimeout(() => {
+            themeTransitionOverlay.classList.remove("animate");
+        }, 520);
+    }
+
+    function applyTheme(themeName, options = {}) {
+        const { persist = true, animated = false } = options;
+
+        const run = () => {
+            setThemeClasses(themeName);
+            syncThemeUi(themeName);
+
+            if (persist) {
+                localStorage.setItem("docup-theme", themeName);
+            }
+        };
+
+        if (animated) {
+            animateThemeTransition(run);
+        } else {
+            run();
+        }
+    }
+
+    function closeThemePopover() {
+        themePopover?.classList.remove("active");
+        themeMenuBtn?.setAttribute("aria-expanded", "false");
+    }
+
+    function positionThemePopover() {
+        if (!themePopover || !themeMenuBtn) return;
+
+        themePopover.classList.remove("shift-left", "shift-right");
+
+        const rect = themePopover.getBoundingClientRect();
+        const gap = 14;
+
+        if (rect.right > window.innerWidth - gap) {
+            themePopover.classList.add("shift-right");
+        }
+
+        if (rect.left < gap) {
+            themePopover.classList.remove("shift-right");
+            themePopover.classList.add("shift-left");
+        }
+    }
+    window.addEventListener("resize", () => {
+        if (themePopover?.classList.contains("active")) {
+            positionThemePopover();
+        }
+    });
+
+    function openThemePopover() {
+        if (!themePopover) return;
+
+        themePopover.classList.add("active");
+        themeMenuBtn?.setAttribute("aria-expanded", "true");
+
+        requestAnimationFrame(() => {
+            positionThemePopover();
+        });
+    }
+
+    function updateReadingModeUi() {
+        const active = document.body.classList.contains("reading-mode");
+        readingModeBtn?.classList.toggle("active", active);
+
+        if (readingModeText) {
+            readingModeText.textContent = active ? "Exit Reading" : "Reading Mode";
+        }
+    }
+
+    function enableReadingMode() {
+        document.body.classList.add("reading-mode");
+        localStorage.setItem("docup-reading-mode", "true");
+        updateReadingModeUi();
+    }
+
+    function disableReadingMode() {
+        document.body.classList.remove("reading-mode");
+        localStorage.setItem("docup-reading-mode", "false");
+        updateReadingModeUi();
+    }
+
+    function toggleReadingMode() {
+        if (document.body.classList.contains("reading-mode")) {
+            disableReadingMode();
+        } else {
+            enableReadingMode();
+        }
+    }
+
+    (function initDocThemes() {
+        const savedTheme = localStorage.getItem("docup-theme") || "theme-dark";
+        applyTheme(savedTheme, { persist: false, animated: false });
+
+        if (localStorage.getItem("docup-reading-mode") === "true") {
+            document.body.classList.add("reading-mode");
+        }
+
+        updateReadingModeUi();
+    })();
+
+    themeMenuBtn?.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        if (themePopover?.classList.contains("active")) {
+            closeThemePopover();
+        } else {
+            openThemePopover();
+        }
+    });
+
+    themeSwatches.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const selectedTheme = btn.dataset.theme;
+            applyTheme(selectedTheme, { persist: true, animated: true });
+            closeThemePopover();
+        });
+    });
+
+    readingModeBtn?.addEventListener("click", () => {
+        toggleReadingMode();
+        closeThemePopover();
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!themeMenu?.contains(event.target)) {
+            closeThemePopover();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeThemePopover();
+        }
+    });
+</script>
+<script>
+    const shareDocToggle = document.getElementById("share-doc-toggle");
+    const shareDocDropdown = document.getElementById("share-doc-dropdown");
+    const shareDocLinkInput = document.getElementById("share-doc-link-input");
+    const copyShareDocLinkBtn = document.getElementById("copy-share-doc-link");
+    const copyToast = document.getElementById("copy-toast");
+
+    let copyToastTimer;
+
+    function closeShareDocDropdown() {
+        shareDocDropdown?.classList.remove("active");
+    }
+
+    function showCopyToast(message = "Link copied!") {
+        if (!copyToast) return;
+
+        copyToast.textContent = message;
+        copyToast.classList.add("show");
+
+        clearTimeout(copyToastTimer);
+        copyToastTimer = setTimeout(() => {
+            copyToast.classList.remove("show");
+        }, 1600);
+    }
+
+    function setCopiedState() {
+        if (!copyShareDocLinkBtn) return;
+
+        copyShareDocLinkBtn.textContent = "Copied!";
+        copyShareDocLinkBtn.classList.add("copied");
+
+        setTimeout(() => {
+            copyShareDocLinkBtn.textContent = "Copy Link";
+            copyShareDocLinkBtn.classList.remove("copied");
+        }, 1400);
+    }
+
+    shareDocToggle?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        shareDocDropdown?.classList.toggle("active");
+    });
+
+    copyShareDocLinkBtn?.addEventListener("click", async () => {
+        const link = shareDocLinkInput?.value || "";
+        if (!link) return;
+
+        try {
+            await navigator.clipboard.writeText(link);
+            setCopiedState();
+            showCopyToast("Link copied!");
+        } catch (err) {
+            try {
+                shareDocLinkInput.focus();
+                shareDocLinkInput.select();
+                document.execCommand("copy");
+                setCopiedState();
+                showCopyToast("Link copied!");
+            } catch (fallbackErr) {
+                showCopyToast("Copy failed");
+            }
+        }
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!event.target.closest(".share-doc-wrap")) {
+            closeShareDocDropdown();
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            closeShareDocDropdown();
+        }
+    });
+</script>
+<script src="/dashboard3.js"></script>
+<script src="/docview.js"></script>
+</body>
+</html>
