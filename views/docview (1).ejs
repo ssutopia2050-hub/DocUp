@@ -196,21 +196,21 @@
             </button>
 
             <div class="vote-cluster">
-                <a href="/update_likes/<%= doc._id %>" class="vote-btn like">
+                <button type="button" class="vote-btn like" id="like-btn" data-doc-id="<%= doc._id %>">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span><%= doc.likes %></span>
-                </a>
+                    <span id="like-count"><%= doc.likes %></span>
+                </button>
                 <span class="vote-sep"></span>
-                <a href="/update_dislikes/<%= doc._id %>" class="vote-btn dislike">
+                <button type="button" class="vote-btn dislike" id="dislike-btn" data-doc-id="<%= doc._id %>">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10zM17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span><%= doc.dislikes %></span>
-                </a>
+                    <span id="dislike-count"><%= doc.dislikes %></span>
+                </button>
             </div>
 
-            <a href="/save/<%= doc._id %>" class="ha-btn ghost save-btn">
+            <button type="button" class="ha-btn ghost save-btn" id="save-btn" data-doc-id="<%= doc._id %>">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Save
-            </a>
+                <span id="save-btn-label">Save</span>
+            </button>
 
             <button type="button" id="reading-mode-btn" class="ha-btn ghost reading-mode-btn" aria-label="Toggle reading mode">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
@@ -342,8 +342,55 @@
     </div>
 </div>
 
+<!-- ═══════════════ ZEN MODE OVERLAY ═══════════════ -->
+<div id="zen-overlay" class="zen-overlay" aria-hidden="true">
+    <div class="zen-topbar">
+        <span class="zen-doc-title"><%= doc.title || doc.chapter %></span>
+        <div class="zen-topbar-right">
+            <div class="zen-page-nav">
+                <button class="zen-nav-btn" id="zen-prev-btn" title="Previous page">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="zen-page-info"><span id="zen-current-page">1</span> / <span id="zen-total-pages">0</span></span>
+                <button class="zen-nav-btn" id="zen-next-btn" title="Next page">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+            </div>
+            <div class="zen-zoom-controls">
+                <button class="zen-nav-btn" id="zen-zoom-out" title="Zoom out">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <span class="zen-zoom-pill" id="zen-zoom-label">100%</span>
+                <button class="zen-nav-btn" id="zen-zoom-in" title="Zoom in">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+            <button class="zen-exit-btn" id="zen-exit-btn" title="Exit Zen Mode (Esc)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                Exit Zen
+            </button>
+        </div>
+    </div>
+    <div class="zen-canvas-area" id="zen-canvas-area">
+        <div class="zen-watermark-shell">
+            <div class="reader-watermark-layer" aria-hidden="true" data-watermark="DocUp • <%= user.email %> • Private View"></div>
+            <div id="zen-pdf-container"></div>
+        </div>
+    </div>
+    <div class="zen-hint" id="zen-hint">Press <kbd>Esc</kbd> to exit · <kbd>←</kbd><kbd>→</kbd> to navigate</div>
+</div>
+
 <!-- ═══════════════ MAIN WORKSPACE ═══════════════ -->
-<main class="workspace">
+<main class="workspace" id="main-workspace">
+
+<!-- ── PAGE THUMBNAIL SIDEBAR ── -->
+    <div class="thumb-sidebar" id="thumb-sidebar" aria-label="Page thumbnails">
+        <div class="thumb-sidebar-header">
+            <span class="thumb-sidebar-title">Pages</span>
+            <span class="thumb-sidebar-count" id="thumb-page-count">—</span>
+        </div>
+        <div class="thumb-list" id="thumb-list"></div>
+    </div>
 
     <!-- ── PDF COLUMN ── -->
     <section class="pdf-column">
@@ -351,6 +398,10 @@
         <!-- Floating toolbar -->
         <div class="pdf-toolbar">
             <div class="ptb-left">
+                <button class="ptb-btn ptb-thumb-toggle" id="thumb-toggle-btn" title="Toggle page sidebar" aria-label="Toggle page thumbnails" aria-expanded="false">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="5" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="13" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.7"/><path d="M11 5h10M11 9h7M11 14h10M11 18h7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </button>
+                <div class="ptb-divider"></div>
                 <div class="ptb-zoom-group">
                     <button class="ptb-btn" id="zoom-out" title="Zoom out">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -381,6 +432,10 @@
             </div>
 
             <div class="ptb-right">
+                <button class="ptb-btn ptb-zen" id="zen-mode-btn" title="Zen Mode — distraction-free reading">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M8 3H5a2 2 0 00-2 2v3M21 8V5a2 2 0 00-2-2h-3M16 21h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Zen
+                </button>
                 <div class="ptb-page-nav">
                     <span class="ptb-page-label">Page</span>
                     <input id="page-jump-input" type="number" min="1" value="1">
@@ -496,7 +551,7 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </span>
                 <h2>Discussion</h2>
-                <span class="comment-count-chip"><%= doc.comment_section ? doc.comment_section.length : 0 %></span>
+                <span class="comment-count-chip" id="comment-count-chip"><%= doc.comment_section ? doc.comment_section.length : 0 %></span>
             </div>
 
             <!-- Comment input -->
@@ -511,7 +566,7 @@
             </div>
 
             <!-- Comments list -->
-            <div class="comments-list">
+            <div class="comments-list" id="comments-list">
                 <% if (doc.comment_section && doc.comment_section.length > 0) { %>
                 <% doc.comment_section.forEach((item) => { %>
                 <div class="cmt">
@@ -872,7 +927,171 @@
 <script src="/dashboard2.js"></script>
 <script>const DOC_ID = "<%= doc._id %>";</script>
 <script src="/doc_ai.js"></script>
-<script src="/comments.js"></script>
+<script>
+(function () {
+    /* ── toast using existing docup-popup ───────────────────── */
+    function showToast(msg, type) {
+        const popup   = document.getElementById("docup-popup");
+        const title   = document.getElementById("docup-popup-title");
+        const message = document.getElementById("docup-popup-message");
+        const ok      = document.getElementById("docup-popup-ok");
+        if (!popup) return;
+        if (title)   title.textContent   = type === "error" ? "Oops!" : "DocUp";
+        if (message) message.textContent = msg;
+        popup.classList.add("active");
+        ok?.addEventListener("click", () => popup.classList.remove("active"), { once: true });
+    }
+
+    async function postJSON(url) {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+        return res.json();
+    }
+
+    /* ── LIKE ───────────────────────────────────────────────── */
+    const likeBtn = document.getElementById("like-btn");
+    likeBtn?.addEventListener("click", async () => {
+        const docId = likeBtn.dataset.docId;
+        likeBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/like/${docId}`);
+            if (data.success) {
+                document.getElementById("like-count").textContent    = data.likes;
+                document.getElementById("dislike-count").textContent = data.dislikes;
+                likeBtn.classList.add("active");
+                if (data.alreadyLiked) showToast("You already liked this document.");
+            } else {
+                showToast(data.message || "Could not like. Try again.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            likeBtn.disabled = false;
+        }
+    });
+
+    /* ── DISLIKE ────────────────────────────────────────────── */
+    const dislikeBtn = document.getElementById("dislike-btn");
+    dislikeBtn?.addEventListener("click", async () => {
+        const docId = dislikeBtn.dataset.docId;
+        dislikeBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/dislike/${docId}`);
+            if (data.success) {
+                document.getElementById("like-count").textContent    = data.likes;
+                document.getElementById("dislike-count").textContent = data.dislikes;
+                dislikeBtn.classList.add("active");
+                if (data.alreadyDisliked) showToast("You already disliked this document.");
+            } else {
+                showToast(data.message || "Could not dislike. Try again.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            dislikeBtn.disabled = false;
+        }
+    });
+
+    /* ── SAVE ───────────────────────────────────────────────── */
+    const saveBtn = document.getElementById("save-btn");
+    saveBtn?.addEventListener("click", async () => {
+        const docId = saveBtn.dataset.docId;
+        saveBtn.disabled = true;
+        try {
+            const data = await postJSON(`/api/save/${docId}`);
+            if (data.success) {
+                const label = document.getElementById("save-btn-label");
+                if (data.alreadySaved) {
+                    showToast("Already in your saved docs!");
+                    saveBtn.disabled = false;
+                } else {
+                    if (label) label.textContent = "Saved ✓";
+                    saveBtn.classList.add("active");
+                }
+            } else {
+                showToast(data.message || "Could not save. Try again.", "error");
+                saveBtn.disabled = false;
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+            saveBtn.disabled = false;
+        }
+    });
+
+    /* ── COMMENT ────────────────────────────────────────────── */
+    const commentInput     = document.querySelector(".comment-input-container");
+    const commentSendBtn   = document.querySelector(".comment-send-btn");
+    const commentsList     = document.getElementById("comments-list");
+    const commentCountChip = document.getElementById("comment-count-chip");
+
+    async function submitComment() {
+        const docId = "<%= doc._id %>";
+        const text  = commentInput?.value?.trim();
+        if (!text) return;
+
+        commentSendBtn.disabled = true;
+        commentInput.disabled   = true;
+
+        try {
+            const res = await fetch(`/add_comment/${docId}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ comment: text })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                commentInput.value = "";
+
+                // Remove "no comments yet" placeholder if present
+                const empty = commentsList?.querySelector(".cmt-empty");
+                if (empty) empty.remove();
+
+                // Build new comment card and prepend it
+                const now = new Date().toLocaleString();
+                const div = document.createElement("div");
+                div.className = "cmt";
+                div.innerHTML = `
+                    <div class="cmt-avatar">
+                        <img src="<%= user.avatar_img_path ? user.avatar_img_path : '/images/default-avatar.png' %>" alt="avatar">
+                    </div>
+                    <div class="cmt-body">
+                        <div class="cmt-top">
+                            <span class="cmt-name"><%= user.name || 'DocUp User' %></span>
+                            <span class="cmt-time">${now}</span>
+                        </div>
+                        <p class="cmt-text">${text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</p>
+                    </div>`;
+                commentsList?.prepend(div);
+
+                // Bump count chip
+                if (commentCountChip) {
+                    const current = parseInt(commentCountChip.textContent, 10) || 0;
+                    commentCountChip.textContent = current + 1;
+                }
+            } else {
+                showToast(data.message || "Could not post comment.", "error");
+            }
+        } catch {
+            showToast("Network error. Try again.", "error");
+        } finally {
+            commentSendBtn.disabled = false;
+            commentInput.disabled   = false;
+            commentInput.focus();
+        }
+    }
+
+    commentSendBtn?.addEventListener("click", submitComment);
+    commentInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitComment();
+        }
+    });
+})();
+</script>
 
 <script>
     // Scroll to top
@@ -884,6 +1103,28 @@
 
     // PDF URL
     const pdfUrl = "<%= doc.file_url %>";
+
+    // Expose pdfDoc globally so thumbnail sidebar and zen mode can access it
+    // We patch pdfjsLib.getDocument to intercept the loaded PDF
+    (function patchPdfjs() {
+        const origGetDocument = pdfjsLib.getDocument.bind(pdfjsLib);
+        pdfjsLib.getDocument = function (...args) {
+            const task = origGetDocument(...args);
+            task.promise.then(pdf => {
+                window.__pdfDoc = pdf;
+                // Notify thumbnail sidebar if it's already open
+                if (window.__thumbSidebar && pdf) {
+                    const countEl = document.getElementById('thumb-page-count');
+                    if (countEl) countEl.textContent = pdf.numPages + ' pages';
+                    const sidebar = document.getElementById('thumb-sidebar');
+                    if (sidebar && sidebar.classList.contains('thumb-sidebar--open')) {
+                        window.__thumbSidebar.renderAllThumbnails(pdf);
+                    }
+                }
+            }).catch(() => {});
+            return task;
+        };
+    })();
 
     // Back/forward cache
     window.addEventListener("pageshow", e => { if (e.persisted) window.location.reload(); });
@@ -1222,6 +1463,347 @@
             closeShareDocDropdown();
         }
     });
+</script>
+<script>
+/* ═══════════════════════════════════════════════
+   PAGE THUMBNAIL SIDEBAR  (Apple Preview style)
+═══════════════════════════════════════════════ */
+(function () {
+    const thumbToggleBtn = document.getElementById('thumb-toggle-btn');
+    const thumbSidebar   = document.getElementById('thumb-sidebar');
+    const thumbList      = document.getElementById('thumb-list');
+    const thumbPageCount = document.getElementById('thumb-page-count');
+    const workspace      = document.getElementById('main-workspace');
+
+    let thumbsRendered = false;
+    let sidebarOpen    = false;
+
+    // Track current visible page from the main viewer
+    let currentVisiblePage = 1;
+
+    function openThumbSidebar() {
+        sidebarOpen = true;
+        thumbSidebar.classList.add('thumb-sidebar--open');
+        workspace.classList.add('workspace--thumb-open');
+        thumbToggleBtn.setAttribute('aria-expanded', 'true');
+        thumbToggleBtn.classList.add('active');
+        localStorage.setItem('docup-thumb-sidebar', 'open');
+
+        if (!thumbsRendered && window.__pdfDoc) {
+            renderAllThumbnails(window.__pdfDoc);
+        }
+    }
+
+    function closeThumbSidebar() {
+        sidebarOpen = false;
+        thumbSidebar.classList.remove('thumb-sidebar--open');
+        workspace.classList.remove('workspace--thumb-open');
+        thumbToggleBtn.setAttribute('aria-expanded', 'false');
+        thumbToggleBtn.classList.remove('active');
+        localStorage.setItem('docup-thumb-sidebar', 'closed');
+    }
+
+    function toggleThumbSidebar() {
+        if (sidebarOpen) closeThumbSidebar();
+        else openThumbSidebar();
+    }
+
+    thumbToggleBtn?.addEventListener('click', toggleThumbSidebar);
+
+    // Restore state
+    if (localStorage.getItem('docup-thumb-sidebar') === 'open') {
+        openThumbSidebar();
+    }
+
+    // Render thumbnails once PDF is loaded
+    async function renderAllThumbnails(pdfDoc) {
+        if (thumbsRendered) return;
+        thumbsRendered = true;
+
+        const total = pdfDoc.numPages;
+        thumbPageCount.textContent = total + (total === 1 ? ' page' : ' pages');
+
+        for (let i = 1; i <= total; i++) {
+            const item = document.createElement('div');
+            item.className = 'thumb-item';
+            item.dataset.page = i;
+            item.title = 'Go to page ' + i;
+            item.setAttribute('role', 'button');
+            item.setAttribute('tabindex', '0');
+
+            const canvasWrap = document.createElement('div');
+            canvasWrap.className = 'thumb-canvas-wrap';
+
+            const canvas = document.createElement('canvas');
+            canvas.className = 'thumb-canvas';
+            canvasWrap.appendChild(canvas);
+
+            const label = document.createElement('span');
+            label.className = 'thumb-label';
+            label.textContent = i;
+
+            item.appendChild(canvasWrap);
+            item.appendChild(label);
+            thumbList.appendChild(item);
+
+            // Render thumbnail in background
+            pdfDoc.getPage(i).then(page => {
+                const viewport = page.getViewport({ scale: 0.22 });
+                canvas.width  = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                page.render({ canvasContext: ctx, viewport });
+            });
+
+            // Click to jump
+            item.addEventListener('click', () => jumpToPage(i));
+            item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToPage(i); } });
+        }
+
+        // Highlight initial page
+        highlightThumb(currentVisiblePage);
+    }
+
+    function jumpToPage(pageNum) {
+        // Use the main viewer's page jump
+        const input = document.getElementById('page-jump-input');
+        if (input) {
+            input.value = pageNum;
+            input.dispatchEvent(new Event('change'));
+        }
+        // Scroll the main pdf container to that page
+        const pageDivs = document.querySelectorAll('.pdf-page-wrap');
+        if (pageDivs[pageNum - 1]) {
+            pageDivs[pageNum - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        highlightThumb(pageNum);
+    }
+
+    function highlightThumb(pageNum) {
+        currentVisiblePage = pageNum;
+        document.querySelectorAll('.thumb-item').forEach(el => {
+            el.classList.toggle('thumb-item--active', parseInt(el.dataset.page) === pageNum);
+        });
+        // scroll thumb into view inside sidebar
+        const activeThumb = thumbList.querySelector('.thumb-item--active');
+        if (activeThumb) {
+            activeThumb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+    }
+
+    // Listen for page changes from the main reader
+    // The existing viewer updates #current-page-number — we watch it
+    const pageNumEl = document.getElementById('current-page-number');
+    if (pageNumEl) {
+        const obs = new MutationObserver(() => {
+            const p = parseInt(pageNumEl.textContent);
+            if (p && p !== currentVisiblePage) highlightThumb(p);
+        });
+        obs.observe(pageNumEl, { childList: true, characterData: true, subtree: true });
+    }
+
+    // Also sync when page-jump input changes
+    document.getElementById('page-jump-input')?.addEventListener('change', function () {
+        const p = parseInt(this.value);
+        if (p) setTimeout(() => highlightThumb(p), 120);
+    });
+
+    // Hook into PDF load — wait for window.__pdfDoc to be set
+    const pdfReadyInterval = setInterval(() => {
+        if (window.__pdfDoc) {
+            clearInterval(pdfReadyInterval);
+            thumbPageCount.textContent = window.__pdfDoc.numPages + ' pages';
+            if (sidebarOpen) renderAllThumbnails(window.__pdfDoc);
+            // Also render on first open even if sidebar isn't open yet
+        }
+    }, 300);
+
+    // Expose to global so other scripts can trigger thumbnail render
+    window.__thumbSidebar = { renderAllThumbnails, highlightThumb, open: openThumbSidebar, close: closeThumbSidebar };
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ZEN MODE  —  distraction-free, anti-download
+═══════════════════════════════════════════════ */
+(function () {
+    const zenOverlay     = document.getElementById('zen-overlay');
+    const zenContainer   = document.getElementById('zen-pdf-container');
+    const zenCurrentPage = document.getElementById('zen-current-page');
+    const zenTotalPages  = document.getElementById('zen-total-pages');
+    const zenZoomLabel   = document.getElementById('zen-zoom-label');
+    const zenHint        = document.getElementById('zen-hint');
+    const zenModeBtn     = document.getElementById('zen-mode-btn');
+    const zenExitBtn     = document.getElementById('zen-exit-btn');
+    const zenPrevBtn     = document.getElementById('zen-prev-btn');
+    const zenNextBtn     = document.getElementById('zen-next-btn');
+    const zenZoomIn      = document.getElementById('zen-zoom-in');
+    const zenZoomOut     = document.getElementById('zen-zoom-out');
+
+    let zenPdf        = null;
+    let zenTotalCount = 0;
+    let zenPage       = 1;
+    let zenScale      = 1.0;
+    let zenRendering  = false;
+    let zenHintTimer  = null;
+    let zenActive     = false;
+
+    /* ─── Render a single page into zen canvas ─── */
+    async function zenRenderPage(num) {
+        if (!zenPdf || zenRendering) return;
+        zenRendering = true;
+
+        zenContainer.innerHTML = '';
+
+        const page     = await zenPdf.getPage(num);
+        const vp0      = page.getViewport({ scale: 1 });
+        const availW   = zenOverlay.clientWidth  * 0.90;
+        const availH   = (zenOverlay.clientHeight - 80) * 0.96;
+        const autoScale = Math.min(availW / vp0.width, availH / vp0.height);
+        const finalScale = autoScale * zenScale;
+
+        const viewport = page.getViewport({ scale: finalScale });
+
+        const wrap = document.createElement('div');
+        wrap.className = 'zen-page-wrap';
+        wrap.style.cssText = `
+            position:relative; display:inline-block;
+            border-radius:10px; overflow:hidden;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+        `;
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.cssText = 'display:block; border-radius:10px;';
+
+        /* Anti-download hardening: no pointer events, no drag, no right-click */
+        canvas.style.pointerEvents = 'none';
+        canvas.draggable = false;
+        canvas.oncontextmenu = e => e.preventDefault();
+
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+        /* Watermark overlay inside zen */
+        const wm = document.createElement('div');
+        wm.setAttribute('aria-hidden', 'true');
+        wm.style.cssText = `
+            position:absolute; inset:0; pointer-events:none; z-index:10;
+            display:flex; align-items:center; justify-content:center;
+        `;
+        const wmText = document.createElement('span');
+        wmText.textContent = 'DocUp \u2022 Private View';
+        wmText.style.cssText = `
+            font-family:'DM Sans',sans-serif; font-size:clamp(11px,1.4vw,15px);
+            color:rgba(255,100,0,0.18); transform:rotate(-32deg);
+            white-space:nowrap; user-select:none; -webkit-user-select:none;
+            letter-spacing:0.12em; font-weight:600;
+        `;
+        wm.appendChild(wmText);
+
+        wrap.appendChild(canvas);
+        wrap.appendChild(wm);
+        zenContainer.appendChild(wrap);
+
+        zenCurrentPage.textContent = num;
+        if (window.__thumbSidebar) window.__thumbSidebar.highlightThumb(num);
+        zenRendering = false;
+    }
+
+    function zenSetPage(n) {
+        const clamped = Math.max(1, Math.min(n, zenTotalCount));
+        zenPage = clamped;
+        zenRenderPage(clamped);
+    }
+
+    /* ─── Open zen mode ─── */
+    async function openZen() {
+        if (!window.__pdfDoc) {
+            alert('Please wait for the PDF to finish loading.');
+            return;
+        }
+        zenPdf        = window.__pdfDoc;
+        zenTotalCount = zenPdf.numPages;
+        zenTotalPages.textContent = zenTotalCount;
+
+        // Start from whatever page the main reader is on
+        const mainPage = parseInt(document.getElementById('current-page-number')?.textContent || '1');
+        zenPage = mainPage || 1;
+
+        zenActive = true;
+        zenOverlay.classList.add('zen-overlay--active');
+        zenOverlay.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zen-mode-active');
+
+        await zenRenderPage(zenPage);
+
+        // Show hint, then fade
+        zenHint.classList.add('zen-hint--visible');
+        clearTimeout(zenHintTimer);
+        zenHintTimer = setTimeout(() => zenHint.classList.remove('zen-hint--visible'), 3200);
+    }
+
+    /* ─── Close zen mode ─── */
+    function closeZen() {
+        zenActive = false;
+        zenOverlay.classList.remove('zen-overlay--active');
+        zenOverlay.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('zen-mode-active');
+        zenContainer.innerHTML = '';
+        clearTimeout(zenHintTimer);
+    }
+
+    /* ─── Controls ─── */
+    zenModeBtn?.addEventListener('click', openZen);
+    zenExitBtn?.addEventListener('click', closeZen);
+    zenPrevBtn?.addEventListener('click', () => zenSetPage(zenPage - 1));
+    zenNextBtn?.addEventListener('click', () => zenSetPage(zenPage + 1));
+
+    zenZoomIn?.addEventListener('click', () => {
+        zenScale = Math.min(zenScale + 0.15, 2.5);
+        zenZoomLabel.textContent = Math.round(zenScale * 100) + '%';
+        zenRenderPage(zenPage);
+    });
+    zenZoomOut?.addEventListener('click', () => {
+        zenScale = Math.max(zenScale - 0.15, 0.4);
+        zenZoomLabel.textContent = Math.round(zenScale * 100) + '%';
+        zenRenderPage(zenPage);
+    });
+
+    /* ─── Keyboard ─── */
+    document.addEventListener('keydown', e => {
+        if (!zenActive) return;
+        if (e.key === 'Escape')      closeZen();
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  { e.preventDefault(); zenSetPage(zenPage + 1); }
+        if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    { e.preventDefault(); zenSetPage(zenPage - 1); }
+        if (e.key === '+' || e.key === '=')  { zenScale = Math.min(zenScale + 0.15, 2.5); zenZoomLabel.textContent = Math.round(zenScale*100)+'%'; zenRenderPage(zenPage); }
+        if (e.key === '-')  { zenScale = Math.max(zenScale - 0.15, 0.4); zenZoomLabel.textContent = Math.round(zenScale*100)+'%'; zenRenderPage(zenPage); }
+    });
+
+    /* ─── Touch swipe in zen ─── */
+    let touchStartX = 0;
+    zenOverlay?.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    zenOverlay?.addEventListener('touchend', e => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 50) {
+            if (dx < 0) zenSetPage(zenPage + 1);
+            else        zenSetPage(zenPage - 1);
+        }
+    });
+
+    /* ─── Anti-download on the zen overlay itself ─── */
+    zenOverlay?.addEventListener('contextmenu', e => e.preventDefault());
+    zenOverlay?.addEventListener('dragstart',   e => e.preventDefault());
+
+    /* ─── Resize: re-render current page ─── */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        if (!zenActive) return;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => zenRenderPage(zenPage), 200);
+    });
+})();
 </script>
 <script src="/dashboard3.js"></script>
 <script src="/docview.js"></script>
