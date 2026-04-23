@@ -5,89 +5,123 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/signup_style.css">
     <meta charset="UTF-8">
-    <title>DocUp |  Verify Email</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | Verify Email</title>
 </head>
 <body>
-<div class="box">
-    <h1>DocUp</h1>
-    <form method="post" action="/email_verify">
-        <h3 style="color:#aa5d27">OTP is sent to:    <span style="text-decoration: underline; color:#ff7300">  <%= email %></span> </h3>
-        <p id="timer" style="color:#ffcc00; font-size:14px; border:1px solid #ffcc00; padding:10px 20px; border-radius: 10px"></p>
-        <input type="text" placeholder="Enter OTP" name="otp" required minlength="6" maxlength="10">
-        <button type="submit">Verify Email Address</button>
+
+<a href="/" class="auth-wordmark">DocUp</a>
+
+<div class="auth-card">
+
+    <div class="auth-card-header">
+        <img src="/images/android-chrome-192x192.png" alt="DocUp" style="width:48px;height:48px;border-radius:12px;margin-bottom:4px;">
+        <h1 class="auth-card-title">Verify your email</h1>
+        <p class="auth-card-sub">Check your inbox and enter the OTP we sent you.</p>
+    </div>
+
+    <form class="auth-form" method="post" action="/email_verify">
+
+        <!-- email target callout -->
+        <div class="auth-otp-target">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.7">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            OTP sent to&nbsp;<span><%= email %></span>
+        </div>
+
+        <!-- expiry timer -->
+        <p id="timer" class="auth-timer" style="display:block;"></p>
+
+        <!-- OTP input -->
+        <div class="input-group">
+            <label for="otp">One-Time Password</label>
+            <input
+                class="auth-input"
+                type="text"
+                id="otp"
+                placeholder="Enter OTP"
+                name="otp"
+                required
+                minlength="6"
+                maxlength="10"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                spellcheck="false"
+            >
+        </div>
+
         <% if (err) { %>
-        <p style="color:red"><%=err.message %></p>
-        <% }  %>
+        <p class="auth-error"><%= err.message %></p>
+        <% } %>
+
+        <button class="auth-btn-primary" type="submit">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Verify Email Address
+        </button>
+
         <button
-                id="resendBtn"
-                formaction="/resend_otp"
-                formmethod="post"
-                formnovalidate>
+            class="auth-btn-secondary"
+            id="resendBtn"
+            formaction="/resend_otp"
+            formmethod="post"
+            formnovalidate
+        >
             Resend OTP
         </button>
 
     </form>
+
 </div>
-</body>
+
 <script>
-    const expiry = Number("<%= expires %>");
+    const expiry          = Number("<%= expires %>");
     const resendAllowedAt = Number("<%= resendAllowedAt %>");
 
-    const timerEl = document.getElementById("timer");
+    const timerEl   = document.getElementById("timer");
     const resendBtn = document.getElementById("resendBtn");
 
     function updateTimers() {
         const now = Date.now();
 
-        // OTP expiry countdown
+        // OTP expiry
         const otpRemaining = Math.floor((expiry - now) / 1000);
         if (otpRemaining <= 0) {
-            timerEl.innerText = "OTP expired.";
+            timerEl.innerText = "OTP expired. Please request a new one.";
+            timerEl.style.display = "block";
         } else {
             const mins = Math.floor(otpRemaining / 60);
             const secs = otpRemaining % 60;
-            timerEl.innerText = "OTP Expires in " + mins + "m " + secs + "s";
+            timerEl.innerText = `OTP expires in ${mins}m ${secs}s`;
+            timerEl.style.display = "block";
         }
 
         // Resend cooldown
         const resendRemaining = Math.floor((resendAllowedAt - now) / 1000);
-
         if (resendRemaining > 0) {
-
             const mins = Math.floor(resendRemaining / 60);
             const secs = resendRemaining % 60;
-
             resendBtn.disabled = true;
-            resendBtn.innerText = "Resend OTP (" + mins + "m " + secs + "s)";
-            resendBtn.style.opacity = "0.6";
+            resendBtn.innerText = `Resend OTP (${mins}m ${secs}s)`;
+            resendBtn.style.opacity = "0.5";
             resendBtn.style.cursor = "not-allowed";
-
         } else {
             resendBtn.disabled = false;
             resendBtn.innerText = "Resend OTP";
             resendBtn.style.opacity = "1";
             resendBtn.style.cursor = "pointer";
         }
-
-        // if (resendRemaining > 0) {
-        //     resendBtn.disabled = true;
-        //     resendBtn.innerText = "Resend OTP (" + resendRemaining + "s)";
-        //     resendBtn.style.opacity = "0.6";
-        //     resendBtn.style.cursor = "not-allowed";
-        // } else {
-        //     resendBtn.disabled = false;
-        //     resendBtn.innerText = "Resend OTP";
-        //     resendBtn.style.opacity = "1";
-        //     resendBtn.style.cursor = "pointer";
-        // }
     }
 
     setInterval(updateTimers, 1000);
     updateTimers();
 </script>
+
+</body>
 </html>

@@ -5,62 +5,96 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link href="/signup_style.css" rel="stylesheet">
     <meta charset="UTF-8">
-    <title>DocUp | SignUp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | Sign Up</title>
 </head>
 <body>
-<div class="box">
-    <h1>DocUp</h1>
 
-    <form method="post" action="/signup">
-        <input type="text" placeholder="Name" name="name" required>
-        <input type="text" placeholder="Email Address" name="email" required autocomplete="on">
-        <input type="text" placeholder="Create Password" name="password" required minlength="6" maxlength="10">
+<a href="/" class="auth-wordmark">DocUp</a>
 
-        <% if(err){ %>
-        <p style="color:red"><%= err.message %></p>
-        <% } %>
+<div class="auth-card auth-card--split">
 
-        <button type="submit">Sign Up</button>
-    </form>
+    <!-- LEFT: branding panel -->
+    <div class="auth-split-left">
+        <img src="/images/android-chrome-192x192.png" alt="DocUp" style="width:56px;height:56px;border-radius:14px;margin-bottom: -15px;margin-left:-5px;">
+        <div>
+            <h1 class="auth-card-title">DocUp</h1>
+            <p class="auth-card-sub">Access notes, PYQs &amp; semester material from your college — all in one place.</p>
+        </div>
+        <div class="auth-split-features">
+            <div class="auth-split-feature">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Search docs by college & subject
+            </div>
+            <div class="auth-split-feature">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Upload &amp; earn DocScore
+            </div>
+            <div class="auth-split-feature">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Bookmark what matters
+            </div>
+        </div>
+    </div>
 
-    <a
-            href="/auth/google"
-            style="
-            width:250px;
-            height:50px;
-            border:2px solid rgba(255, 255, 255, 0.47);
-            background-color:transparent;
-            color:white;
-            font-size:1.05rem;
-            font-weight:bold;
-            cursor:pointer;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:12px;
-            transition:0.3s;
-            text-decoration:none;
-        "
-            onmouseover="this.style.backgroundColor='rgba(240, 248, 255, 0.09)'"
-            onmouseout="this.style.backgroundColor='transparent'"
-    >
-        <svg width="20" height="20" viewBox="0 0 48 48" fill="none">
-            <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.243 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"/>
-            <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 16.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4c-7.682 0-14.347 4.337-17.694 10.691z"/>
-            <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.222 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
-            <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.793 2.237-2.231 4.166-4.084 5.57l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"/>
-        </svg>
-        Continue with Google
-    </a>
+    <!-- DIVIDER -->
+    <div class="auth-split-divider"></div>
 
-    <a href="/signin">Already a Member ? Sign In</a>
-    <a href="/privacy_policy">Terms and Conditions</a>
-    <p style="color: rgba(255,255,255,0.15)">You are currently on version <%= process.env.VERSION %> of DocUp</p>
+    <!-- RIGHT: form panel -->
+    <div class="auth-split-right">
+        <div class="auth-card-header">
+            <h1 class="auth-card-title">Create account</h1>
+            <p class="auth-card-sub">Join DocUp — it's free.</p>
+        </div>
+
+        <form class="auth-form" method="post" action="/signup">
+            <div class="input-group">
+                <label for="name">Full Name</label>
+                <input class="auth-input" type="text" id="name" placeholder="Your name" name="name" required autocomplete="name" spellcheck="false">
+            </div>
+            <div class="input-group">
+                <label for="email">Email Address</label>
+                <input class="auth-input" type="text" id="email" placeholder="you@example.com" name="email" required autocomplete="email" spellcheck="false">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input class="auth-input" type="password" id="password" placeholder="Min 6 characters" name="password" required minlength="6" maxlength="10" autocomplete="new-password">
+            </div>
+
+            <% if(err){ %>
+            <p class="auth-error"><%= err.message %></p>
+            <% } %>
+
+            <button class="auth-btn-primary" type="submit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Sign Up
+            </button>
+        </form>
+
+        <div class="auth-divider">or</div>
+
+        <a href="/auth/google" class="auth-btn-google">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.243 36 24 36c-6.627 0-12-5.373-12-12S17.373 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"/>
+                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 16.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4c-7.682 0-14.347 4.337-17.694 10.691z"/>
+                <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.143 35.091 26.715 36 24 36c-5.222 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
+                <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.793 2.237-2.231 4.166-4.084 5.57l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.651-.389-3.917z"/>
+            </svg>
+            Continue with Google
+        </a>
+
+        <div class="auth-links">
+            <a href="/signin" class="auth-link">Already a member? <strong>Sign In</strong></a>
+            <a href="/privacy_policy" class="auth-link">Terms &amp; Conditions</a>
+            <p class="auth-version">© 2026 DocUp. All rights reserved.</p>
+            <p class="auth-version">DocUp v<%= process.env.VERSION %></p>
+        </div>
+    </div>
+
 </div>
+
 </body>
 </html>

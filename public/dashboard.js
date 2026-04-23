@@ -586,11 +586,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 <div class="result-tab-footer">
                     <div class="tags-container">
-                        <div class="tags">${escapeHTML(doc.branch || "")}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.year || ""))}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.semester || ""))}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.subject || ""))}</div>
-                        <div class="tags">${escapeHTML(capitalizeFirst(doc.chapter || ""))}</div>
+                        ${doc.branch ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(doc.branch)}">${escapeHTML(doc.branch)}</div>` : ""}
+                        ${doc.year ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(capitalizeFirst(doc.year))}">${escapeHTML(capitalizeFirst(doc.year))}</div>` : ""}
+                        ${doc.semester ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(capitalizeFirst(doc.semester))}">${escapeHTML(capitalizeFirst(doc.semester))}</div>` : ""}
+                        ${doc.subject ? `<div class="tags tag-clickable" data-tag-search="/s ${escapeHTML(capitalizeFirst(doc.subject))}">${escapeHTML(capitalizeFirst(doc.subject))}</div>` : ""}
+                        ${doc.chapter ? `<div class="tags tag-clickable" data-tag-search="/ch ${escapeHTML(capitalizeFirst(doc.chapter))}">${escapeHTML(capitalizeFirst(doc.chapter))}</div>` : ""}
 
                         ${doc.reviewed
                 ? `<div class="verif-status verified">Verified</div>`
@@ -707,8 +707,26 @@ document.addEventListener("DOMContentLoaded", function () {
     if (resultsContainer) {
         resultsContainer.addEventListener("click", function (e) {
             const link = e.target.closest(".view-doc-link");
-            if (!link) return;
-            saveDashboardState();
+            if (link) {
+                saveDashboardState();
+                return;
+            }
+
+            // Tag click → trigger search
+            const tag = e.target.closest(".tag-clickable");
+            if (!tag) return;
+
+            const searchValue = tag.dataset.tagSearch;
+            if (!searchValue) return;
+
+            if (searchInput) {
+                searchInput.value = searchValue;
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            if (searchForm) {
+                searchForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+            }
         });
     }
 
