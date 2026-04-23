@@ -3041,8 +3041,10 @@ body.theme-contrast.light-mode .vote-btn.dislike:hover {
 .share-doc-dropdown {
     position: absolute;
     top: calc(100% + 12px);
-    left: 0;
+    right: 0;
+    left: auto;
     width: 320px;
+    max-width: calc(100vw - 28px);
     padding: 14px;
     border-radius: 16px;
     border: 1px solid var(--border);

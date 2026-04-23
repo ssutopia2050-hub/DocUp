@@ -9,7 +9,7 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
 
-        const result = await User.updateMany(
+        const result = await doc.updateMany(
             {},
             { $set: { reviewed: true } },
         );
