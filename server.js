@@ -1847,7 +1847,11 @@ app.post("/set_avatar", async (req, res) => {
  Privacy Policy
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
-    res.render("privacy_policy");
+    if(!req.session.email){
+        res.redirect("/signin");
+    }
+    const user_details = await user_profile.findOne({email:req.session.email});
+    res.render("privacy_policy",{user:user_details});
 });
 /******************************
  Logout
@@ -2669,8 +2673,12 @@ app.get("/contact",(req,res)=>{
 /****************************
  Version Report
  ****************************/
-app.get("/version_report",(req,res)=>{
-    res.render("version_report");
+app.get("/version_report",async (req,res)=>{
+    if(!req.session.email){
+        res.redirect("/signin");
+    }
+    const user_details = await user_profile.findOne({email:req.session.email});
+    res.render("version_report",{user:user_details});
 })
 app.get("/auth/google", (req, res, next) => {
     const nextPath = req.query.next || "/dashboard";

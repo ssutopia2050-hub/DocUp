@@ -4,32 +4,667 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/privacy_policy.css">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DocUp | Terms & Conditions</title>
+
+    <style>
+        :root {
+            --bg: #00141c;
+            --border: rgba(255,255,255,0.07);
+            --border-warm: rgba(255,106,0,0.16);
+            --border-warm-hi: rgba(255,106,0,0.28);
+            --accent: #ff6a00;
+            --accent-2: #ff9a00;
+            --accent-glow: rgba(255,106,0,0.18);
+            --text: #f0f4f7;
+            --text-2: rgba(240,244,247,0.65);
+            --text-3: rgba(240,244,247,0.38);
+            --r-md: 18px;
+            --r-lg: 24px;
+            --shadow-lg: 0 16px 56px rgba(0,0,0,0.38);
+            --t: 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background:
+                radial-gradient(ellipse 80% 50% at 10% 0%, rgba(255,106,0,0.10) 0%, transparent 55%),
+                radial-gradient(ellipse 60% 40% at 90% 5%, rgba(75,146,255,0.07) 0%, transparent 45%),
+                radial-gradient(ellipse 50% 60% at 50% 100%, rgba(255,106,0,0.05) 0%, transparent 60%),
+                linear-gradient(160deg, #00141c 0%, #000f17 60%, #001018 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            gap: 4vh;
+            color: white;
+            font-family: 'Saira', sans-serif;
+        }
+
+        a, a:visited { text-decoration: none; color: inherit; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+        /* ===== TOPBAR ===== */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 1400;
+            width: 100%;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            background: rgba(0,16,22,0.32);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .topbar-left,
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-wordmark {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.55rem;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .topbar-pill {
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-2);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+            transition: var(--t);
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+
+        .topbar-pill:hover {
+            color: var(--text);
+            border-color: var(--border-warm);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .docscore-pill {
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-warm);
+            background: linear-gradient(180deg, rgba(255,106,0,0.09), rgba(255,106,0,0.04));
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .docscore-label {
+            color: var(--accent);
+            font-size: 0.82rem;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .docscore-value {
+            color: white;
+            font-weight: 700;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .docscore-pill img { height: 16px; width: auto; }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-2);
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            transition: var(--t);
+        }
+
+        .avatar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff5e00, #ff9b45);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 2px solid rgba(255,94,0,0.3);
+            box-shadow: 0 4px 16px rgba(255,94,0,0.2);
+            transition: var(--t);
+            flex-shrink: 0;
+        }
+
+        .avatar-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 24px rgba(255,94,0,0.32);
+        }
+
+        .avatar-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Notifications */
+        .notification-wrap { position: relative; }
+        .notification-btn { position: relative; }
+
+        .notif-badge {
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: calc(100% + 14px);
+            right: 0;
+            width: 360px;
+            max-height: 440px;
+            border-radius: var(--r-lg);
+            border: 1px solid rgba(255,255,255,0.07);
+            background: linear-gradient(160deg, rgba(8,20,28,0.98) 0%, rgba(4,12,18,0.98) 100%);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            box-shadow: 0 32px 70px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.20s ease, transform 0.20s cubic-bezier(0.22,1,0.36,1);
+            z-index: 99999;
+        }
+
+        .notification-dropdown.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .nd-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nd-title { font-family: 'Archivo Black', sans-serif; font-size: 0.95rem; color: white; }
+
+        .nd-view-all {
+            font-size: 0.8rem;
+            color: var(--accent);
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: var(--accent-glow);
+            border: 1px solid var(--border-warm);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .nd-list {
+            overflow-y: auto;
+            max-height: 370px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nd-item {
+            padding: 14px 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.022);
+            transition: var(--t);
+        }
+
+        .nd-item.unread {
+            border-color: rgba(255,106,0,0.16);
+            background: radial-gradient(ellipse at top right, rgba(255,106,0,0.10) 0%, transparent 65%), rgba(255,255,255,0.03);
+        }
+
+        .nd-item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 7px;
+        }
+
+        .nd-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 0 10px rgba(255,106,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .nd-item:not(.unread) .nd-dot { opacity: 0.18; box-shadow: none; }
+        .nd-when { font-size: 0.72rem; color: var(--text-3); font-family: 'DM Sans', sans-serif; }
+        .nd-text { font-size: 0.88rem; color: var(--text-2); line-height: 1.55; font-family: 'DM Sans', sans-serif; }
+        .nd-empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-size: 0.88rem; font-family: 'DM Sans', sans-serif; }
+
+        /* Avatar Dropdown */
+        .avatar-dropdown {
+            position: fixed;
+            z-index: 9999;
+            top: 78px;
+            right: 28px;
+            width: 200px;
+            padding: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 2px;
+            border-radius: var(--r-md);
+            border: 1px solid var(--border);
+            background: rgba(6,14,20,0.96);
+            backdrop-filter: blur(32px);
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(-6px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.16s ease, transform 0.16s ease;
+        }
+
+        .avatar-dropdown.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        .avatar-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--text-2);
+            font-size: 0.88rem;
+            transition: var(--t);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .avatar-dropdown a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+        .avatar-dropdown a svg { color: var(--text-3); transition: color var(--t); }
+        .avatar-dropdown a:hover svg { color: var(--accent); }
+
+        /* ===== PAGE CONTENT ===== */
+
+        .glass-card {
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        }
+
+        .hero-section {
+            width: 100%;
+            padding: 0 2%;
+        }
+
+        .hero-card {
+            width: 100%;
+            padding: 36px 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .hero-tag {
+            color: #ff9d59;
+            font-size: 0.95rem;
+            font-family: 'Saira', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        .hero-card h1 {
+            font-size: 2.7rem;
+            color: white;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 800;
+        }
+
+        .hero-desc {
+            max-width: 860px;
+            color: rgba(255,255,255,0.72);
+            font-size: 1rem;
+            line-height: 1.8;
+            font-family: 'Saira', sans-serif;
+        }
+
+        .last-updated {
+            color: rgba(255,255,255,0.46);
+            font-size: 0.85rem;
+            font-family: 'Saira', sans-serif;
+        }
+
+        .terms-wrapper {
+            width: 100%;
+            padding: 0 2% 2% 2%;
+        }
+
+        .terms-card {
+            width: 100%;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .term-block {
+            padding: 22px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.035);
+            border: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .term-block h2 {
+            color: white;
+            font-size: 1.2rem;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 700;
+        }
+
+        .term-block p {
+            color: rgba(255,255,255,0.70);
+            font-size: 0.98rem;
+            line-height: 1.9;
+            font-family: 'Saira', sans-serif;
+        }
+
+        /* ===== FOOTER ===== */
+
+        .footer {
+            margin-top: auto;
+            width: 100%;
+            min-height: 90px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+        }
+
+        .footer-left {
+            font-size: 2rem;
+            color: white;
+            font-family: 'Archivo Black', sans-serif;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .footer-left a {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.22);
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-right a {
+            color: rgba(255,255,255,0.62);
+            font-family: 'Saira', sans-serif;
+        }
+
+        .footer-right a:hover { color: white; }
+
+        /* ===== BACK TO TOP ===== */
+
+        .back-to-top-btn {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background:
+                radial-gradient(circle at 30% 30%, #ff9a00 0%, #ff6a00 35%, #ff3d00 75%),
+                linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            color: white;
+            border: 1px solid rgba(255,106,0,0.35);
+            box-shadow:
+                0 10px 30px rgba(255,106,0,0.35),
+                0 0 0 6px rgba(255,106,0,0.10),
+                inset 0 1px 0 rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px) scale(0.9);
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            z-index: 1500;
+        }
+
+        .back-to-top-btn.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0) scale(1);
+        }
+
+        .back-to-top-btn:hover {
+            background:
+                radial-gradient(circle at 30% 30%, #ffb347 0%, #ff7a1a 40%, #ff4d00 80%),
+                linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+            box-shadow:
+                0 18px 55px rgba(255,106,0,0.5),
+                0 0 0 10px rgba(255,106,0,0.14),
+                inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+
+        .btn-center-icon { position: absolute; z-index: 2; }
+        .progress-ring { position: absolute; transform: rotate(-90deg); }
+        .progress-ring-bg { fill: transparent; stroke: rgba(255,255,255,0.12); stroke-width: 3; }
+        .progress-ring-circle {
+            fill: transparent;
+            stroke: white;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 163;
+            stroke-dashoffset: 163;
+            transition: stroke-dashoffset 0.2s linear;
+        }
+
+        /* ===== RESPONSIVE ===== */
+
+        @media (max-width: 768px) {
+            .topbar { padding: 0 16px; }
+            .docscore-label { display: none; }
+            .topbar-right { gap: 8px; }
+            .docscore-pill, .topbar-pill { padding: 0 10px; }
+            .avatar-dropdown { right: 14px; top: 72px; width: calc(100vw - 28px); max-width: 260px; border-radius: 16px; }
+            .avatar-dropdown a { min-height: 48px; font-size: 0.9rem; }
+            .hero-card { padding: 26px 22px; }
+            .hero-card h1 { font-size: 2rem; }
+            .terms-card { padding: 20px; }
+            .term-block { padding: 18px; }
+            .footer { padding: 20px 5%; flex-direction: column; align-items: flex-start; gap: 16px; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="topbar">
-    <div class="logo-text-container">
-        DocUp
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
     </div>
 
-    <div class="pg-links">
-        <a href="/dashboard">
+    <div class="topbar-right">
+
+        <!-- FindDocs -->
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
+                      stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
             <span>FindDocs</span>
         </a>
-        <a href="/uploads">
-            <span>Uploads</span>
+
+        <!-- DocScore -->
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= user.Doc_score %></span>
+            <img src="/fire.png" alt="">
+        </div>
+
+        <!-- Upload -->
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Upload</span>
         </a>
-        <a href="/privacy_policy">
-            <span class="active-link">Terms and Conditions</span>
-        </a>
+
+        <!-- Notifications -->
+        <div class="notification-wrap">
+            <button type="button" class="icon-btn notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
+                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
+                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                <% } %>
+            </button>
+
+            <div style="background:#000407" class="notification-dropdown">
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="nd-view-all">View all</a>
+                    <% } %>
+                </div>
+                <div class="nd-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().forEach((item) => { %>
+                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
+                        <div class="nd-item-row">
+                            <span class="nd-dot"></span>
+                            <span class="nd-when">
+                                <%= item.createdAt
+                                    ? new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+                                    : "Just now" %>
+                            </span>
+                        </div>
+                        <p class="nd-text"><%= item.content %></p>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="nd-empty">No notifications yet.</div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="avatar-btn">
+            <% if (user.avatar_img_path) { %>
+            <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+            <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+
     </div>
+</header>
+
+<!-- Avatar Dropdown -->
+<div class="avatar-dropdown">
+    <a href="/profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+        Profile
+    </a>
+    <a href="/pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Recharge DocScore
+    </a>
+    <a href="/upgrade-plans">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+        </svg>
+        Upgrade Plans
+    </a>
+    <a href="/contact">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.89.32 1.76.6 2.6a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.48-1.17a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.6.6a2 2 0 0 1 1.72 2z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Contact Us / Feedback
+    </a>
 </div>
 
 <section class="hero-section">
@@ -47,118 +682,109 @@
     <div class="terms-card glass-card">
         <div class="term-block">
             <h2>1. Acceptance of Terms</h2>
-            <p>
-                By accessing or using DocUp, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, you should not use the platform.
-            </p>
+            <p>By accessing or using DocUp, you agree to be bound by these Terms & Conditions. If you do not agree with any part of these terms, you should not use the platform.</p>
         </div>
-
         <div class="term-block">
             <h2>2. Use of the Platform</h2>
-            <p>
-                DocUp is a platform intended to help users access and share educational documents for learning purposes. You agree to use the platform responsibly, lawfully, and only for genuine academic or personal study use.
-            </p>
+            <p>DocUp is a platform intended to help users access and share educational documents for learning purposes. You agree to use the platform responsibly, lawfully, and only for genuine academic or personal study use.</p>
         </div>
-
         <div class="term-block">
             <h2>3. User Accounts</h2>
-            <p>
-                You are responsible for maintaining the confidentiality of your account credentials. Any activity performed through your account is your responsibility. DocUp reserves the right to suspend or terminate accounts involved in misuse, fraud, spam, abuse, or policy violations.
-            </p>
+            <p>You are responsible for maintaining the confidentiality of your account credentials. Any activity performed through your account is your responsibility. DocUp reserves the right to suspend or terminate accounts involved in misuse, fraud, spam, abuse, or policy violations.</p>
         </div>
-
         <div class="term-block">
             <h2>4. Uploaded Content</h2>
-            <p>
-                Users may upload notes, documents, and academic material. By uploading any content, you confirm that you have the necessary right to share it. You must not upload content that violates copyright, contains illegal material, or harms the rights of others.
-            </p>
+            <p>Users may upload notes, documents, and academic material. By uploading any content, you confirm that you have the necessary right to share it. You must not upload content that violates copyright, contains illegal material, or harms the rights of others.</p>
         </div>
-
         <div class="term-block">
             <h2>5. Content Moderation</h2>
-            <p>
-                DocUp reserves the right to review, remove, restrict, or disable any uploaded content that appears inappropriate, unauthorized, misleading, harmful, illegal, or in violation of intellectual property rights. Repeated violations may lead to account suspension or permanent banning.
-            </p>
+            <p>DocUp reserves the right to review, remove, restrict, or disable any uploaded content that appears inappropriate, unauthorized, misleading, harmful, illegal, or in violation of intellectual property rights. Repeated violations may lead to account suspension or permanent banning.</p>
         </div>
-
         <div class="term-block">
             <h2>6. Intellectual Property</h2>
-            <p>
-                The DocUp platform, brand, interface, design elements, and original platform features are protected by applicable intellectual property laws. Users must not copy, reproduce, distribute, reverse engineer, or commercially exploit any part of the platform without permission.
-            </p>
+            <p>The DocUp platform, brand, interface, design elements, and original platform features are protected by applicable intellectual property laws. Users must not copy, reproduce, distribute, reverse engineer, or commercially exploit any part of the platform without permission.</p>
         </div>
-
         <div class="term-block">
             <h2>7. Document Access and DocScore</h2>
-            <p>
-                Certain protected documents on DocUp may require DocScore to access. Each time a protected document is opened, DocScore may be deducted according to the platform rules. DocScore is a digital access credit and does not hold any direct cash value.
-            </p>
+            <p>Certain protected documents on DocUp may require DocScore to access. Each time a protected document is opened, DocScore may be deducted according to the platform rules. DocScore is a digital access credit and does not hold any direct cash value.</p>
         </div>
-
         <div class="term-block">
             <h2>8. Payments and Recharges</h2>
-            <p>
-                Users may recharge DocScore through available payment methods. All payments are processed through third-party payment providers. Once DocScore is successfully credited, the recharge may be treated as completed. DocUp reserves the right to modify recharge packs, prices, and platform benefits at any time.
-            </p>
+            <p>Users may recharge DocScore through available payment methods. All payments are processed through third-party payment providers. Once DocScore is successfully credited, the recharge may be treated as completed. DocUp reserves the right to modify recharge packs, prices, and platform benefits at any time.</p>
         </div>
-
         <div class="term-block">
             <h2>9. Refunds</h2>
-            <p>
-                Recharge payments are generally non-refundable once the DocScore has been successfully credited to the user account. In cases where payment is deducted but DocScore is not credited, users may contact support for review. Any refund, if approved, will be processed according to platform policy.
-            </p>
+            <p>Recharge payments are generally non-refundable once the DocScore has been successfully credited to the user account. In cases where payment is deducted but DocScore is not credited, users may contact support for review. Any refund, if approved, will be processed according to platform policy.</p>
         </div>
-
         <div class="term-block">
             <h2>10. Prohibited Activities</h2>
-            <p>
-                Users must not misuse DocUp in any way, including but not limited to scraping, automated abuse, unauthorized redistribution of files, copyright violation, fraudulent recharges, account sharing for abuse, uploading malicious content, or interfering with the normal operation of the platform.
-            </p>
+            <p>Users must not misuse DocUp in any way, including but not limited to scraping, automated abuse, unauthorized redistribution of files, copyright violation, fraudulent recharges, account sharing for abuse, uploading malicious content, or interfering with the normal operation of the platform.</p>
         </div>
-
         <div class="term-block">
             <h2>11. Limitation of Liability</h2>
-            <p>
-                DocUp is provided on an “as is” and “as available” basis. While reasonable efforts may be made to maintain availability and quality, DocUp does not guarantee uninterrupted service, accuracy of all uploaded content, or freedom from third-party misuse. Use of the platform is at your own risk.
-            </p>
+            <p>DocUp is provided on an "as is" and "as available" basis. While reasonable efforts may be made to maintain availability and quality, DocUp does not guarantee uninterrupted service, accuracy of all uploaded content, or freedom from third-party misuse. Use of the platform is at your own risk.</p>
         </div>
-
         <div class="term-block">
             <h2>12. Suspension or Termination</h2>
-            <p>
-                DocUp may suspend, restrict, or permanently terminate access to any account that violates these Terms & Conditions or harms the platform, its users, or its legal rights.
-            </p>
+            <p>DocUp may suspend, restrict, or permanently terminate access to any account that violates these Terms & Conditions or harms the platform, its users, or its legal rights.</p>
         </div>
-
         <div class="term-block">
             <h2>13. Changes to Terms</h2>
-            <p>
-                DocUp may update or revise these Terms & Conditions at any time. Continued use of the platform after updates means you accept the revised terms.
-            </p>
+            <p>DocUp may update or revise these Terms & Conditions at any time. Continued use of the platform after updates means you accept the revised terms.</p>
         </div>
-
         <div class="term-block">
             <h2>14. Contact</h2>
-            <p>
-                For questions regarding these Terms & Conditions, payment issues, or policy concerns, users may contact DocUp through the official support/contact details made available on the platform.
-            </p>
+            <p>For questions regarding these Terms & Conditions, payment issues, or policy concerns, users may contact DocUp through the official support/contact details made available on the platform.</p>
         </div>
     </div>
 </section>
 
 <div class="footer">
-    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+    <div class="footer-left">
         DocUp
-        <p style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></p>
+        <a href="/version_report">v<%= process.env.VERSION %></a>
     </div>
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
-        <a href="/uploads">Uploads</a>
+        <a href="/uploads">Upload</a>
         <a href="/profile">Profile</a>
         <a href="/contact">ContactUs</a>
         <a href="/privacy_policy">Privacy Policy</a>
         <a href="/logout">Logout</a>
     </div>
 </div>
+
+<button id="backToTopBtn" class="back-to-top-btn">
+    <svg class="progress-ring" width="60" height="60">
+        <circle class="progress-ring-bg" cx="30" cy="30" r="26"/>
+        <circle class="progress-ring-circle" cx="30" cy="30" r="26"/>
+    </svg>
+    <div class="btn-center-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 19V5M12 5L5 12M12 5L19 12"
+                  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </div>
+</button>
+
+<script src="/dashboard2.js"></script>
+<script>
+    const backToTopBtn = document.getElementById("backToTopBtn");
+    const ring = backToTopBtn ? backToTopBtn.querySelector(".progress-ring-circle") : null;
+    const circumference = 2 * Math.PI * 26;
+
+    window.addEventListener("scroll", () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? scrollTop / docHeight : 0;
+        if (backToTopBtn) backToTopBtn.classList.toggle("show", scrollTop > 200);
+        if (ring) ring.style.strokeDashoffset = circumference - progress * circumference;
+    });
+
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    }
+</script>
 
 </body>
 </html>
