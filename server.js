@@ -1489,6 +1489,7 @@ app.get("/college/:collegeName", async (req, res) => {
         const requestedName = normalizeText(collegeName);
         const requestedCompact = normalizeCompact(collegeName);
 
+        // 🟢 THIS WAS MISSING: We find the specific college data for the image
         const collegeData =
             allCollegeRows.find(c => normalizeText(c.college_name) === requestedName) ||
             allCollegeRows.find(c => normalizeCompact(c.college_name) === requestedCompact) ||
@@ -1498,41 +1499,59 @@ app.get("/college/:collegeName", async (req, res) => {
             return String(value || "").trim().toLowerCase();
         }
 
-        function matchYear(value, yearNumber) {
-            const v = normalize(value);
-            return v === `year${yearNumber}` || v === `year ${yearNumber}` || v === String(yearNumber);
-        }
+        // 🟢 1. Determine if this is an Exam page
+        const examNames = ["JEE Main", "JEE Advanced", "NEET", "BITSAT", "VITEEE", "MHT CET", "CUET", "COMEDK", "WBJEE", "KCET"];
+        const isExam = examNames.includes(collegeName) || docs.some(d => d.doc_type === "ed_doc");
 
-        function matchSemester(value, semNumber) {
-            const v = normalize(value);
-            return v === `sem ${semNumber}` ||
-                v === `sem${semNumber}` ||
-                v === `semester ${semNumber}` ||
-                v === String(semNumber);
-        }
+        let groupedDocs = {};
 
-        const groupedDocs = {
-            "1": {
-                "1": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 1)),
-                "2": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 2))
-            },
-            "2": {
-                "3": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 3)),
-                "4": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 4))
-            },
-            "3": {
-                "5": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 5)),
-                "6": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 6))
-            },
-            "4": {
-                "7": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 7)),
-                "8": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 8))
+        // 🟢 2. Dynamic Grouping
+        if (isExam) {
+            // Group by Class (Year) -> Subject (Branch)
+            docs.forEach(doc => {
+                const className = doc.year || "Other";
+                const subjectName = doc.branch || "General";
+
+                if (!groupedDocs[className]) groupedDocs[className] = {};
+                if (!groupedDocs[className][subjectName]) groupedDocs[className][subjectName] = [];
+
+                groupedDocs[className][subjectName].push(doc);
+            });
+        } else {
+            // Original College Grouping (Year -> Semester)
+            function matchYear(value, yearNumber) {
+                const v = normalize(value);
+                return v === `year${yearNumber}` || v === `year ${yearNumber}` || v === String(yearNumber);
             }
-        };
 
-        // console.log("requested college:", collegeName);
-        // console.log("matched college row:", collegeData);
-        // console.log("docs found:", docs.length);
+            function matchSemester(value, semNumber) {
+                const v = normalize(value);
+                return v === `sem ${semNumber}` ||
+                    v === `sem${semNumber}` ||
+                    v === `semester ${semNumber}` ||
+                    v === String(semNumber);
+            }
+
+            groupedDocs = {
+                "1": {
+                    "1": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 1)),
+                    "2": docs.filter(d => matchYear(d.year, 1) && matchSemester(d.semester, 2))
+                },
+                "2": {
+                    "3": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 3)),
+                    "4": docs.filter(d => matchYear(d.year, 2) && matchSemester(d.semester, 4))
+                },
+                "3": {
+                    "5": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 5)),
+                    "6": docs.filter(d => matchYear(d.year, 3) && matchSemester(d.semester, 6))
+                },
+                "4": {
+                    "7": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 7)),
+                    "8": docs.filter(d => matchYear(d.year, 4) && matchSemester(d.semester, 8))
+                }
+            };
+        }
+
         const user_data = await user_profile.findOne({email:req.session.email});
         const allBranches = [...new Set(
             docs
@@ -1548,7 +1567,8 @@ app.get("/college/:collegeName", async (req, res) => {
             totalDocs: docs.length,
             groupedDocs,
             allBranches,
-            user:user_data
+            isExam, // 🟢 Passed to EJS to trigger the UI switch
+            user: user_data
         });
 
     } catch (error) {
@@ -1627,6 +1647,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             branch,
             subject,
             chapter,
+            doc_type,
             protected: isProtected
         } = req.body;
 
@@ -1643,6 +1664,9 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
                 message: "Please fill all metadata fields"
             });
         }
+
+        const validDocTypes = ["college_doc", "ed_doc", "research_doc", "random_doc"];
+        const docType = validDocTypes.includes(doc_type) ? doc_type : "college_doc";
 
         // 📁 FILE PROCESSING
         const originalName = req.file.originalname || "file";
@@ -1700,7 +1724,8 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             file_url: fileUrl,
             uploaded_by: user.email,
             reviewed: false,
-            protected: protectedValue // ✅ FIXED
+            protected: protectedValue, // ✅ FIXED
+            doc_type: docType          // ✅ NEW
         });
 
         // 🔥 UPDATE USER
@@ -1901,65 +1926,74 @@ app.get("/view/:id", async (req, res) => {
             return res.status(404).render("404");
         }
 
+        // Filter out comments where the user has been deleted (user_id populated as null)
+        document.comment_section = document.comment_section.filter(c => c.user_id != null);
+
         const cooldownMs = 2 * 60 * 1000; // 2 minutes
         const cooldownDate = new Date(Date.now() - cooldownMs);
         const now = new Date();
 
-        const chargedUser = await user_profile.findOneAndUpdate(
-            {
-                email: req.session.email,
-                Doc_score: { $gt: 0 },
-                $or: [
-                    { last_doc_views: { $not: { $elemMatch: { doc_id: docId } } } },
+        // Only deduct DocScore if the document is protected
+        let chargedUser = null;
+
+        if (document.protected) {
+            chargedUser = await user_profile.findOneAndUpdate(
+                {
+                    email: req.session.email,
+                    Doc_score: { $gt: 0 },
+                    $or: [
+                        { last_doc_views: { $not: { $elemMatch: { doc_id: docId } } } },
+                        {
+                            last_doc_views: {
+                                $elemMatch: {
+                                    doc_id: docId,
+                                    viewed_at: { $lte: cooldownDate }
+                                }
+                            }
+                        }
+                    ]
+                },
+                [
                     {
-                        last_doc_views: {
-                            $elemMatch: {
-                                doc_id: docId,
-                                viewed_at: { $lte: cooldownDate }
+                        $set: {
+                            Doc_score: { $subtract: ["$Doc_score", 1] },
+                            last_doc_views: {
+                                $concatArrays: [
+                                    [
+                                        {
+                                            doc_id: docId,
+                                            viewed_at: now
+                                        }
+                                    ],
+                                    {
+                                        $slice: [
+                                            {
+                                                $filter: {
+                                                    input: { $ifNull: ["$last_doc_views", []] },
+                                                    as: "item",
+                                                    cond: {
+                                                        $ne: [
+                                                            { $toString: "$$item.doc_id" },
+                                                            String(docId)
+                                                        ]
+                                                    }
+                                                }
+                                            },
+                                            99
+                                        ]
+                                    }
+                                ]
                             }
                         }
                     }
-                ]
-            },
-            [
+                ],
                 {
-                    $set: {
-                        Doc_score: { $subtract: ["$Doc_score", 1] },
-                        last_doc_views: {
-                            $concatArrays: [
-                                [
-                                    {
-                                        doc_id: docId,
-                                        viewed_at: now
-                                    }
-                                ],
-                                {
-                                    $slice: [
-                                        {
-                                            $filter: {
-                                                input: { $ifNull: ["$last_doc_views", []] },
-                                                as: "item",
-                                                cond: {
-                                                    $ne: [
-                                                        { $toString: "$$item.doc_id" },
-                                                        String(docId)
-                                                    ]
-                                                }
-                                            }
-                                        },
-                                        99
-                                    ]
-                                }
-                            ]
-                        }
-                    }
+                    returnDocument: "after",
+                    updatePipeline: true
                 }
-            ],
-            {
-                returnDocument: "after",
-                updatePipeline: true
-            }
-        );
+            );
+        }
+
         let renderUser = chargedUser;
 
         if (!chargedUser) {
@@ -1979,7 +2013,8 @@ app.get("/view/:id", async (req, res) => {
 
             const stillInCooldown = lastViewedAt && (Date.now() - lastViewedAt < cooldownMs);
 
-            if (!stillInCooldown && freshUser.Doc_score <= 0) {
+            // Only block access due to low DocScore if the doc is protected
+            if (document.protected && !stillInCooldown && freshUser.Doc_score <= 0) {
                 const msg = { err: "Insufficient DocScore" };
                 const clg = await college.find({});
 

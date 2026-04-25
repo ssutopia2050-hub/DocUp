@@ -2512,22 +2512,27 @@ body.light-mode .save-btn:hover {
 .theme-popover {
     position: absolute;
     top: calc(100% + 12px);
-    right: 0;
-    width: min(320px, calc(100vw - 28px));
-    max-width: calc(100vw - 28px);
-    padding: 14px;
-    border-radius: 22px;
-    border: 1px solid var(--border-warm);
-    background: linear-gradient(180deg, rgba(8,18,25,0.98), rgba(5,13,18,0.98));
+    left: 0;            /* Anchor to the left side of the button */
+    right: auto;        /* Disable the right anchor */
+    width: 240px;
+    max-width: calc(100vw - 40px);
+    padding: 12px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(22px);
-    -webkit-backdrop-filter: blur(22px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
+
+    /* Keep your existing display/transition properties below */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
     opacity: 0;
-    transform: translateY(-8px) scale(0.98);
+    transform: translateY(-8px) scale(0.96);
     pointer-events: none;
-    transition: opacity 0.18s ease, transform 0.18s ease;
-    z-index: 9999;
-    overflow-x: hidden;
+    transition: all 0.2s ease;
 }
 .theme-menu {
     position: relative;
@@ -2947,19 +2952,19 @@ body.reading-mode .reading-mode-btn,
 .hero-actions {
     width: 100%;
     justify-content: flex-start;
-    padding-left: 100px;
-    margin-top: -2px;
+    padding-left: 0; /* Changed from 100px to fix the massive gap */
+    margin-top: 10px; /* Added slight spacing above the buttons */
 }
 
 @media (max-width: 860px) {
     .hero-actions {
         padding-left: 0;
-        margin-top: 0;
+        margin-top: 10px;
     }
 }
 
 body.reading-mode .hero-actions {
-    padding-left: 84px;
+    padding-left: 0; /* Changed from 84px to fix the massive gap */
 }
 
 @media (max-width: 860px) {
@@ -3041,29 +3046,30 @@ body.theme-contrast.light-mode .vote-btn.dislike:hover {
 .share-doc-dropdown {
     position: absolute;
     top: calc(100% + 12px);
+    /* Switch these to grow leftwards */
     right: 0;
     left: auto;
+
     width: 320px;
-    max-width: calc(100vw - 28px);
+    /* Added this to prevent overflow on small screens */
+    max-width: calc(100vw - 40px);
+
     padding: 14px;
     border-radius: 16px;
-    border: 1px solid var(--border);
     background: var(--surface);
-    color: var(--text);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    z-index: 1000;
 
     display: flex;
     flex-direction: column;
     gap: 10px;
-
     opacity: 0;
     transform: translateY(-8px) scale(0.96);
     pointer-events: none;
-    transition: opacity 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-
-    z-index: 9999;
+    transition: opacity 0.22s ease, transform 0.22s ease;
 }
 
 .share-doc-dropdown.active {
@@ -3272,4 +3278,19 @@ body.zen-mode #exit-zen-btn {
 
 body.zen-mode #toggle-topbar-btn {
     display: inline-flex !important;
+}
+/* ═══════════════════════════════════════════════════
+   SHARE DOC MOBILE FIX
+═══════════════════════════════════════════════════ */
+@media (max-width: 560px) {
+    .share-doc-dropdown {
+        position: fixed;
+        top: auto;
+        right: 14px;
+        left: 14px;
+        bottom: 14px;
+        width: auto;
+        max-width: none;
+        z-index: 99999; /* Ensures it stays above the reader */
+    }
 }

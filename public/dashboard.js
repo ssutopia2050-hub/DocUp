@@ -464,7 +464,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     >
                 </div>
                 <div class="college-result-card-text">
-                    <span class="college-result-card-label">College</span>
+                    <span class="college-result-card-label"></span>
                     <p>${escapeHTML(collegeName)}</p>
                 </div>
             `;
@@ -540,10 +540,21 @@ document.addEventListener("DOMContentLoaded", function () {
             const card = document.createElement("div");
             card.className = "result-tab-container";
 
+            const isEdDoc = doc.doc_type === "ed_doc";
+
             card.innerHTML = `
             <div class="result-tab">
                 <div class="result-tab-top">
                     <div class="result-tab-identity">
+                        ${isEdDoc ? `
+                        <div class="result-tab-title-wrap">
+                            <p class="result-tab-label">Entrance Exam</p>
+                            <span style="font-weight:600;font-size:0.95rem;">${escapeHTML(doc.college || "")}</span>
+                            <p class="result-tab-label" style="color:white;">
+                                ${escapeHTML(capitalizeFirst(doc.chapter || ""))}
+                            </p>
+                        </div>
+                        ` : `
                         <div class="college-logo">
                             <img
                                 src="${logoUrl}"
@@ -561,6 +572,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 ${escapeHTML(capitalizeFirst(doc.chapter || ""))}
                             </p>
                         </div>
+                        `}
                     </div>
 
                     <div class="result-tab-badge">
@@ -586,11 +598,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 <div class="result-tab-footer">
                     <div class="tags-container">
+                        ${isEdDoc ? `
+                        ${doc.branch ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(doc.branch)}">${escapeHTML(doc.branch)}</div>` : ""}
+                        ${doc.year ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(capitalizeFirst(doc.year))}">${escapeHTML(capitalizeFirst(doc.year))}</div>` : ""}
+                        ${doc.subject ? `<div class="tags tag-clickable" data-tag-search="/s ${escapeHTML(capitalizeFirst(doc.subject))}">${escapeHTML(capitalizeFirst(doc.subject))}</div>` : ""}
+                        ${doc.chapter ? `<div class="tags tag-clickable" data-tag-search="/ch ${escapeHTML(capitalizeFirst(doc.chapter))}">${escapeHTML(capitalizeFirst(doc.chapter))}</div>` : ""}
+                        ` : `
                         ${doc.branch ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(doc.branch)}">${escapeHTML(doc.branch)}</div>` : ""}
                         ${doc.year ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(capitalizeFirst(doc.year))}">${escapeHTML(capitalizeFirst(doc.year))}</div>` : ""}
                         ${doc.semester ? `<div class="tags tag-clickable" data-tag-search="${escapeHTML(capitalizeFirst(doc.semester))}">${escapeHTML(capitalizeFirst(doc.semester))}</div>` : ""}
                         ${doc.subject ? `<div class="tags tag-clickable" data-tag-search="/s ${escapeHTML(capitalizeFirst(doc.subject))}">${escapeHTML(capitalizeFirst(doc.subject))}</div>` : ""}
                         ${doc.chapter ? `<div class="tags tag-clickable" data-tag-search="/ch ${escapeHTML(capitalizeFirst(doc.chapter))}">${escapeHTML(capitalizeFirst(doc.chapter))}</div>` : ""}
+                        `}
 
                         ${doc.reviewed
                 ? `<div class="verif-status verified">Verified</div>`

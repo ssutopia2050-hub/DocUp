@@ -96,7 +96,13 @@ const Docs = new mongoose.Schema({
         type:String,
         trim:true,
         default:"9+ CGPA"
+    },
+    doc_type:{
+        type:String,
+        enum:["college_doc","ed_doc","research_doc","random_doc"],
+        required:true,
     }
+
 });
 
 export default mongoose.model("Docs", Docs);

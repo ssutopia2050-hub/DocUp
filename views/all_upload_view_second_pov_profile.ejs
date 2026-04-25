@@ -12,7 +12,6 @@
 </head>
 <body>
 
-<!-- ═══════════════ TOPBAR ═══════════════ -->
 <header class="topbar">
     <div class="topbar-left">
         <a href="/dashboard" class="logo-wordmark">DocUp</a>
@@ -34,14 +33,11 @@
     </div>
 </header>
 
-<!-- ═══════════════ PAGE SHELL ═══════════════ -->
 <main class="page-shell">
 
-    <!-- ── PROFILE HERO ── -->
     <section class="profile-hero">
         <div class="profile-main-card">
 
-            <!-- Left: identity + meta -->
             <div class="profile-main-left">
                 <div class="avatar-wrap">
                     <% if (data?.avatar_img_path) { %>
@@ -62,7 +58,7 @@
                     <h1><%= data?.name || "Unknown User" %></h1>
                     <p class="profile-subtext">
                         Browse verified uploads from this contributor in one place.
-                        Search by subject, college, chapter, or branch and open documents directly inside DocUp.
+                        Search by exam, college, chapter, or stream and open documents directly inside DocUp.
                     </p>
 
                     <div class="profile-meta-row">
@@ -84,7 +80,6 @@
                 </div>
             </div>
 
-            <!-- Right: stats -->
             <div class="profile-main-right">
                 <div class="stat-card">
                     <span class="stat-top">Saved Profiles</span>
@@ -105,7 +100,6 @@
         </div>
     </section>
 
-    <!-- ── DOCUMENT EXPLORER ── -->
     <section class="explorer-wrap">
 
         <div class="explorer-topbar">
@@ -121,21 +115,20 @@
             </div>
         </div>
 
-        <!-- Filter strip -->
         <div class="filter-strip">
             <div class="search-box">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                 </svg>
-                <input id="uploadSearch" type="text" placeholder="Search subject, college, chapter, branch…" autocomplete="off">
+                <input id="uploadSearch" type="text" placeholder="Search exams, subjects, colleges, chapters…" autocomplete="off">
                 <button id="clearSearch" type="button" aria-label="Clear search">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 </button>
             </div>
 
             <div class="filter-controls">
-                <select id="collegeFilter" aria-label="Filter by college">
-                    <option value="">All Colleges</option>
+                <select id="collegeFilter" aria-label="Filter by institution or exam">
+                    <option value="">All Exams & Colleges</option>
                     <%
                     const uniqueColleges = [...new Set((uploads || [])
                     .map(item => item?.doc_id?.college || item?.college)
@@ -147,8 +140,8 @@
                     <% }) %>
                 </select>
 
-                <select id="subjectFilter" aria-label="Filter by subject">
-                    <option value="">All Subjects</option>
+                <select id="subjectFilter" aria-label="Filter by subject or document name">
+                    <option value="">All Subjects & Topics</option>
                     <%
                     const uniqueSubjects = [...new Set((uploads || [])
                     .map(item => item?.doc_id?.subject || item?.subject)
@@ -162,7 +155,6 @@
             </div>
         </div>
 
-        <!-- Results count -->
         <div class="results-bar">
             <span class="results-count-pill">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -171,10 +163,11 @@
             <span class="results-bar-label"></span>
         </div>
 
-        <!-- Documents grid -->
         <% if (uploads && uploads.length > 0) { %>
         <div class="docs-grid" id="docsGrid">
-            <% uploads.forEach((upload, index) => { %>
+            <% uploads.forEach((upload, index) => {
+            const isEdDoc = upload?.doc_id?.doc_type === "ed_doc";
+            %>
             <article
                     class="doc-card"
                     data-index="<%= index %>"
@@ -184,8 +177,12 @@
                     data-branch="<%= (upload?.doc_id?.branch || '').toLowerCase() %>"
                     data-uploaded="<%= upload?.uploadedAt ? new Date(upload.uploadedAt).getTime() : 0 %>"
             >
-                <!-- Card top -->
                 <div class="doc-card-top">
+                    <% if (isEdDoc) { %>
+                    <div class="doc-icon-wrap" style=" color: rgba(255,106,0,0.71); display: flex; align-items: center; justify-content: center; font-family: 'Archivo Black', sans-serif; font-size: 0.8rem; border-radius: 8px;">
+                        ED
+                    </div>
+                    <% } else { %>
                     <div class="doc-icon-wrap">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                             <path d="M8 3.75h6.5L19.25 8.5V18A2.25 2.25 0 0 1 17 20.25H8A2.25 2.25 0 0 1 5.75 18V6A2.25 2.25 0 0 1 8 3.75Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
@@ -193,6 +190,7 @@
                             <path d="M9 13h6M9 16h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
                         </svg>
                     </div>
+                    <% } %>
 
                     <div class="doc-top-text">
                         <p class="doc-label">Verified</p>
@@ -200,25 +198,24 @@
                     </div>
                 </div>
 
-                <!-- Meta -->
                 <div class="doc-meta-list">
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key">College</span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Exam" : "College" %></span>
                         <span class="doc-meta-value"><%= upload?.doc_id?.college || upload?.college || "—" %></span>
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key">Branch</span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Stream" : "Branch" %></span>
                         <span class="doc-meta-value"><%= upload?.doc_id?.branch || "—" %></span>
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key">Semester</span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Class" : "Semester" %></span>
                         <span class="doc-meta-value"><%= upload?.doc_id?.semester || "—" %></span>
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key">Chapter</span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Chapter" %></span>
                         <span class="doc-meta-value"><%= upload?.doc_id?.chapter || "—" %></span>
                     </div>
 
@@ -234,7 +231,6 @@
                     </div>
                 </div>
 
-                <!-- CTA -->
                 <div class="doc-card-bottom">
                     <% if (upload?.doc_id?._id) { %>
                     <a class="doc-btn primary-btn" href="/view/<%= upload.doc_id._id %>">
@@ -258,7 +254,6 @@
             <% }) %>
         </div>
 
-        <!-- No results -->
         <div id="noResultsState" class="no-results-state" style="display:none;">
             <div class="no-results-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -268,11 +263,10 @@
             </div>
             <p class="no-results-kicker">No matches found</p>
             <h3>Try another search or change the filters</h3>
-            <p>Search by subject, college, chapter, or branch — or clear filters to see all verified uploads.</p>
+            <p>Search by subject, exam, college, topic, or stream — or clear filters to see all verified uploads.</p>
         </div>
 
         <% } else { %>
-        <!-- Empty state -->
         <div class="empty-state">
             <div class="empty-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -291,7 +285,6 @@
     </section>
 </main>
 
-<!-- ═══════════════ FOOTER ═══════════════ -->
 <footer class="footer">
     <div class="footer-left">
         DocUp
@@ -345,7 +338,6 @@
 
     function applyFiltersAndSort() {
         if (!docsGrid) return;
-
         const visible = sortCards(cards.filter(matchesFilters));
 
         cards.forEach(c => { c.style.display = "none"; });
@@ -411,7 +403,6 @@
                 }, 20000);
             });
         });
-
         window.addEventListener("pageshow", resetViewLinks);
     });
 </script>

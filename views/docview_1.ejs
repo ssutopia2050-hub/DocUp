@@ -149,7 +149,6 @@
 <div class="hero-strip">
     <div class="hero-strip-inner">
         <div class="hero-left">
-            <% if (doc.doc_type !== 'ed_doc') { %>
             <div class="college-logo-wrap">
 
                 <img
@@ -159,15 +158,10 @@ college_data.image : '/images/default.png' %>"
                         onerror="this.onerror=null;this.src='/images/default.png';"
                 >
             </div>
-            <% } %>
             <div class="hero-meta">
 
                 <div class="hero-meta-top">
-                    <% if (doc.doc_type === 'ed_doc') { %>
                     <span class="college-chip"><%= doc.college %></span>
-                    <% } else { %>
-                    <span class="college-chip"><%= doc.college %></span>
-                    <% } %>
                     <% if (doc.reviewed) { %>
                     <span class="status-chip verified">
 
@@ -180,17 +174,6 @@ college_data.image : '/images/default.png' %>"
                     <% } %>
                 </div>
                 <h1 class="hero-title"><%= doc.title || doc.chapter %></h1>
-                <% if (doc.doc_type === 'ed_doc') { %>
-                <p class="hero-sub"><%= doc.subject %> &nbsp;·&nbsp; <%= doc.branch %> &nbsp;·&nbsp; <%= doc.year %></p>
-                <div class="hero-tags">
-                    <span class="htag"><%= doc.college %></span>
-                    <span class="htag"><%= doc.year %></span>
-                    <span class="htag"><%= doc.branch %></span>
-                    <span class="htag"><%= doc.subject %></span>
-                    <span class="htag"><%= doc.chapter %></span>
-                    <span class="htag"><%= views %> Views</span>
-                </div>
-                <% } else { %>
                 <p class="hero-sub"><%= doc.subject %> &nbsp;·&nbsp;
                     <%= doc.branch %> &nbsp;·&nbsp;  <%= doc.year %> &nbsp;·&nbsp;  <%= doc.semester %></p>
                 <div class="hero-tags">
@@ -201,21 +184,15 @@ college_data.image : '/images/default.png' %>"
                     <span class="htag"><%= doc.chapter %></span>
                     <span class="htag"><%= views %> Views</span>
                 </div>
-                <% } %>
             </div>
         </div>
 
         <div class="hero-actions">
+
             <a href="/college/<%= encodeURIComponent(doc.college) %>" class="ha-btn ghost">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 More Docs from <span style="color:orangered"><%= doc.college %></span>
             </a>
-            <% if (doc.doc_type !== 'ed_doc') { %>
-            <a href="/college/<%= encodeURIComponent(doc.college) %>" class="ha-btn ghost">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                More Docs from <span style="color:orangered"><%= doc.college %></span>
-            </a>
-            <% } %>
             <% if (uploaderProfile && uploaderProfile._id) { %>
 
             <a href="/all_uploads_view_second_pov_profile/<%= uploaderProfile._id %>" class="ha-btn ghost">
@@ -234,7 +211,6 @@ college_data.image : '/images/default.png' %>"
                 </svg>
                 Report
             </button>
-            <% if (doc.doc_type !== 'ed_doc') { %>
             <button type="button" id="open-share-doc-modal" class="ha-btn accent"
                     data-doc-id="<%= doc._id
 %>"
@@ -245,7 +221,6 @@ college_data.image : '/images/default.png' %>"
 4M12 2v13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 Share to <%= doc.college %> Chat
             </button>
-            <% } %>
 
             <div class="vote-cluster">
                 <button type="button" class="vote-btn like" id="like-btn" data-doc-id="<%= doc._id %>">
@@ -554,53 +529,30 @@ college_data.image : '/images/default.png' %>"
                 <h2>Document Info</h2>
             </div>
             <dl class="info-dl">
-                <% if (doc.doc_type === 'ed_doc') { %>
+                <div class="info-row">
 
-                <div class="info-row">
-                    <dt>Exam</dt>
-                    <dd><%= doc.college %></dd>
-                </div>
-                <div class="info-row">
-                    <dt>Class</dt>
-                    <dd><%= doc.year %></dd>
-                </div>
-                <div class="info-row">
-                    <dt>Subject</dt>
-                    <dd><%= doc.branch %></dd>
-                </div>
-                <div class="info-row">
-                    <dt>Document</dt>
-                    <dd><%= doc.subject %></dd>
-                </div>
-                <div class="info-row">
-                    <dt>Chapter / Topic</dt>
-                    <dd><%= doc.chapter %></dd>
-                </div>
-
-                <% } else { %>
-
-                <div class="info-row">
                     <dt>College</dt>
                     <dd><a href="/college/<%= encodeURIComponent(doc.college) %>"><%= doc.college %></a></dd>
                 </div>
                 <div class="info-row">
                     <dt>Subject</dt>
+
                     <dd><%= doc.subject %></dd>
                 </div>
                 <div class="info-row">
                     <dt>Semester</dt>
                     <dd>Semester <%= doc.semester %></dd>
+
                 </div>
                 <div class="info-row">
                     <dt>Branch</dt>
                     <dd><%= doc.branch %></dd>
                 </div>
                 <div class="info-row">
+
                     <dt>Chapter</dt>
                     <dd><%= doc.chapter %></dd>
                 </div>
-
-                <% } %>
                 <div class="info-row">
                     <dt>Uploader</dt>
 
