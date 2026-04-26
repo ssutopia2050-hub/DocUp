@@ -43,23 +43,23 @@ app.set("view engine", "ejs");
 app.set("views", "./views");
 const SUBSCRIPTION_PLANS = {
     essential_monthly: {
-        label: "Essential Monthly",
-        amount: 100,
-        docscore: 80,
-        period: "monthly",
-        interval: 1
-    },
-    standard_monthly: {
-        label: "Standard Monthly",
-        amount: 150,
+        label: "Prep",
+        amount: 99,
         docscore: 100,
         period: "monthly",
         interval: 1
     },
+    standard_monthly: {
+        label: "Crack",
+        amount: 149,
+        docscore:200,
+        period: "monthly",
+        interval: 1
+    },
     power_monthly: {
-        label: "Power Monthly",
+        label: "Topper",
         amount: 250,
-        docscore: 200,
+        docscore: 300,
         period: "monthly",
         interval: 1
     }
@@ -2448,19 +2448,19 @@ app.post("/add_comment/:id", async (req, res) => {
  ****************************/
 const RECHARGE_PLANS = {
     starter: {
-        label: "Starter Recharge",
-        amount: 19,
-        docscore: 10
+        label: "Prep",
+        amount: 29,
+        docscore: 20
     },
     standard: {
-        label: "Standard Recharge",
-        amount: 49,
-        docscore: 30,
+        label: "Crack",
+        amount: 79,
+        docscore: 60,
     },
     pro: {
-        label: "Ultimate Study Pack",
-        amount: 149,
-        docscore: 100
+        label: "Topper",
+        amount: 199,
+        docscore: 180
     }
 };
 
@@ -2488,7 +2488,7 @@ app.post("/buy-recharge", async (req, res) => {
         let selectedPlan;
 
         if (plan === "custom") {
-            const DOCSCORE_RATE = 2; // ₹2 per DocScore
+            const DOCSCORE_RATE = 1; // ₹1 per DocScore
             const amount = Math.round(Number(customAmount) / 2) * 2; // keep even
 
             if (!amount || amount < 10 || amount > 500) {
