@@ -110,7 +110,19 @@
         </p>
     </div>
 </section>
-
+<!-- ===== CUSTOM AMOUNT TRIGGER ===== -->
+<section class="custom-trigger-section">
+    <button type="button" class="custom-trigger-btn" id="open-custom-modal">
+        <span class="custom-trigger-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </span>
+        Custom Amount
+        <span class="custom-trigger-sub">Choose exactly how much to recharge for...</span>
+    </button>
+</section>
 <section class="pricing-section">
     <div class="pricing-card starter">
         <p class="plan-tag">Basic</p>
@@ -173,6 +185,53 @@
         </button>
     </div>
 </section>
+
+
+
+<!-- ===== CUSTOM RECHARGE OVERLAY ===== -->
+<div class="cr-overlay" id="cr-overlay">
+    <div class="cr-backdrop" id="cr-backdrop"></div>
+    <div class="cr-modal" id="cr-modal">
+        <button class="cr-close" id="cr-close" aria-label="Close">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div class="cr-eyebrow">Custom Recharge</div>
+
+        <div class="cr-amount-display">
+            <span style="color:orangered" class="cr-rupee">₹</span><span id="cr-amount-num">100</span>
+        </div>
+
+        <div class="cr-score-pill">
+            <span id="cr-score-num">50</span>&nbsp;DocScore
+        </div>
+
+        <div class="cr-slider-wrap">
+            <input type="range" id="cr-slider" class="cr-slider" min="10" max="500" step="2" value="100">
+        </div>
+
+        <div class="cr-range-labels">
+            <span>₹10</span><span>₹500</span>
+        </div>
+
+        <div class="cr-divider"></div>
+
+        <div class="cr-chips">
+            <button class="cr-chip" data-val="50">₹50</button>
+            <button class="cr-chip" data-val="100">₹100</button>
+            <button class="cr-chip" data-val="200">₹200</button>
+            <button class="cr-chip" data-val="500">₹500</button>
+        </div>
+
+        <div class="cr-rate-note"> No refund · No expiry </div>
+
+        <button type="button" class="cr-pay-btn" id="cr-pay-btn">
+            Pay ₹<span id="cr-btn-amount">100</span>
+        </button>
+    </div>
+</div>
 
 <section class="comparison-section">
     <div class="comparison-card">
@@ -318,6 +377,129 @@
                 btn.innerText = originalText;
             }
         });
+    });
+</script>
+
+<script>
+    /* ===== CUSTOM RECHARGE OVERLAY ===== */
+    const RATE = 1.5;
+
+    const overlay   = document.getElementById("cr-overlay");
+    const backdrop  = document.getElementById("cr-backdrop");
+    const closeBtn  = document.getElementById("cr-close");
+    const openBtn   = document.getElementById("open-custom-modal");
+    const slider    = document.getElementById("cr-slider");
+    const amountNum = document.getElementById("cr-amount-num");
+    const scoreNum  = document.getElementById("cr-score-num");
+    const btnAmount = document.getElementById("cr-btn-amount");
+    const payBtn    = document.getElementById("cr-pay-btn");
+    const chips     = document.querySelectorAll(".cr-chip");
+
+    function syncSliderFill(val) {
+        const pct = ((val - 10) / (500 - 10)) * 100;
+        slider.style.background = `linear-gradient(to right,#ff5e00 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
+    }
+
+    function updateUI(val) {
+        val = Math.max(10, Math.min(500, Math.round(val / 2) * 2));
+        slider.value = val;
+        amountNum.textContent = val;
+        scoreNum.textContent  = Math.floor(val / RATE);
+        btnAmount.textContent = val;
+        syncSliderFill(val);
+    }
+
+    slider.addEventListener("input", () => updateUI(+slider.value));
+
+    chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+            chips.forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+            updateUI(+chip.dataset.val);
+        });
+    });
+
+    function openModal() {
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+
+    openBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+    backdrop.addEventListener("click", closeModal);
+
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape") closeModal();
+    });
+
+    updateUI(100);
+
+    payBtn.addEventListener("click", async () => {
+        const amount = Math.max(10, Math.min(500, Math.round(+slider.value / 2) * 2));
+        const orig   = payBtn.innerHTML;
+
+        payBtn.disabled = true;
+        payBtn.textContent = "Please wait…";
+
+        try {
+            const res  = await fetch("/buy-recharge", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ plan: "custom", customAmount: amount })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.message || "Could not start payment");
+                payBtn.disabled = false;
+                payBtn.innerHTML = orig;
+                return;
+            }
+
+            const options = {
+                key: data.key,
+                amount: data.amount,
+                currency: data.currency,
+                name: "DocUp",
+                description: `Custom DocScore — ${data.docscoreToAdd} pts`,
+                order_id: data.orderId,
+                prefill: { email: data.userEmail },
+                theme: { color: "#ff5e00" },
+                handler: async function(pr) {
+                    try {
+                        const vr   = await fetch("/payment/verify", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(pr)
+                        });
+                        const vd   = await vr.json();
+                        if (vd.success) { window.location.href = vd.redirectUrl; }
+                        else {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = orig;
+                            alert(vd.message || "Verification failed");
+                        }
+                    } catch(err) {
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = orig;
+                    }
+                },
+                modal: { ondismiss: () => { payBtn.disabled = false; payBtn.innerHTML = orig; } }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on("payment.failed", () => { payBtn.disabled = false; payBtn.innerHTML = orig; });
+            rzp.open();
+        } catch(err) {
+            alert("Something went wrong");
+            payBtn.disabled = false;
+            payBtn.innerHTML = orig;
+        }
     });
 </script>
 

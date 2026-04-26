@@ -395,6 +395,294 @@ body{
     opacity:0.92;
 }
 
+/* ===== CUSTOM TRIGGER BUTTON ===== */
+.custom-trigger-section{
+    width:100%;
+    padding:0 5% 30px 5%;
+}
+
+.custom-trigger-btn{
+    width:100%;
+    min-height:72px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+    padding:0 28px;
+    background:rgba(255,255,255,0.03);
+    border:1px dashed rgba(255,106,0,0.3);
+    border-radius:20px;
+    cursor:pointer;
+    color:rgba(255,255,255,0.72);
+    font-family:"Saira",sans-serif;
+    font-size:1.05rem;
+    transition:0.25s ease;
+    text-align:left;
+    flex-wrap:wrap;
+}
+
+.custom-trigger-btn:hover{
+    background:rgba(255,106,0,0.06);
+    border-color:rgba(255,106,0,0.55);
+    color:white;
+}
+
+.custom-trigger-icon{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:rgba(255,94,0,0.12);
+    border:1px solid rgba(255,94,0,0.25);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#ff7a30;
+    flex-shrink:0;
+}
+
+.custom-trigger-sub{
+    margin-left:auto;
+    font-size:0.82rem;
+    color:rgba(255,255,255,0.35);
+    font-family:"DM Sans",sans-serif;
+}
+
+/* ===== OVERLAY ===== */
+.cr-overlay{
+    position:fixed;
+    inset:0;
+    z-index:9000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.28s cubic-bezier(0.32,0,0.67,0);
+}
+
+.cr-overlay.active{
+    opacity:1;
+    pointer-events:auto;
+    transition:opacity 0.22s cubic-bezier(0.33,1,0.68,1);
+}
+
+.cr-backdrop{
+    position:absolute;
+    inset:0;
+    background:rgba(0,6,10,0.72);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+}
+
+.cr-modal{
+    position:relative;
+    z-index:1;
+    width:min(420px, 92vw);
+    background:rgba(12,20,26,0.95);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:28px;
+    padding:38px 32px 32px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0;
+    box-shadow:0 40px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset;
+    transform:translateY(16px) scale(0.97);
+    transition:transform 0.28s cubic-bezier(0.33,1,0.68,1);
+}
+
+.cr-overlay.active .cr-modal{
+    transform:translateY(0) scale(1);
+}
+
+.cr-close{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.05);
+    color:rgba(255,255,255,0.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:0.7s ease;
+}
+
+.cr-close:hover{
+    background:rgba(255,255,255,0.1);
+    color:white;
+    transform: rotateZ(180deg);
+}
+
+.cr-eyebrow{
+    font-family:"Saira",sans-serif;
+    font-size:0.75rem;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:rgba(255,140,80,0.7);
+    margin-bottom:24px;
+}
+
+.cr-amount-display{
+    display:flex;
+    align-items:flex-start;
+    gap:4px;
+    line-height:1;
+    margin-bottom:14px;
+}
+
+.cr-rupee{
+    font-family:"Raleway",sans-serif;
+    font-size:2rem;
+    font-weight:700;
+    color:rgba(255,255,255,0.5);
+    margin-top:10px;
+}
+
+#cr-amount-num{
+    font-family:"Raleway",sans-serif;
+    font-size:5rem;
+    font-weight:800;
+    color:white;
+    transition:0.12s ease;
+    letter-spacing:-2px;
+}
+
+.cr-score-pill{
+    background:rgba(255,94,0,0.1);
+    border:1px solid rgba(255,94,0,0.22);
+    border-radius:999px;
+    padding:7px 18px;
+    font-family:"Saira",sans-serif;
+    font-size:0.9rem;
+    color:#ff9d59;
+    margin-bottom:32px;
+    transition:0.12s ease;
+}
+
+.cr-slider-wrap{
+    width:100%;
+    margin-bottom:10px;
+}
+
+.cr-slider{
+    -webkit-appearance:none;
+    appearance:none;
+    width:100%;
+    height:4px;
+    border-radius:999px;
+    outline:none;
+    cursor:pointer;
+    background:rgba(255,255,255,0.1);
+    transition:background 0.1s;
+}
+
+.cr-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    appearance:none;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:white;
+    cursor:pointer;
+    box-shadow:0 2px 12px rgba(0,0,0,0.5);
+    transition:transform 0.15s ease;
+}
+
+.cr-slider::-webkit-slider-thumb:hover{
+    transform:scale(1.15);
+}
+
+.cr-slider::-moz-range-thumb{
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:white;
+    border:none;
+    cursor:pointer;
+}
+
+.cr-range-labels{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    font-family:"DM Sans",sans-serif;
+    font-size:0.75rem;
+    color:rgba(255,255,255,0.25);
+    margin-bottom:24px;
+}
+
+.cr-divider{
+    width:100%;
+    height:1px;
+    background:rgba(255,255,255,0.06);
+    margin-bottom:20px;
+}
+
+.cr-chips{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:20px;
+}
+
+.cr-chip{
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.04);
+    color:rgba(255,255,255,0.6);
+    font-family:"Saira",sans-serif;
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:0.18s ease;
+}
+
+.cr-chip:hover,
+.cr-chip.active{
+    background:rgba(255,94,0,0.12);
+    border-color:rgba(255,94,0,0.4);
+    color:#ff9d59;
+}
+
+.cr-rate-note{
+    font-family:"DM Sans",sans-serif;
+    font-size:0.75rem;
+    color:rgba(255,255,255,0.22);
+    margin-bottom:24px;
+    text-align:center;
+}
+
+.cr-pay-btn{
+    width:100%;
+    height:56px;
+    border-radius:18px;
+    border:none;
+    background:linear-gradient(135deg,#ff5e00,#ff8c00);
+    color:white;
+    font-family:"Saira",sans-serif;
+    font-size:1.05rem;
+    font-weight:600;
+    letter-spacing:0.3px;
+    cursor:pointer;
+    transition:0.22s ease;
+}
+
+.cr-pay-btn:hover{
+    opacity:0.88;
+    transform:scale(1.01);
+}
+
+.cr-pay-btn:disabled{
+    opacity:0.55;
+    transform:none;
+    cursor:not-allowed;
+}
+
 .comparison-section{
     width:100%;
     padding:10px 5% 30px 5%;

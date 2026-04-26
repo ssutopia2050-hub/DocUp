@@ -2483,8 +2483,31 @@ app.post("/buy-recharge", async (req, res) => {
             });
         }
 
-        const { plan } = req.body;
-        const selectedPlan = RECHARGE_PLANS[plan];
+        const { plan, customAmount } = req.body;
+
+        let selectedPlan;
+
+        if (plan === "custom") {
+            const DOCSCORE_RATE = 2; // ₹2 per DocScore
+            const amount = Math.round(Number(customAmount) / 2) * 2; // keep even
+
+            if (!amount || amount < 10 || amount > 500) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Custom amount must be between ₹10 and ₹500"
+                });
+            }
+
+            const docscore = Math.floor(amount / DOCSCORE_RATE);
+
+            selectedPlan = {
+                label: `Custom Recharge (${docscore} pts)`,
+                amount,
+                docscore
+            };
+        } else {
+            selectedPlan = RECHARGE_PLANS[plan];
+        }
 
         if (!selectedPlan) {
             return res.status(400).json({
@@ -2495,12 +2518,13 @@ app.post("/buy-recharge", async (req, res) => {
 
         const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-        const existingPendingOrder = await paymentOrder.findOne({
+        // For custom amounts, always create a fresh order (amount may differ)
+        const existingPendingOrder = plan !== "custom" ? await paymentOrder.findOne({
             user_email: req.session.email,
             plan_key: plan,
             status: "PENDING",
             createdAt: { $gte: fiveMinutesAgo }
-        }).sort({ createdAt: -1 });
+        }).sort({ createdAt: -1 }) : null;
 
         if (existingPendingOrder) {
             return res.json({
@@ -2509,7 +2533,8 @@ app.post("/buy-recharge", async (req, res) => {
                 amount: existingPendingOrder.amount * 100,
                 currency: "INR",
                 key: process.env.RAZORPAY_KEY_ID,
-                userEmail: req.session.email
+                userEmail: req.session.email,
+                docscoreToAdd: existingPendingOrder.docscore_to_add
             });
         }
 
@@ -2541,7 +2566,8 @@ app.post("/buy-recharge", async (req, res) => {
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency,
             key: process.env.RAZORPAY_KEY_ID,
-            userEmail: req.session.email
+            userEmail: req.session.email,
+            docscoreToAdd: selectedPlan.docscore
         });
     } catch (err) {
         console.error("Razorpay order creation error:", err);
