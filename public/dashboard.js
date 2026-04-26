@@ -816,4 +816,26 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+    // =========================================================
+    // Auto-trigger search if coming from another page (like Saved Docs)
+    // =========================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchQuery = urlParams.get("search");
+
+    if (searchQuery && searchInput && searchForm) {
+        // 1. Put the search term into the input box
+        searchInput.value = searchQuery;
+
+        // 2. Show the clear "X" button
+        const clearBtn = document.getElementById("clear-search");
+        if (clearBtn) clearBtn.style.display = "block";
+
+        // 3. Remove the ?search= parameter from the URL so if the user refreshes, it resets cleanly
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        // 4. Wait a tiny moment, then trigger the form submission exactly as if the user pressed "Enter"
+        setTimeout(() => {
+            searchForm.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+        }, 50);
+    }
 });

@@ -3024,6 +3024,34 @@ app.get("/all_uploads_view_second_pov_profile/:_id", async (req, res) => {
     }
 });
 
+app.get("/saved_docs", async (req, res) => {
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
+
+    try {
+        // Fetch the user and populate the saved_documents array
+        const user_data = await user_profile.findOne({ email: req.session.email })
+            .populate("saved_documents");
+
+        if (!user_data) {
+            return res.status(404).send("User not found");
+        }
+
+        // Filter out any null documents (in case a saved doc was deleted from the database)
+        const validSavedDocs = (user_data.saved_documents || [])
+            .filter(doc => doc != null)
+            .reverse(); // Reverse so newest saves appear first
+
+        res.render("saved_docs", {
+            data: user_data,
+            savedDocs: validSavedDocs
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
 /* ***************************
    notification
  ****************************/

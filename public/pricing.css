@@ -409,7 +409,7 @@ body{
     gap:16px;
     padding:0 28px;
     background:rgba(255,255,255,0.03);
-    border:1px dashed rgba(255,106,0,0.3);
+    border:1px solid rgba(255,106,0,0.3);
     border-radius:20px;
     cursor:pointer;
     color:rgba(255,255,255,0.72);
@@ -441,8 +441,8 @@ body{
 
 .custom-trigger-sub{
     margin-left:auto;
-    font-size:0.82rem;
-    color:rgba(255,255,255,0.35);
+    font-size:1.0rem;
+    color: rgb(255, 117, 43);
     font-family:"DM Sans",sans-serif;
 }
 

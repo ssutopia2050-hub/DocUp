@@ -1863,3 +1863,6 @@ button {
     cursor: pointer;
 color: rgb(255, 255, 255);
 }
+.saved-view-tag:hover{
+    color: rgb(255, 255, 255);
+}

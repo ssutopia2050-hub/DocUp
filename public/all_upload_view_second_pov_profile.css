@@ -1857,3 +1857,25 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     .footer { padding: 18px; flex-direction: column; align-items: flex-start; }
     .meta-chip { flex: 1 1 100%; }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CLICKABLE SEARCH LINKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.saved-search-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--t);
+    position: relative;
+    z-index: 10;
+}
+
+.saved-search-link:hover {
+    color: orangered;
+    /*text-decoration: underline;*/
+    text-underline-offset: 3px;
+}
+
+/* Keeps the card title clean on hover, just changing color */
+.doc-top-text h3 .saved-search-link:hover {
+    text-decoration: none;
+}

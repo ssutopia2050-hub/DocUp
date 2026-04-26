@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DocUp | <%= data?.name || "Uploader" %>'s Uploads</title>
+    <title>DocUp | Your Saved Docs</title>
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/all_upload_view_second_pov_profile.css">
+    <link rel="stylesheet" href="/saved_docs.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -24,11 +24,11 @@
     </div>
 
     <div class="topbar-right">
-        <a class="topbar-btn" href="/show_other_user_profile/<%= data.email %>">
+        <a class="topbar-btn" href="/profile">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            Back to <span style="color:orangered"><%= data.name %>'s</span> Community Profile
+            Back to <span style="color:orangered">Profile</span>
         </a>
     </div>
 </header>
@@ -54,25 +54,25 @@
                 </div>
 
                 <div class="profile-copy">
-                    <p class="eyebrow">Uploader Space</p>
-                    <h1><%= data?.name || "Unknown User" %></h1>
+                    <p class="eyebrow">Saved Space</p>
+                    <h1><%= data?.name || "Your Profile" %></h1>
                     <p class="profile-subtext">
-                        Browse verified uploads from this contributor in one place.
-                        Search by exam, college, chapter, or stream and open documents directly inside DocUp.
+                        Browse all your bookmarked documents in one place.
+                        Search by exam, college, chapter, or stream and quickly pick up where you left off.
                     </p>
 
                     <div class="profile-meta-row">
-                        <div class="meta-chip">
-                            <span class="meta-label">Verified Uploads</span>
-                            <strong id="totalUploadsCount"><%= uploads?.length || 0 %></strong>
+                        <div class="meta-chip" onclick="window.location.href='/saved_docs';" style="cursor: pointer;">
+                            <span class="meta-label">Saved Docs</span>
+                            <strong id="totalUploadsCount"><%= savedDocs?.length || 0 %></strong>
                         </div>
 
-                        <div class="meta-chip">
+                        <div class="meta-chip" onclick="window.location.href='/pricing';" style="cursor: pointer;">
                             <span class="meta-label">DocScore</span>
                             <strong><%= data?.Doc_score ?? 0 %></strong>
                         </div>
 
-                        <div class="meta-chip">
+                        <div class="meta-chip" onclick="window.location.href='/upgrade-plans';" style="cursor: pointer;">
                             <span class="meta-label">Plan</span>
                             <strong><%= data?.subscription || "Free Tier" %></strong>
                         </div>
@@ -81,20 +81,26 @@
             </div>
 
             <div class="profile-main-right">
-                <div class="stat-card">
-                    <span class="stat-top">Saved Profiles</span>
-                    <h3><%= data?.saved_profiles?.length || 0 %></h3>
-                </div>
+                <a style="border-bottom: rgb(255,255,255)" href="/profile">
+                    <div class="stat-card">
+                        <span class="stat-top">Saved Profiles</span>
+                        <h3><%= data?.saved_profiles?.length || 0 %></h3>
+                    </div>
+                </a>
 
+                <a href="/all_uploads_view_second_pov_profile/<%= data._id %>">
                 <div class="stat-card">
-                    <span class="stat-top">Saved Docs</span>
-                    <h3><%= data?.saved_documents?.length || 0 %></h3>
+                    <span class="stat-top">Uploads</span>
+                    <h3><%= data?.uploads?.length || 0 %></h3>
                 </div>
+                </a>
+                <a href="/profile">
+                    <div class="stat-card">
+                        <span class="stat-top">Viewed Docs</span>
+                        <h3><%= data?.doc_view_history?.length || 0 %></h3>
+                    </div>
+                </a>
 
-                <div class="stat-card">
-                    <span class="stat-top">Viewed Docs</span>
-                    <h3><%= data?.doc_view_history?.length || 0 %></h3>
-                </div>
             </div>
 
         </div>
@@ -105,12 +111,12 @@
         <div class="explorer-topbar">
             <div class="explorer-title-wrap">
                 <p class="explorer-kicker">Document Explorer</p>
-                <h2>Uploads by <%= data?.name || "this contributor" %></h2>
+                <h2>Your Saved Documents</h2>
             </div>
 
             <div class="explorer-actions">
-                <button class="sort-btn active" data-sort="latest" type="button">Latest</button>
-                <button class="sort-btn" data-sort="oldest" type="button">Oldest</button>
+                <button class="sort-btn active" data-sort="latest" type="button">Latest Saved</button>
+                <button class="sort-btn" data-sort="oldest" type="button">Oldest Saved</button>
                 <button class="sort-btn" data-sort="az" type="button">A–Z</button>
             </div>
         </div>
@@ -130,8 +136,8 @@
                 <select id="collegeFilter" aria-label="Filter by institution or exam">
                     <option value="">All Exams & Colleges</option>
                     <%
-                    const uniqueColleges = [...new Set((uploads || [])
-                    .map(item => item?.doc_id?.college || item?.college)
+                    const uniqueColleges = [...new Set((savedDocs || [])
+                    .map(item => item?.college)
                     .filter(Boolean)
                     )].sort((a, b) => a.localeCompare(b));
                     %>
@@ -143,8 +149,8 @@
                 <select id="subjectFilter" aria-label="Filter by subject or document name">
                     <option value="">All Subjects & Topics</option>
                     <%
-                    const uniqueSubjects = [...new Set((uploads || [])
-                    .map(item => item?.doc_id?.subject || item?.subject)
+                    const uniqueSubjects = [...new Set((savedDocs || [])
+                    .map(item => item?.subject)
                     .filter(Boolean)
                     )].sort((a, b) => a.localeCompare(b));
                     %>
@@ -158,24 +164,23 @@
         <div class="results-bar">
             <span class="results-count-pill">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span id="totalUploadsCount2"><%= uploads?.length || 0 %></span>
+                <span id="totalUploadsCount2"><%= savedDocs?.length || 0 %></span>
             </span>
             <span class="results-bar-label"></span>
         </div>
 
-        <% if (uploads && uploads.length > 0) { %>
+        <% if (savedDocs && savedDocs.length > 0) { %>
         <div class="docs-grid" id="docsGrid">
-            <% uploads.forEach((upload, index) => {
-            const isEdDoc = upload?.doc_id?.doc_type === "ed_doc";
+            <% savedDocs.forEach((doc, index) => {
+            const isEdDoc = doc?.doc_type === "ed_doc";
             %>
             <article
                     class="doc-card"
                     data-index="<%= index %>"
-                    data-subject="<%= (upload?.doc_id?.subject || upload?.subject || '').toLowerCase() %>"
-                    data-college="<%= (upload?.doc_id?.college || upload?.college || '').toLowerCase() %>"
-                    data-chapter="<%= (upload?.doc_id?.chapter || '').toLowerCase() %>"
-                    data-branch="<%= (upload?.doc_id?.branch || '').toLowerCase() %>"
-                    data-uploaded="<%= upload?.uploadedAt ? new Date(upload.uploadedAt).getTime() : 0 %>"
+                    data-subject="<%= (doc?.subject || '').toLowerCase() %>"
+                    data-college="<%= (doc?.college || '').toLowerCase() %>"
+                    data-chapter="<%= (doc?.chapter || '').toLowerCase() %>"
+                    data-branch="<%= (doc?.branch || '').toLowerCase() %>"
             >
                 <div class="doc-card-top">
                     <% if (isEdDoc) { %>
@@ -193,10 +198,14 @@
                     <% } %>
 
                     <div class="doc-top-text">
+                        <% if (doc?.reviewed) { %>
                         <p class="doc-label">Verified</p>
+                        <% } else { %>
+                        <p class="doc-label" style="color: #ff9a00; background: rgba(255,154,0,0.1); border-color: rgba(255,154,0,0.2);">Pending</p>
+                        <% } %>
                         <h3>
-                            <a href="/dashboard?search=<%= encodeURIComponent(upload?.doc_id?.subject || upload?.subject || '') %>" class="saved-search-link">
-                                <%= upload?.doc_id?.subject || upload?.subject || "Untitled Subject" %>
+                            <a href="/dashboard?search=<%= encodeURIComponent(doc?.subject || '') %>" class="saved-search-link">
+                                <%= doc?.subject || "Untitled Subject" %>
                             </a>
                         </h3>
                     </div>
@@ -205,67 +214,53 @@
                 <div class="doc-meta-list">
                     <div class="doc-meta-item">
                         <span class="doc-meta-key"><%= isEdDoc ? "Exam" : "College" %></span>
-                        <span class="doc-meta-value">
-                            <% const collegeVal = upload?.doc_id?.college || upload?.college; %>
-                            <% if (collegeVal && collegeVal !== "—") { %>
-                                <a href="/dashboard?search=<%= encodeURIComponent(collegeVal) %>" class="saved-search-link"><%= collegeVal %></a>
-                            <% } else { %>
-                                —
-                            <% } %>
-                        </span>
+                        <a class="saved-search-link-clg" style="display: flex;justify-content: flex-end;" href="/college/<%= doc?.college%>"><span class="doc-meta-value saved-search-link-clg"><%= doc?.college || "—" %></span></a>
                     </div>
 
                     <div class="doc-meta-item">
                         <span class="doc-meta-key"><%= isEdDoc ? "Stream" : "Branch" %></span>
                         <span class="doc-meta-value">
-                            <% const branchVal = upload?.doc_id?.branch || upload?.branch; %>
-                            <% if (branchVal && branchVal !== "—") { %>
-                                <a href="/dashboard?search=<%= encodeURIComponent(branchVal) %>" class="saved-search-link"><%= branchVal %></a>
-                            <% } else { %>
-                                —
-                            <% } %>
-                        </span>
+        <% if (doc?.branch && doc.branch !== "—") { %>
+            <a href="/dashboard?search=<%= encodeURIComponent(doc.branch) %>" class="saved-search-link"><%= doc.branch %></a>
+        <% } else { %>
+            —
+        <% } %>
+    </span>
                     </div>
 
                     <div class="doc-meta-item">
                         <span class="doc-meta-key"><%= isEdDoc ? "Class" : "Semester" %></span>
                         <span class="doc-meta-value">
-                            <% const semVal = upload?.doc_id?.semester || upload?.semester; %>
-                            <% if (semVal && semVal !== "—") { %>
-                                <a href="/dashboard?search=<%= encodeURIComponent(semVal) %>" class="saved-search-link"><%= semVal %></a>
-                            <% } else { %>
-                                —
-                            <% } %>
-                        </span>
+        <% if (doc?.semester && doc.semester !== "—") { %>
+            <a href="/dashboard?search=<%= encodeURIComponent(doc.semester) %>" class="saved-search-link"><%= doc.semester %></a>
+        <% } else { %>
+            —
+        <% } %>
+    </span>
                     </div>
 
                     <div class="doc-meta-item">
                         <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Chapter" %></span>
                         <span class="doc-meta-value">
-                            <% const chapVal = upload?.doc_id?.chapter || upload?.chapter; %>
-                            <% if (chapVal && chapVal !== "—") { %>
-                                <a href="/dashboard?search=<%= encodeURIComponent(chapVal) %>" class="saved-search-link"><%= chapVal %></a>
-                            <% } else { %>
-                                —
-                            <% } %>
-                        </span>
+        <% if (doc?.chapter && doc.chapter !== "—") { %>
+            <a href="/dashboard?search=<%= encodeURIComponent(doc.chapter) %>" class="saved-search-link"><%= doc.chapter %></a>
+        <% } else { %>
+            —
+        <% } %>
+    </span>
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key">Uploaded</span>
+                        <span class="doc-meta-key">Rating</span>
                         <span class="doc-meta-value">
-                            <%= upload?.uploadedAt ? new Date(upload.uploadedAt).toLocaleDateString("en-IN", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric"
-                            }) : "Unknown" %>
+                            👍 <%= doc?.likes || 0 %>
                         </span>
                     </div>
                 </div>
 
                 <div class="doc-card-bottom">
-                    <% if (upload?.doc_id?._id) { %>
-                    <a class="doc-btn primary-btn" href="/view/<%= upload.doc_id._id %>">
+                    <% if (doc?._id) { %>
+                    <a class="doc-btn primary-btn" href="/view/<%= doc._id %>">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
@@ -295,21 +290,20 @@
             </div>
             <p class="no-results-kicker">No matches found</p>
             <h3>Try another search or change the filters</h3>
-            <p>Search by subject, exam, college, topic, or stream — or clear filters to see all verified uploads.</p>
+            <p>Search by subject, exam, college, topic, or stream — or clear filters to see all saved documents.</p>
         </div>
 
         <% } else { %>
         <div class="empty-state">
             <div class="empty-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M8 3.75h6.5L19.25 8.5V18A2.25 2.25 0 0 1 17 20.25H8A2.25 2.25 0 0 1 5.75 18V6A2.25 2.25 0 0 1 8 3.75Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-                    <path d="M14 3.75V8.5h4.75" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
                 </svg>
             </div>
             <p class="empty-label">Nothing here yet</p>
-            <h2>No verified uploads from this contributor</h2>
+            <h2>You haven't saved any documents</h2>
             <p class="empty-subtext">
-                Once reviewed documents are available, they will appear here in a clean navigable archive.
+                When you find documents you like, hit the bookmark icon to save them here for quick access later.
             </p>
         </div>
         <% } %>
@@ -361,9 +355,15 @@
 
     function sortCards(arr) {
         return [...arr].sort((a, b) => {
-            if (activeSort === "latest")  return Number(b.dataset.uploaded || 0) - Number(a.dataset.uploaded || 0);
-            if (activeSort === "oldest")  return Number(a.dataset.uploaded || 0) - Number(b.dataset.uploaded || 0);
+            const indexA = Number(a.dataset.index || 0);
+            const indexB = Number(b.dataset.index || 0);
+
+            // Since the backend already reversed the array (newest first),
+            // "latest" respects index ascending (0 is newest).
+            if (activeSort === "latest")  return indexA - indexB;
+            if (activeSort === "oldest")  return indexB - indexA;
             if (activeSort === "az")      return (a.dataset.subject || "").localeCompare(b.dataset.subject || "");
+
             return 0;
         });
     }
