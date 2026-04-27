@@ -7,6 +7,7 @@ import LoginData from "./models/login_data.js";
 import docs_view_data from "./models/docs_view_data.js";
 import ChatMessage from "./models/chatMessage.js";
 import DocAI from "./models/DocAI.js";
+import DocChunk from "./models/DocChunk.js";
 import reports from "./models/Reports.js"
 import Contact from "./models/contacts.js";
 import emailjs from "@emailjs/nodejs";
@@ -30,6 +31,8 @@ import { Resend } from "resend";
 import http from "http";
 import { Server } from "socket.io";
 import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { promisify } from "util";
 import { UAParser } from "ua-parser-js";
 import Fuse from "fuse.js";
 dotenv.config();
@@ -236,6 +239,27 @@ app.use(express.static("public", {
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
+
+// ── Gemini (vision + embeddings + Q&A) ──────────────────────────────────────
+const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Vision model — processes page images, extracts structured academic text
+const geminiVisionModel = geminiClient.getGenerativeModel({
+    model: "gemini-1.5-flash"
+});
+
+// Embedding model — text-embedding-004, 768-dim
+const geminiEmbeddingModel = geminiClient.getGenerativeModel({
+    model: "text-embedding-004"
+});
+
+// Flash model for Q&A (fast, cheap, great for RAG)
+const geminiFlashModel = geminiClient.getGenerativeModel({
+    model: "gemini-1.5-flash"
+});
+
+// Promisify the already-imported execFile for PDF→image conversion
+const execFileAsync = promisify(execFile);
 const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -551,96 +575,664 @@ app.use(cors({
     credentials: true
 }));
 const server = http.createServer(app);
+/*
+ * ═══════════════════════════════════════════════════════════════════
+ *  GEMINI AI PIPELINE  —  Production RAG for DocUp
+ *  Steps: PDF→Images → Gemini Vision OCR → Chunking → Embeddings
+ *         → MongoDB storage → Cosine-similarity retrieval → Q&A
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
+// ── In-memory processing cache (doc_id → true) ──────────────────────────────
+const processingCache = new Map();   // currently being processed
+const processedCache  = new Set();   // already has embeddings this server lifetime
+
+// ── 1. Auth guard helper (unchanged contract) ────────────────────────────────
 async function getAuthorizedDoc(req, docId) {
-    if (!req.session?.email) {
-        throw new Error("Unauthorized");
-    }
-
+    if (!req.session?.email) throw new Error("Unauthorized");
     const doc = await Docs.findById(docId);
-    if (!doc) {
-        throw new Error("Document not found");
-    }
-
+    if (!doc) throw new Error("Document not found");
     return doc;
 }
+
+// ── 2. Download PDF buffer from Supabase/CDN URL ────────────────────────────
 async function getPdfBufferFromExistingUrl(doc) {
-    if (!doc?.file_url) {
-        throw new Error("PDF URL missing");
-    }
-
+    if (!doc?.file_url) throw new Error("PDF URL missing");
     const response = await fetch(doc.file_url);
-    if (!response.ok) {
-        throw new Error("Failed to fetch PDF");
+    if (!response.ok) throw new Error(`Failed to fetch PDF: ${response.status}`);
+    return Buffer.from(await response.arrayBuffer());
+}
+
+// ── 3. PDF → PNG images via pdf-poppler (one image per page) ─────────────────
+
+async function convertPdfToImages(pdfBuffer) {
+    const tmpDir   = await fs.promises.mkdtemp(path.join(os.tmpdir(), "docup-"));
+    const pdfPath  = path.join(tmpDir, "doc.pdf");
+    const outPrefix = path.join(tmpDir, "page");
+
+    await fs.promises.writeFile(pdfPath, pdfBuffer);
+
+    try {
+        // pdftoppm ships with poppler-utils (apt install poppler-utils)
+        // -r 200  → 200 DPI — good balance between OCR quality and payload size
+        // -png    → lossless
+        await execFileAsync("pdftoppm", [
+            "-r", "200",
+            "-png",
+            pdfPath,
+            outPrefix
+        ]);
+    } catch (err) {
+        throw new Error(`pdf→image conversion failed: ${err.message}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    return Buffer.from(arrayBuffer);
-}
-function extractPagesWithPython(pdfBuffer) {
-    return new Promise((resolve, reject) => {
-        const tempPdfPath = path.join(os.tmpdir(), `docup-${Date.now()}.pdf`);
-        fs.writeFileSync(tempPdfPath, pdfBuffer);
+    const files = (await fs.promises.readdir(tmpDir))
+        .filter(f => f.startsWith("page") && f.endsWith(".png"))
+        .sort(); // pdftoppm numbers pages: page-1.png, page-2.png, …
 
-        execFile(
-            "python3",
-            ["extract_pdf_pages.py", tempPdfPath],
-            { maxBuffer: 25 * 1024 * 1024 },
-            (error, stdout, stderr) => {
-                try {
-                    fs.unlinkSync(tempPdfPath);
-                } catch {}
-
-                if (error) return reject(error);
-                if (stderr) console.log(stderr);
-
-                try {
-                    const parsed = JSON.parse(stdout);
-                    resolve(parsed.pages || []);
-                } catch (err) {
-                    reject(err);
-                }
-            }
-        );
-    });
-}
-async function ensureDocAiData(doc) {
-    let aiData = await DocAI.findOne({ doc_id: doc._id });
-
-    if (aiData && aiData.extracted_pages && aiData.extracted_pages.length > 0) {
-        return aiData;
-    }
-
-    const pdfBuffer = await getPdfBufferFromExistingUrl(doc);
-    const pages = await extractPagesWithPython(pdfBuffer);
-
-    aiData = await DocAI.findOneAndUpdate(
-        { doc_id: doc._id },
-        {
-            $set: {
-                extracted_pages: pages,
-                updated_at: new Date()
-            },
-            $setOnInsert: {
-                created_at: new Date()
-            }
-        },
-        {
-            upsert: true,
-            new: true
-        }
+    const images = await Promise.all(
+        files.map(async (fname, idx) => {
+            const imgPath = path.join(tmpDir, fname);
+            const data    = await fs.promises.readFile(imgPath);
+            return { pageNumber: idx + 1, base64: data.toString("base64"), mimeType: "image/png" };
+        })
     );
 
-    return aiData;
-}
-async function callAi(messages) {
-    const result = await openai.chat.completions.create({
-        model: "gpt-4.1",
-        messages,
-        response_format: { type: "json_object" }
-    });
+    // Clean up tmp dir (non-blocking)
+    fs.promises.rm(tmpDir, { recursive: true, force: true }).catch(() => {});
 
-    return result.choices[0].message.content;
+    return images;
 }
+
+// ── 4. Gemini Vision — extract structured text from one page image ────────────
+const VISION_PROMPT = `You are an expert academic note processor.
+Extract clean, structured study notes from this handwritten or scanned page.
+
+Rules:
+- Convert to clear readable text
+- Preserve headings and subheadings
+- Convert content into bullet points where possible
+- Keep formulas exactly as written
+- Do NOT summarize
+- Do NOT skip content
+- Maintain logical structure
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "title": "string",
+  "content": "string",
+  "key_points": ["string"],
+  "formulas": ["string"]
+}`;
+
+async function extractPageWithGemini(imageBase64, mimeType) {
+    const result = await geminiVisionModel.generateContent([
+        {
+            inlineData: { data: imageBase64, mimeType }
+        },
+        VISION_PROMPT
+    ]);
+
+    let raw = result.response.text().trim();
+
+    // Strip markdown code fences if model ignores the "no fences" instruction
+    raw = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        // Fallback: treat entire response as content so we never lose data
+        return { title: "", content: raw, key_points: [], formulas: [] };
+    }
+}
+
+// ── 5. Process all pages in parallel (bounded concurrency = 5) ───────────────
+async function processAllPagesWithGemini(images) {
+    const CONCURRENCY = 5;
+    const results = [];
+
+    for (let i = 0; i < images.length; i += CONCURRENCY) {
+        const batch = images.slice(i, i + CONCURRENCY);
+        const settled = await Promise.allSettled(
+            batch.map(img => extractPageWithGemini(img.base64, img.mimeType)
+                .then(parsed => ({ pageNumber: img.pageNumber, ...parsed }))
+            )
+        );
+        for (const r of settled) {
+            if (r.status === "fulfilled") results.push(r.value);
+            else console.error("Page extraction failed:", r.reason?.message);
+        }
+    }
+
+    return results.sort((a, b) => a.pageNumber - b.pageNumber);
+}
+
+// ── 6. Text cleaning ─────────────────────────────────────────────────────────
+function cleanExtractedText(text = "") {
+    return text
+        .replace(/[ \t]{2,}/g, " ")          // collapse horizontal whitespace
+        .replace(/\n{3,}/g, "\n\n")           // collapse excessive newlines
+        .replace(/[^\S\n]+$/gm, "")           // trailing spaces per line
+        .trim();
+}
+
+// ── 7. Chunking (500–800 tokens, sentence-aware, 50-token overlap) ───────────
+const AVG_CHARS_PER_TOKEN = 4;
+const TARGET_CHUNK_TOKENS = 650;
+const OVERLAP_TOKENS       = 50;
+const TARGET_CHARS         = TARGET_CHUNK_TOKENS * AVG_CHARS_PER_TOKEN;
+const OVERLAP_CHARS        = OVERLAP_TOKENS       * AVG_CHARS_PER_TOKEN;
+
+function splitIntoSentences(text) {
+    // Split on sentence-ending punctuation followed by whitespace or end-of-string
+    return text.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+}
+
+function chunkPageContent(pageData, globalChunkIndex) {
+    const fullText = [
+        pageData.title ? `# ${pageData.title}` : "",
+        cleanExtractedText(pageData.content),
+        pageData.key_points?.length
+            ? "Key Points:\n" + pageData.key_points.map(p => `• ${p}`).join("\n")
+            : "",
+        pageData.formulas?.length
+            ? "Formulas:\n" + pageData.formulas.map(f => `  ${f}`).join("\n")
+            : ""
+    ].filter(Boolean).join("\n\n");
+
+    const sentences = splitIntoSentences(fullText);
+    const chunks    = [];
+    let   buffer    = [];
+    let   bufLen    = 0;
+    let   chunkIdx  = globalChunkIndex;
+
+    function flush(overlap = []) {
+        const content = buffer.join(" ").trim();
+        if (!content) return;
+
+        chunks.push({
+            chunk_index:   chunkIdx++,
+            page_number:   pageData.pageNumber,
+            section_title: pageData.title || "",
+            content,
+            token_estimate: Math.ceil(content.length / AVG_CHARS_PER_TOKEN)
+        });
+
+        // Build next buffer from overlap sentences
+        buffer = [...overlap];
+        bufLen  = overlap.reduce((acc, s) => acc + s.length, 0);
+    }
+
+    for (const sentence of sentences) {
+        if (bufLen + sentence.length > TARGET_CHARS && buffer.length > 0) {
+            // Compute overlap: walk backwards collecting ~OVERLAP_CHARS
+            let overlapLen = 0;
+            const overlapSentences = [];
+            for (let i = buffer.length - 1; i >= 0; i--) {
+                overlapLen += buffer[i].length;
+                overlapSentences.unshift(buffer[i]);
+                if (overlapLen >= OVERLAP_CHARS) break;
+            }
+            flush(overlapSentences);
+        }
+        buffer.push(sentence);
+        bufLen += sentence.length;
+    }
+
+    if (buffer.length) flush();
+
+    return { chunks, nextIndex: chunkIdx };
+}
+
+// ── 8. Embed a single text string via Gemini text-embedding-004 ───────────────
+async function embedText(text) {
+    const result = await geminiEmbeddingModel.embedContent({
+        content:  { parts: [{ text }], role: "user" },
+        taskType: "RETRIEVAL_DOCUMENT"
+    });
+    return result.embedding.values; // Float32Array → number[]
+}
+
+// ── 9. Embed a query string (different taskType for retrieval) ────────────────
+async function embedQuery(text) {
+    const result = await geminiEmbeddingModel.embedContent({
+        content:  { parts: [{ text }], role: "user" },
+        taskType: "RETRIEVAL_QUERY"
+    });
+    return result.embedding.values;
+}
+
+// ── 10. Batch embed all chunks (bounded concurrency = 10) ────────────────────
+async function embedAllChunks(chunks) {
+    const CONCURRENCY = 10;
+    const results = [];
+
+    for (let i = 0; i < chunks.length; i += CONCURRENCY) {
+        const batch = chunks.slice(i, i + CONCURRENCY);
+        const settled = await Promise.allSettled(
+            batch.map(chunk => embedText(chunk.content))
+        );
+        for (let j = 0; j < batch.length; j++) {
+            const r = settled[j];
+            results.push({
+                ...batch[j],
+                embedding: r.status === "fulfilled" ? r.value : []
+            });
+        }
+    }
+
+    return results;
+}
+
+// ── 11. Cosine similarity ─────────────────────────────────────────────────────
+function cosineSimilarity(a, b) {
+    if (!a?.length || !b?.length || a.length !== b.length) return 0;
+    let dot = 0, normA = 0, normB = 0;
+    for (let i = 0; i < a.length; i++) {
+        dot   += a[i] * b[i];
+        normA += a[i] * a[i];
+        normB += b[i] * b[i];
+    }
+    const denom = Math.sqrt(normA) * Math.sqrt(normB);
+    return denom === 0 ? 0 : dot / denom;
+}
+
+// ── 12. Retrieve top-k chunks by embedding similarity ────────────────────────
+async function retrieveTopChunks(docId, queryEmbedding, topK = 5) {
+    // Fetch all chunks for this doc (embeddings included)
+    const allChunks = await DocChunk.find({ doc_id: docId }).lean();
+
+    if (!allChunks.length) return [];
+
+    return allChunks
+        .map(chunk => ({
+            ...chunk,
+            score: cosineSimilarity(queryEmbedding, chunk.embedding)
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+}
+
+// ── 13. Master pipeline — extract → chunk → embed → store ────────────────────
+async function runFullPipeline(doc) {
+    const docId = String(doc._id);
+
+    // Already being processed — skip to avoid duplicate work
+    if (processingCache.has(docId)) {
+        return DocAI.findOne({ doc_id: doc._id });
+    }
+
+    processingCache.set(docId, true);
+
+    try {
+        console.log(`[DocAI] Pipeline start: ${docId}`);
+
+        // Step A: Download PDF
+        const pdfBuffer = await getPdfBufferFromExistingUrl(doc);
+
+        // Step B: PDF → images
+        const images = await convertPdfToImages(pdfBuffer);
+        console.log(`[DocAI] ${images.length} pages converted to images`);
+
+        // Step C: Gemini Vision on every page
+        const extractedPages = await processAllPagesWithGemini(images);
+        console.log(`[DocAI] Vision extraction done for ${extractedPages.length} pages`);
+
+        // Step D: Chunking
+        let   allChunks    = [];
+        let   globalIndex  = 0;
+
+        for (const page of extractedPages) {
+            const { chunks, nextIndex } = chunkPageContent(page, globalIndex);
+            allChunks.push(...chunks);
+            globalIndex = nextIndex;
+        }
+        console.log(`[DocAI] ${allChunks.length} chunks created`);
+
+        // Step E: Embed all chunks
+        const embeddedChunks = await embedAllChunks(allChunks);
+        console.log(`[DocAI] Embeddings generated`);
+
+        // Step F: Persist — atomic replace (delete old → insert new)
+        await DocChunk.deleteMany({ doc_id: doc._id });
+        await DocChunk.insertMany(
+            embeddedChunks.map(c => ({ doc_id: doc._id, ...c }))
+        );
+
+        // Step G: Update DocAI summary record (keep extracted_pages for explain-page)
+        const aiRecord = await DocAI.findOneAndUpdate(
+            { doc_id: doc._id },
+            {
+                $set: {
+                    extracted_pages: extractedPages.map(p => ({
+                        page:       p.pageNumber,
+                        text:       [p.content, ...(p.key_points || []), ...(p.formulas || [])].join("\n"),
+                        title:      p.title || "",
+                        key_points: p.key_points || [],
+                        formulas:   p.formulas  || []
+                    })),
+                    chunk_count:  embeddedChunks.length,
+                    pipeline_version: "gemini-v1",
+                    updated_at:   new Date()
+                },
+                $setOnInsert: { created_at: new Date() }
+            },
+            { upsert: true, new: true }
+        );
+
+        processedCache.add(docId);
+        console.log(`[DocAI] Pipeline complete: ${docId}`);
+        return aiRecord;
+
+    } finally {
+        processingCache.delete(docId);
+    }
+}
+
+// ── 14. Ensure AI data exists — hit cache first, run pipeline if needed ───────
+async function ensureDocAiData(doc) {
+    const docId = String(doc._id);
+
+    // Fast path: in-memory flag
+    if (processedCache.has(docId)) {
+        return DocAI.findOne({ doc_id: doc._id });
+    }
+
+    // Check DB: chunks present = already processed
+    const chunkCount = await DocChunk.countDocuments({ doc_id: doc._id });
+    if (chunkCount > 0) {
+        processedCache.add(docId);
+        return DocAI.findOne({ doc_id: doc._id });
+    }
+
+    // Full pipeline
+    return runFullPipeline(doc);
+}
+
+// ── 15. /ai/process-doc — trigger processing (called from docview on load) ───
+app.post("/ai/process-doc", async (req, res) => {
+    try {
+        const { docId } = req.body;
+        const doc = await getAuthorizedDoc(req, docId);
+
+        // Fire-and-forget so the request returns immediately
+        const docIdStr = String(doc._id);
+        if (!processedCache.has(docIdStr) && !processingCache.has(docIdStr)) {
+            ensureDocAiData(doc).catch(err =>
+                console.error("[DocAI] background pipeline error:", err.message)
+            );
+        }
+
+        const chunkCount = await DocChunk.countDocuments({ doc_id: doc._id });
+        return res.json({
+            success:  true,
+            ready:    chunkCount > 0,
+            processing: processingCache.has(docIdStr)
+        });
+    } catch (err) {
+        console.error("process-doc error:", err);
+        return res.status(err.message === "Unauthorized" ? 401 : 500).json({
+            success: false, message: err.message
+        });
+    }
+});
+
+// ── 16. /ai/ask-doc — semantic Q&A ───────────────────────────────────────────
+app.post("/ai/ask-doc", async (req, res) => {
+    try {
+        const { docId, question } = req.body;
+
+        if (!question || !String(question).trim()) {
+            return res.status(400).json({ success: false, message: "Question is required" });
+        }
+
+        const doc    = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        if (!aiData) {
+            return res.status(503).json({
+                success: false,
+                message: "Document is still being processed. Please try again in a moment."
+            });
+        }
+
+        // Embed the question
+        const queryEmbedding = await embedQuery(String(question).trim());
+
+        // Retrieve top-5 relevant chunks
+        const topChunks = await retrieveTopChunks(doc._id, queryEmbedding, 5);
+
+        if (!topChunks.length) {
+            return res.json({
+                success: true,
+                result: {
+                    answer:       "I could not find this in the document.",
+                    cited_pages:  [],
+                    chunks_used:  0
+                }
+            });
+        }
+
+        // Build context string
+        const context = topChunks
+            .map(c => `[Page ${c.page_number}${c.section_title ? ` — ${c.section_title}` : ""}]\n${c.content}`)
+            .join("\n\n---\n\n");
+
+        const prompt = `You are a helpful academic assistant for students.
+Answer the question using ONLY the provided context from the document.
+If the answer is not clearly in the context, say exactly: "I could not find this in the document."
+Be clear, structured, and student-friendly.
+
+QUESTION:
+${question}
+
+DOCUMENT CONTEXT:
+${context}
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "answer": "string",
+  "cited_pages": [1, 2]
+}`;
+
+        const result = await geminiFlashModel.generateContent(prompt);
+        let raw = result.response.text().trim()
+            .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            parsed = { answer: raw, cited_pages: topChunks.map(c => c.page_number) };
+        }
+
+        return res.json({
+            success:     true,
+            result:      parsed,
+            chunks_used: topChunks.length
+        });
+
+    } catch (err) {
+        console.error("Ask-doc error:", err);
+        return res.status(err.message === "Unauthorized" ? 401 : 500).json({
+            success: false, message: err.message || "Failed to answer question"
+        });
+    }
+});
+
+// ── 17. /ai/explain-page — explain a single page using stored extracted text ──
+app.post("/ai/explain-page", async (req, res) => {
+    try {
+        const { docId, page } = req.body;
+
+        const doc    = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        if (!aiData) {
+            return res.status(503).json({
+                success: false,
+                message: "Document is still being processed. Please try again shortly."
+            });
+        }
+
+        const pageNumber = Number(page);
+        const pageData   = (aiData.extracted_pages || []).find(p => p.page === pageNumber);
+
+        if (!pageData) {
+            return res.status(404).json({ success: false, message: "Page not found" });
+        }
+
+        const prompt = `You are an academic PDF explainer helping a student understand one page.
+Answer ONLY using the provided page text below.
+
+Return ONLY valid JSON, no markdown fences:
+{
+  "short_summary": "string",
+  "detailed_explanation": "string",
+  "key_points": ["string"],
+  "difficult_terms": ["string"]
+}
+
+Page number: ${pageNumber}
+${pageData.title ? `Section: ${pageData.title}` : ""}
+
+Page text:
+${pageData.text}`;
+
+        const result = await geminiFlashModel.generateContent(prompt);
+        let raw = result.response.text().trim()
+            .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+
+        let parsed;
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            parsed = {
+                short_summary:        raw,
+                detailed_explanation: raw,
+                key_points:           pageData.key_points || [],
+                difficult_terms:      []
+            };
+        }
+
+        // Persist explanation into the aiData record
+        const existingIdx = (aiData.page_summaries || []).findIndex(p => p.page === pageNumber);
+        if (existingIdx >= 0) {
+            aiData.page_summaries[existingIdx] = { page: pageNumber, ...parsed };
+        } else {
+            if (!aiData.page_summaries) aiData.page_summaries = [];
+            aiData.page_summaries.push({ page: pageNumber, ...parsed });
+        }
+        aiData.updated_at = new Date();
+        await aiData.save();
+
+        return res.json({ success: true, page: pageNumber, result: parsed });
+
+    } catch (err) {
+        console.error("Explain-page error:", err);
+        return res.status(err.message === "Unauthorized" ? 401 : 500).json({
+            success: false, message: err.message || "Failed to explain page"
+        });
+    }
+});
+
+// ── 18. /ai/summarize-doc — full document summary ────────────────────────────
+app.post("/ai/summarize-doc", async (req, res) => {
+    try {
+        const { docId } = req.body;
+
+        const doc    = await getAuthorizedDoc(req, docId);
+        const aiData = await ensureDocAiData(doc);
+
+        if (!aiData) {
+            return res.status(503).json({
+                success: false,
+                message: "Document is still being processed. Please try again shortly."
+            });
+        }
+
+        // If we already have a cached full summary, return it
+        if (aiData.full_summary) {
+            return res.json({
+                success:      true,
+                full_summary: aiData.full_summary,
+                page_summaries: aiData.page_summaries || [],
+                cached:       true
+            });
+        }
+
+        // Generate per-page short summaries (parallel, bounded concurrency = 5)
+        const CONCURRENCY = 5;
+        const pageSummaries = [];
+        const pages = aiData.extracted_pages || [];
+
+        for (let i = 0; i < pages.length; i += CONCURRENCY) {
+            const batch = pages.slice(i, i + CONCURRENCY);
+            const settled = await Promise.allSettled(
+                batch.map(async pageData => {
+                    const prompt = `Summarize this single PDF page for a student in 2-3 concise sentences.
+Return ONLY valid JSON:
+{
+  "short_summary": "string",
+  "key_points": ["string"],
+  "difficult_terms": ["string"]
+}
+
+Page ${pageData.page} text:
+${pageData.text}`;
+                    const result = await geminiFlashModel.generateContent(prompt);
+                    let raw = result.response.text().trim()
+                        .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+                    const p = JSON.parse(raw);
+                    return { page: pageData.page, ...p };
+                })
+            );
+
+            for (const r of settled) {
+                if (r.status === "fulfilled") pageSummaries.push(r.value);
+                else console.error("Page summary failed:", r.reason?.message);
+            }
+        }
+
+        pageSummaries.sort((a, b) => a.page - b.page);
+
+        // Full document summary from page summaries
+        const combinedText = pageSummaries
+            .map(p => `Page ${p.page}: ${p.short_summary}`)
+            .join("\n");
+
+        const fullPrompt = `Create one clear, student-friendly document summary from these page summaries.
+Return ONLY valid JSON:
+{ "full_summary": "string" }
+
+Page summaries:
+${combinedText}`;
+
+        const fullResult = await geminiFlashModel.generateContent(fullPrompt);
+        let fullRaw = fullResult.response.text().trim()
+            .replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+        const fullParsed = JSON.parse(fullRaw);
+
+        // Persist
+        aiData.page_summaries = pageSummaries;
+        aiData.full_summary   = fullParsed.full_summary || "";
+        aiData.updated_at     = new Date();
+        await aiData.save();
+
+        return res.json({
+            success:       true,
+            full_summary:  aiData.full_summary,
+            page_summaries: pageSummaries,
+            cached:        false
+        });
+
+    } catch (err) {
+        console.error("Summarize-doc error:", err);
+        return res.status(err.message === "Unauthorized" ? 401 : 500).json({
+            success: false, message: err.message || "Failed to summarize document"
+        });
+    }
+});
 function normalizeSearchText(text = "") {
     return String(text)
         .toLowerCase()
@@ -3381,267 +3973,10 @@ app.post("/share_doc_to_chat", async (req, res) => {
     }
 });
 /*
-OPEN AI EXPLAINER SETUP
+ * ══════════════════════════════
+ *  END OF GEMINI AI PIPELINE
+ * ══════════════════════════════
  */
-app.post("/ai/explain-page", async (req, res) => {
-    try {
-        const { docId, page } = req.body;
-
-        const doc = await getAuthorizedDoc(req, docId);
-        const aiData = await ensureDocAiData(doc);
-
-        const pageNumber = Number(page);
-        const pageData = aiData.extracted_pages.find(p => p.page === pageNumber);
-
-        if (!pageData) {
-            return res.status(404).json({
-                success: false,
-                message: "Page not found"
-            });
-        }
-
-        const prompt = `
-You are an academic PDF explainer.
-
-Answer ONLY using the provided page text.
-
-Return valid JSON with this exact shape:
-{
-  "short_summary": "string",
-  "detailed_explanation": "string",
-  "key_points": ["string"],
-  "difficult_terms": ["string"]
-}
-
-Page number: ${pageNumber}
-
-Page text:
-${pageData.text}
-`;
-
-        const raw = await callAi([
-            {
-                role: "system",
-                content: "You explain academic PDF pages clearly and accurately."
-            },
-            {
-                role: "user",
-                content: prompt
-            }
-        ]);
-
-        const parsed = JSON.parse(raw);
-
-        const existingIndex = aiData.page_summaries.findIndex(p => p.page === pageNumber);
-
-        if (existingIndex >= 0) {
-            aiData.page_summaries[existingIndex] = {
-                page: pageNumber,
-                short_summary: parsed.short_summary || "",
-                detailed_explanation: parsed.detailed_explanation || "",
-                key_points: parsed.key_points || [],
-                difficult_terms: parsed.difficult_terms || []
-            };
-        } else {
-            aiData.page_summaries.push({
-                page: pageNumber,
-                short_summary: parsed.short_summary || "",
-                detailed_explanation: parsed.detailed_explanation || "",
-                key_points: parsed.key_points || [],
-                difficult_terms: parsed.difficult_terms || []
-            });
-        }
-
-        aiData.updated_at = new Date();
-        await aiData.save();
-
-        return res.json({
-            success: true,
-            page: pageNumber,
-            result: parsed
-        });
-    } catch (err) {
-        console.error("Explain page error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to explain page"
-        });
-    }
-});
-
-app.post("/ai/summarize-doc", async (req, res) => {
-    try {
-        const { docId } = req.body;
-
-        const doc = await getAuthorizedDoc(req, docId);
-        const aiData = await ensureDocAiData(doc);
-
-        const pageSummaries = [];
-
-        for (const pageData of aiData.extracted_pages) {
-            const prompt = `
-You are summarizing one PDF page for a student.
-
-Answer ONLY using the provided page text.
-
-Return valid JSON with this exact shape:
-{
-  "short_summary": "string",
-  "detailed_explanation": "string",
-  "key_points": ["string"],
-  "difficult_terms": ["string"]
-}
-
-Page number: ${pageData.page}
-
-Page text:
-${pageData.text}
-`;
-
-            const raw = await callAi([
-                {
-                    role: "system",
-                    content: "You explain academic PDF pages clearly and accurately."
-                },
-                {
-                    role: "user",
-                    content: prompt
-                }
-            ]);
-
-            const parsed = JSON.parse(raw);
-
-            pageSummaries.push({
-                page: pageData.page,
-                short_summary: parsed.short_summary || "",
-                detailed_explanation: parsed.detailed_explanation || "",
-                key_points: parsed.key_points || [],
-                difficult_terms: parsed.difficult_terms || []
-            });
-        }
-
-        const combinedText = pageSummaries
-            .map(p => `Page ${p.page}: ${p.short_summary}`)
-            .join("\n");
-
-        const fullSummaryRaw = await callAi([
-            {
-                role: "system",
-                content: "Create one clear document-level summary from page summaries."
-            },
-            {
-                role: "user",
-                content: `
-Return valid JSON:
-{
-  "full_summary": "string"
-}
-
-Page summaries:
-${combinedText}
-`
-            }
-        ]);
-
-        const fullSummaryParsed = JSON.parse(fullSummaryRaw);
-
-        aiData.page_summaries = pageSummaries;
-        aiData.full_summary = fullSummaryParsed.full_summary || "";
-        aiData.updated_at = new Date();
-        await aiData.save();
-
-        return res.json({
-            success: true,
-            full_summary: aiData.full_summary,
-            page_summaries: aiData.page_summaries
-        });
-    } catch (err) {
-        console.error("Summarize doc error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to summarize document"
-        });
-    }
-});
-
-function rankPagesByQuestion(question, extractedPages) {
-    const words = String(question || "")
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(word => word.length > 2);
-
-    return extractedPages
-        .map(page => {
-            const text = (page.text || "").toLowerCase();
-            let score = 0;
-
-            for (const word of words) {
-                if (text.includes(word)) score += 1;
-            }
-
-            return { ...page, score };
-        })
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 4);
-}
-app.post("/ai/ask-doc", async (req, res) => {
-    try {
-        const { docId, question } = req.body;
-
-        if (!question || !String(question).trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Question is required"
-            });
-        }
-
-        const doc = await getAuthorizedDoc(req, docId);
-        const aiData = await ensureDocAiData(doc);
-
-        const topPages = rankPagesByQuestion(question, aiData.extracted_pages);
-
-        const context = topPages
-            .map(p => `Page ${p.page}:\n${p.text}`)
-            .join("\n\n");
-
-        const raw = await callAi([
-            {
-                role: "system",
-                content: "Answer only from the PDF context. If unclear, say it is not clearly found in the PDF."
-            },
-            {
-                role: "user",
-                content: `
-Return valid JSON:
-{
-  "answer": "string",
-  "cited_pages": [1]
-}
-
-Question:
-${question}
-
-PDF context:
-${context}
-`
-            }
-        ]);
-
-        const parsed = JSON.parse(raw);
-
-        return res.json({
-            success: true,
-            result: parsed
-        });
-    } catch (err) {
-        console.error("Ask doc error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to answer question"
-        });
-    }
-});
-
 
 app.post("/report_doc", async (req, res) => {
     if (!req.session.email) {
@@ -3653,6 +3988,7 @@ app.post("/report_doc", async (req, res) => {
 
     try {
         const { email, report_text, doc_new_id } = req.body;
+
 
         await reports.create({
             reported_by_email: email,

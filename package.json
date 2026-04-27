@@ -12,6 +12,7 @@
   "private": true,
   "dependencies": {
     "@emailjs/nodejs": "^5.0.2",
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.2",
     "axios": "^1.13.6",
     "cloudinary": "^1.41.3",
