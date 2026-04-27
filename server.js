@@ -245,7 +245,7 @@ const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Vision model — processes page images, extracts structured academic text
 const geminiVisionModel = geminiClient.getGenerativeModel({
-    model: "gemini-1.5-flash"
+    model: "gemini-1.5-flash-8b"
 });
 
 // Embedding model — text-embedding-004, 768-dim
@@ -255,7 +255,7 @@ const geminiEmbeddingModel = geminiClient.getGenerativeModel({
 
 // Flash model for Q&A (fast, cheap, great for RAG)
 const geminiFlashModel = geminiClient.getGenerativeModel({
-    model: "gemini-1.5-flash"
+    model: "gemini-1.5-flash-8b"
 });
 
 // Promisify the already-imported execFile for PDF→image conversion
