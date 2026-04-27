@@ -276,7 +276,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="doc-divider"></div>
                         <div class="doc-bottom">
                             <div class="doc-tags"><%= doc.year %></div>
                             <% if (doc.reviewed) { %>
@@ -376,7 +375,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="doc-divider"></div>
                             <div class="doc-bottom">
                                 <div class="doc-tags"> <%= doc.semester %></div>
                                 <% if (doc.reviewed) { %>
@@ -554,56 +552,111 @@
             const searchVal = (searchInput?.value || "").trim().toLowerCase();
             const branchVal = (branchFilter?.value || "all").trim().toLowerCase();
             const sortVal   = sortSelect?.value || "default";
+            const isSearching = searchVal.length > 0;
 
             let totalVisible = 0;
+
+            // When searching, we need to scan ALL year-blocks and semester-blocks,
+            // not just the currently visible ones. Track which year/sem has results
+            // so we can auto-switch the tabs to the first match.
+            let firstMatchYear = null;
+            let firstMatchSem  = null;
+
             document.querySelectorAll(".year-block").forEach(yearBlock => {
-                if (yearBlock.style.display === "none") return;
+                const yearKey = yearBlock.dataset.yearKey;
 
-                yearBlock.querySelectorAll(".branch-block").forEach(branchBlock => {
-                    const grid  = branchBlock.querySelector(".docs-grid");
-                    if(!grid) return;
+                // In normal (non-search) mode, skip hidden year-blocks as before
+                if (!isSearching && yearBlock.style.display === "none") return;
 
-                    const cards = Array.from(grid.querySelectorAll(".doc-card"));
-                    let branchVisible = false;
+                let yearHasVisible = false;
 
-                    cards.forEach(card => {
-                        const subject = card.dataset.subject || "";
-                        const chapter = card.dataset.chapter || "";
-                        const branch  = card.dataset.branch  || "";
+                yearBlock.querySelectorAll(".semester-block").forEach(semBlock => {
+                    const semKey = semBlock.dataset.semKey;
 
-                        const matchSearch = !searchVal || subject.includes(searchVal) || chapter.includes(searchVal) || branch.includes(searchVal);
-                        const matchBranch = branchVal === "all" || branch === branchVal;
-                        const show = matchSearch && matchBranch;
+                    // In normal mode, skip non-active semester blocks as before
+                    if (!isSearching && !semBlock.classList.contains("active-sem")) return;
 
-                        card.style.display = show ? "flex" : "none";
-                        if (show) branchVisible = true;
+                    let semHasVisible = false;
+
+                    semBlock.querySelectorAll(".branch-block").forEach(branchBlock => {
+                        const grid = branchBlock.querySelector(".docs-grid");
+                        if (!grid) return;
+
+                        const cards = Array.from(grid.querySelectorAll(".doc-card"));
+                        let branchVisible = false;
+
+                        cards.forEach(card => {
+                            const subject = card.dataset.subject || "";
+                            const chapter = card.dataset.chapter || "";
+                            const branch  = card.dataset.branch  || "";
+
+                            const matchSearch = !searchVal || subject.includes(searchVal) || chapter.includes(searchVal) || branch.includes(searchVal);
+                            const matchBranch = branchVal === "all" || branch === branchVal;
+                            const show = matchSearch && matchBranch;
+
+                            card.style.display = show ? "flex" : "none";
+                            if (show) branchVisible = true;
+                        });
+
+                        // Sort visible cards
+                        const visible = cards.filter(c => c.style.display !== "none");
+                        if (sortVal === "likes")    visible.sort((a,b) => +b.dataset.likes - +a.dataset.likes);
+                        if (sortVal === "comments") visible.sort((a,b) => +b.dataset.comments - +a.dataset.comments);
+                        if (sortVal === "newest")   visible.sort((a,b) => String(b.dataset.id).localeCompare(String(a.dataset.id)));
+                        visible.forEach(c => grid.appendChild(c));
+
+                        // Show/hide per-branch empty state
+                        const branchEmptyEl = branchBlock.querySelector('.branch-empty');
+                        const hasAnyCards = cards.length > 0;
+                        if (branchEmptyEl) {
+                            branchEmptyEl.style.display = (hasAnyCards && !branchVisible) ? 'flex' : 'none';
+                        }
+
+                        branchBlock.style.display = (branchVisible || (hasAnyCards && !branchVisible)) ? "block" : "none";
+
+                        if (branchVisible) {
+                            totalVisible += visible.length;
+                            semHasVisible = true;
+                            yearHasVisible = true;
+                            if (firstMatchYear === null) {
+                                firstMatchYear = yearKey;
+                                firstMatchSem  = semKey;
+                            }
+                        }
                     });
 
-                    // Sort visible cards
-                    const visible = cards.filter(c => c.style.display !== "none");
-                    if (sortVal === "likes")    visible.sort((a,b) => +b.dataset.likes - +a.dataset.likes);
-                    if (sortVal === "comments") visible.sort((a,b) => +b.dataset.comments - +a.dataset.comments);
-                    if (sortVal === "newest")   visible.sort((a,b) => String(b.dataset.id).localeCompare(String(a.dataset.id)));
-                    visible.forEach(c => grid.appendChild(c));
-
-                    // Show/hide per-branch empty state
-                    const branchEmptyEl = branchBlock.querySelector('.branch-empty');
-                    const hasAnyCards   = cards.length > 0;
-                    if (branchEmptyEl) {
-                        branchEmptyEl.style.display = (hasAnyCards && !branchVisible) ? 'flex' : 'none';
+                    // In search mode: show sem-block only if it has matching results
+                    if (isSearching) {
+                        semBlock.style.display = semHasVisible ? "block" : "none";
+                    } else {
+                        // Normal mode: respect active-sem visibility
+                        if (semBlock.classList.contains("active-sem")) {
+                            const anyVisible = Array.from(semBlock.querySelectorAll(".branch-block")).some(b => b.style.display !== "none");
+                            semBlock.style.display = anyVisible ? "block" : "none";
+                        }
                     }
-
-                    branchBlock.style.display = (branchVisible || (hasAnyCards && !branchVisible)) ? "block" : "none";
-                    if (branchVisible) totalVisible += visible.length;
                 });
 
-                // Hide semester blocks with no visible content
-                yearBlock.querySelectorAll(".semester-block").forEach(sem => {
-                    const anyVisible = Array.from(sem.querySelectorAll(".branch-block")).some(b => b.style.display !== "none");
-                    if (!sem.classList.contains("active-sem")) return;
-                    sem.style.display = anyVisible ? "block" : "none";
-                });
+                // In search mode: show year-block if it has results and make it visible
+                if (isSearching) {
+                    yearBlock.style.display = yearHasVisible ? "block" : "none";
+                }
             });
+
+            // Auto-switch year tab + sem tab to the first match when searching
+            if (isSearching && firstMatchYear !== null) {
+                // Switch year tabs
+                yearTabs.forEach(t => t.classList.toggle("active", t.dataset.year === firstMatchYear));
+
+                // Show only the year with results (already done above), but also
+                // ensure that year's sem tab is activated so it's not confusing
+                const targetSemTab = document.querySelector(`.sem-tab[data-year="${firstMatchYear}"][data-sem="${firstMatchSem}"]`);
+                if (targetSemTab) {
+                    document.querySelectorAll(`.sem-tab[data-year="${firstMatchYear}"]`).forEach(t => {
+                        t.classList.toggle("active", t.dataset.sem === firstMatchSem);
+                    });
+                }
+            }
 
             if (noDocsFound) noDocsFound.style.display = totalVisible > 0 ? "none" : "flex";
         }
@@ -675,7 +728,19 @@
         });
 
         // 9. Attach Listeners to Controls
-        if (searchInput)  searchInput.addEventListener("input",  applyControls);
+        if (searchInput) {
+            searchInput.addEventListener("input", () => {
+                const searchVal = searchInput.value.trim();
+                // When search is cleared, restore normal year/sem visibility
+                if (!searchVal) {
+                    const activeYearTab = document.querySelector(".year-tab.active");
+                    if (activeYearTab) activateYear(activeYearTab.dataset.year);
+                } else {
+                    applyControls();
+                    updateSidebar();
+                }
+            });
+        }
         if (branchFilter) branchFilter.addEventListener("change", applyControls);
         if (sortSelect)   sortSelect.addEventListener("change",   applyControls);
 
