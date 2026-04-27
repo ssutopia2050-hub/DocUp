@@ -39,6 +39,25 @@
         <div class="profile-main-card">
 
             <div class="profile-main-left">
+                <% if (data?.subscription === "Paid Tier") { %>
+                <div class="avatar-wrap" >
+                    <% if (data?.avatar_img_path) { %>
+                    <img class="avatar-img" src="<%= data.avatar_img_path %>" alt="<%= data?.name || 'User' %>" style="border:1px solid darkgoldenrod">
+                    <% } else { %>
+                    <div class="avatar-fallback">
+                        <%= (data?.name && data.name[0]) ? data.name[0].toUpperCase() : "D" %>
+                    </div>
+                    <% } %>
+
+                    <% if (data?.user_type) { %>
+                    <% if(data?.user_type === "DocUp Developer") { %>
+                    <span style="border:0.2px solid darkgoldenrod" class="user-type-pill"><%= data.user_type %></span>
+                    <% } else { %>
+                    <span class="user-type-pill"><%= data.user_type %></span>
+                    <% } %>
+                    <% } %>
+                </div>
+                <% } else { %>
                 <div class="avatar-wrap">
                     <% if (data?.avatar_img_path) { %>
                     <img class="avatar-img" src="<%= data.avatar_img_path %>" alt="<%= data?.name || 'User' %>">
@@ -52,6 +71,7 @@
                     <span class="user-type-pill"><%= data.user_type %></span>
                     <% } %>
                 </div>
+                <% } %>
 
                 <div class="profile-copy">
                     <p class="eyebrow">Uploader Space</p>
@@ -62,20 +82,26 @@
                     </p>
 
                     <div class="profile-meta-row">
-                        <div class="meta-chip">
+                        <div class="meta-chip" onclick="window.location.href='/all_uploads_view_second_pov_profile/<%= data?._id %>'" style="cursor: pointer">
                             <span class="meta-label">Verified Uploads</span>
                             <strong id="totalUploadsCount"><%= uploads?.length || 0 %></strong>
                         </div>
 
-                        <div class="meta-chip">
+                        <div class="meta-chip" onclick="window.location.href='/pricing'" style="cursor: pointer">
                             <span class="meta-label">DocScore</span>
                             <strong><%= data?.Doc_score ?? 0 %></strong>
                         </div>
-
-                        <div class="meta-chip">
+                        <% if (data?.subscription === "Paid Tier") { %>
+                        <div class="meta-chip" onclick="window.location.href='/upgrade-plans'" style="cursor: pointer;border:1px solid darkgoldenrod">
                             <span class="meta-label">Plan</span>
                             <strong><%= data?.subscription || "Free Tier" %></strong>
                         </div>
+                        <% } else { %>
+                        <div class="meta-chip" onclick="window.location.href='/upgrade-plans'" style="cursor: pointer; ">
+                            <span class="meta-label">Plan</span>
+                            <strong><%= data?.subscription || "Free Tier" %></strong>
+                        </div>
+                        <% } %>
                     </div>
                 </div>
             </div>
@@ -195,8 +221,8 @@
                     <div class="doc-top-text">
                         <p class="doc-label">Verified</p>
                         <h3>
-                            <a href="/dashboard?search=<%= encodeURIComponent(upload?.doc_id?.subject || upload?.subject || '') %>" class="saved-search-link">
-                                <%= upload?.doc_id?.subject || upload?.subject || "Untitled Subject" %>
+                            <a href="/dashboard?search=<%= encodeURIComponent(upload?.doc_id?.chapter || upload?.chapter || '') %>" class="saved-search-link">
+                                <%= upload?.doc_id?.chapter || upload?.chapter || "Untitled Chapter" %>
                             </a>
                         </h3>
                     </div>
@@ -240,9 +266,9 @@
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Chapter" %></span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Subject" %></span>
                         <span class="doc-meta-value">
-                            <% const chapVal = upload?.doc_id?.chapter || upload?.chapter; %>
+                            <% const chapVal = upload?.doc_id?.subject || upload?.subject; %>
                             <% if (chapVal && chapVal !== "—") { %>
                                 <a href="/dashboard?search=<%= encodeURIComponent(chapVal) %>" class="saved-search-link"><%= chapVal %></a>
                             <% } else { %>

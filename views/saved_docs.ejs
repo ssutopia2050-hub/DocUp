@@ -204,8 +204,8 @@
                         <p class="doc-label" style="color: #ff9a00; background: rgba(255,154,0,0.1); border-color: rgba(255,154,0,0.2);">Pending</p>
                         <% } %>
                         <h3>
-                            <a href="/dashboard?search=<%= encodeURIComponent(doc?.subject || '') %>" class="saved-search-link">
-                                <%= doc?.subject || "Untitled Subject" %>
+                            <a href="/dashboard?search=<%= encodeURIComponent(doc?.chapter || '') %>" class="saved-search-link">
+                                <%= doc?.chapter || "Untitled Chapter" %>
                             </a>
                         </h3>
                     </div>
@@ -240,10 +240,10 @@
                     </div>
 
                     <div class="doc-meta-item">
-                        <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Chapter" %></span>
+                        <span class="doc-meta-key"><%= isEdDoc ? "Topic" : "Subject" %></span>
                         <span class="doc-meta-value">
-        <% if (doc?.chapter && doc.chapter !== "—") { %>
-            <a href="/dashboard?search=<%= encodeURIComponent(doc.chapter) %>" class="saved-search-link"><%= doc.chapter %></a>
+        <% if (doc?.subject && doc.subject !== "—") { %>
+            <a href="/dashboard?search=<%= encodeURIComponent(doc.subject) %>" class="saved-search-link"><%= doc.subject %></a>
         <% } else { %>
             —
         <% } %>
