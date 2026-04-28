@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/profile_view.css">
+    <link rel="stylesheet" href="/page-loader.css">
     <meta charset="UTF-8">
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -441,5 +442,6 @@ return name.trim().charAt(0).toUpperCase();
         window.addEventListener("pageshow", resetViewLinks);
     });
 </script>
+<%- include('partials/page-loader') %>
 </body>
 </html>

@@ -1497,7 +1497,7 @@ app.get("/", async (req, res) => {
         await LoginData.create({
             email: req.session.email,
         })
-        return res.redirect("/dashboard");
+        return res.redirect("/profile");
     }
     return res.render("seo", { err: null });
 });
@@ -1611,7 +1611,7 @@ app.post('/signin', async (req, res) => {
     if (password === user.password) {
         req.session.email = normalizedEmail;
 
-        let redirectTo = "/dashboard";
+        let redirectTo = "/profile";
 
         if (
             next &&

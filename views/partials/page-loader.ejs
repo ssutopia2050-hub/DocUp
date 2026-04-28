@@ -1,0 +1,80 @@
+
+<!-- ░░ PAGE TRANSITION LOADER ░░ -->
+<div id="docup-loader" aria-hidden="true">
+  <div class="dl-backdrop"></div>
+
+  <div class="dl-card">
+    <!-- Animated logo mark -->
+    <div class="dl-logo-wrap">
+      <svg class="dl-logo-ring" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="2" stroke-dasharray="226" stroke-dashoffset="226"/>
+      </svg>
+      <img class="dl-logo-img" src="/images/android-chrome-512x512.png" alt="DocUp" />
+    </div>
+
+    <!-- Pulsing bar -->
+    <div class="dl-bar-track">
+      <div class="dl-bar-fill"></div>
+    </div>
+
+    <p class="dl-label">Loading<span class="dl-dots"><span>.</span><span>.</span><span>.</span></span></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  const loader = document.getElementById('docup-loader');
+  if (!loader) return;
+
+  // Pages / patterns to SKIP loader for (same-page anchors, external, mailto, tel, javascript:, download)
+  function shouldSkip(anchor) {
+    const href = anchor.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('javascript') ||
+        href.startsWith('mailto:') || href.startsWith('tel:') ||
+        anchor.hasAttribute('download') || anchor.target === '_blank') return true;
+    try {
+      const url = new URL(href, location.href);
+      if (url.origin !== location.origin) return true; // external
+      if (url.pathname === location.pathname && url.search === location.search) return true; // same page
+    } catch (_) { return true; }
+    return false;
+  }
+
+  function showLoader() {
+    loader.classList.add('dl-visible');
+  }
+
+  function hideLoader() {
+    loader.classList.remove('dl-visible');
+    loader.classList.add('dl-exit');
+    setTimeout(() => loader.classList.remove('dl-exit'), 600);
+  }
+
+  // Intercept all clicks
+  document.addEventListener('click', function (e) {
+    const anchor = e.target.closest('a');
+    if (!anchor || shouldSkip(anchor)) return;
+    // Don't double-trigger if already navigating
+    if (loader.classList.contains('dl-visible')) return;
+    showLoader();
+  }, true);
+
+  // Intercept form submits (navigating pages via POST)
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    if (form && (!form.target || form.target === '_self') && form.method !== 'dialog') {
+      showLoader();
+    }
+  }, true);
+
+  // Hide on back/forward (pageshow fires even for bfcache restores)
+  window.addEventListener('pageshow', function (e) {
+    hideLoader();
+  });
+
+  // Safety: always hide after 8 s in case navigation stalls
+  window.addEventListener('beforeunload', function () {
+    // keep visible during actual navigation
+  });
+})();
+</script>

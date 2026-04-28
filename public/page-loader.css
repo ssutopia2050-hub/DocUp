@@ -1,0 +1,188 @@
+/* ══════════════════════════════════════════════
+   DocUp — Page Transition Loader
+   File: public/page-loader.css
+   ══════════════════════════════════════════════ */
+
+/* ── Reset & base ── */
+#docup-loader {
+    --dl-accent: orangered;        /* purple accent — tweak to match your brand */
+    --dl-accent2: #ff7240;       /* teal secondary */
+    --dl-bg: rgba(10, 10, 14, 0.72);
+    --dl-card-bg: #0f0f17;
+    --dl-text: #e2e2f0;
+    --dl-radius: 20px;
+    --dl-duration: 0.38s;
+
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;       /* invisible by default */
+    opacity: 0;
+    transition: opacity var(--dl-duration) cubic-bezier(.4,0,.2,1);
+}
+
+/* Visible state — triggered via JS */
+#docup-loader.dl-visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Fast fade-out when page loads */
+#docup-loader.dl-exit {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Backdrop blur ── */
+.dl-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--dl-bg);
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+/* ── Card ── */
+.dl-card {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 48px;
+    background: var(--dl-card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: var(--dl-radius);
+    box-shadow:
+            0 8px 40px rgba(0,0,0,.55),
+            0 0 0 1px rgba(108, 92, 231, 0.15),
+            inset 0 1px 0 rgba(255,255,255,0.05);
+
+    /* Slide up on appear */
+    transform: translateY(12px) scale(0.97);
+    transition:
+            transform var(--dl-duration) cubic-bezier(.4,0,.2,1),
+            opacity   var(--dl-duration) cubic-bezier(.4,0,.2,1);
+}
+
+#docup-loader.dl-visible .dl-card {
+    transform: translateY(0) scale(1);
+}
+
+/* ── Logo ring ── */
+.dl-logo-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dl-logo-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    color: var(--dl-accent);
+    animation: dl-ring-spin 1.4s cubic-bezier(.6,.1,.4,.9) infinite;
+    transform-origin: center;
+}
+
+.dl-logo-ring circle {
+    animation: dl-ring-dash 1.4s cubic-bezier(.6,.1,.4,.9) infinite;
+    stroke-linecap: round;
+}
+
+@keyframes dl-ring-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes dl-ring-dash {
+    0%   { stroke-dashoffset: 226; opacity: 0.3; }
+    50%  { stroke-dashoffset: 56;  opacity: 1;   }
+    100% { stroke-dashoffset: 226; opacity: 0.3; }
+}
+
+.dl-logo-img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    border-radius: 10px;
+    position: relative;
+    z-index: 1;
+    animation: dl-logo-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes dl-logo-pulse {
+    0%, 100% { opacity: 1;   transform: scale(1);    }
+    50%       { opacity: 0.7; transform: scale(0.94); }
+}
+
+/* ── Progress bar ── */
+.dl-bar-track {
+    width: 160px;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.dl-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--dl-accent), var(--dl-accent2));
+    border-radius: 99px;
+    animation: dl-bar-progress 1.8s cubic-bezier(.4,0,.6,1) infinite;
+}
+
+@keyframes dl-bar-progress {
+    0%   { width: 0%;   margin-left: 0%;   }
+    40%  { width: 70%;  margin-left: 0%;   }
+    60%  { width: 70%;  margin-left: 0%;   }
+    100% { width: 0%;   margin-left: 100%; }
+}
+
+/* ── "Loading..." label ── */
+.dl-label {
+    font-family: 'DM Sans', 'Raleway', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Animated dots */
+.dl-dots span {
+    display: inline-block;
+    animation: dl-dot-bounce 1.2s ease-in-out infinite;
+    opacity: 0;
+}
+.dl-dots span:nth-child(1) { animation-delay: 0s;    }
+.dl-dots span:nth-child(2) { animation-delay: 0.18s; }
+.dl-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes dl-dot-bounce {
+    0%, 80%, 100% { opacity: 0;   transform: translateY(0);    }
+    40%            { opacity: 0.9; transform: translateY(-3px); }
+}
+
+/* ── Respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    .dl-logo-ring,
+    .dl-logo-ring circle,
+    .dl-logo-text,
+    .dl-bar-fill,
+    .dl-dots span {
+        animation: none;
+    }
+    .dl-bar-fill { width: 60%; }
+    .dl-logo-ring circle { stroke-dashoffset: 100; opacity: 0.7; }
+}
