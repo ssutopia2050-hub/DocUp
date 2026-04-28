@@ -429,4 +429,77 @@ document.addEventListener("mousemove", (e) => {
     document.documentElement.style.setProperty("--my", `${e.clientY}px`);
 });
 
+/* ═══════════════════════════════════════════════
+   PAGE ROTATION
+   Stores per-page rotation (0/90/180/270) and
+   re-renders only the current page with the new angle.
+═══════════════════════════════════════════════ */
+const pageRotations = {}; // { pageNum: degrees }
+
+function getPageRotation(pageNum) {
+    return pageRotations[pageNum] || 0;
+}
+
+async function renderPageWithRotation(pageObj) {
+    if (!pdfDoc) return;
+    if (pageObj.rendering) return;
+
+    pageObj.rendering = true;
+    const versionAtStart = renderVersion;
+
+    try {
+        const page = await pdfDoc.getPage(pageObj.pageNum);
+        if (versionAtStart !== renderVersion) return;
+
+        const rotation = getPageRotation(pageObj.pageNum);
+        const viewport = page.getViewport({ scale: currentScale, rotation });
+
+        const canvas = pageObj.canvas;
+        const context = canvas.getContext("2d");
+
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        const task = page.render({ canvasContext: context, viewport });
+        pageObj.renderTask = task;
+        await task.promise;
+
+        if (versionAtStart !== renderVersion) return;
+
+        pageObj.renderedScale = currentScale;
+        pageObj.wrap.classList.remove("pdf-page-placeholder");
+    } catch (err) {
+        if (err?.name !== "RenderingCancelledException") {
+            console.error(`Rotation render error on page ${pageObj.pageNum}:`, err);
+        }
+    } finally {
+        pageObj.rendering = false;
+        pageObj.renderTask = null;
+    }
+}
+
+const rotatePageBtn = document.getElementById("rotate-page-btn");
+rotatePageBtn?.addEventListener("click", async () => {
+    if (!pdfDoc || !pageElements.length) return;
+
+    const currentPage = window.currentPdfPage || 1;
+    const current = getPageRotation(currentPage);
+    pageRotations[currentPage] = (current + 90) % 360;
+
+    const pageObj = pageElements.find(p => p.pageNum === currentPage);
+    if (!pageObj) return;
+
+    // Force re-render by clearing cached scale
+    pageObj.renderedScale = null;
+    if (pageObj.renderTask?.cancel) {
+        try { pageObj.renderTask.cancel(); } catch (_) {}
+    }
+
+    await renderPageWithRotation(pageObj);
+});
+
 loadPdf();
