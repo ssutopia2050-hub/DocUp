@@ -1,32 +1,101 @@
-
-<!-- ░░ PAGE TRANSITION LOADER ░░ -->
+<!-- PAGE TRANSITION LOADER -->
 <div id="docup-loader" aria-hidden="true">
   <div class="dl-backdrop"></div>
-
-  <div class="dl-card">
-    <!-- Animated logo mark -->
+  <div class="dl-panel">
     <div class="dl-logo-wrap">
-      <svg class="dl-logo-ring" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="2" stroke-dasharray="226" stroke-dashoffset="226"/>
+      <svg class="dl-spinner" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle class="dl-track" cx="60" cy="60" r="56" stroke-width="2.5"/>
+        <circle class="dl-arc" cx="60" cy="60" r="56" stroke-width="2.5"
+                stroke-dasharray="60 292" stroke-linecap="round"/>
       </svg>
       <img class="dl-logo-img" src="/images/android-chrome-512x512.png" alt="DocUp" />
     </div>
-
-    <!-- Pulsing bar -->
-    <div class="dl-bar-track">
-      <div class="dl-bar-fill"></div>
-    </div>
-
-    <p class="dl-label">Loading<span class="dl-dots"><span>.</span><span>.</span><span>.</span></span></p>
   </div>
 </div>
+
+<style>
+#docup-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+#docup-loader.dl-visible {
+  opacity: 1;
+  pointer-events: all;
+}
+#docup-loader.dl-exit {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.dl-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+@media (prefers-color-scheme: dark) {
+  .dl-backdrop {
+    background: rgba(18, 18, 18, 0.75);
+  }
+}
+.dl-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dl-logo-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dl-spinner {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: dl-spin 1.1s linear infinite;
+}
+.dl-track {
+  stroke: rgba(0, 0, 0, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  .dl-track {
+    stroke: rgba(255, 255, 255, 0.1);
+  }
+}
+.dl-arc {
+  stroke: #D85A30;
+}
+.dl-logo-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 6px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+}
+@keyframes dl-spin {
+  to { transform: rotate(360deg); }
+}
+</style>
 
 <script>
 (function () {
   const loader = document.getElementById('docup-loader');
   if (!loader) return;
 
-  // Pages / patterns to SKIP loader for (same-page anchors, external, mailto, tel, javascript:, download)
   function shouldSkip(anchor) {
     const href = anchor.getAttribute('href') || '';
     if (!href || href.startsWith('#') || href.startsWith('javascript') ||
@@ -34,8 +103,8 @@
         anchor.hasAttribute('download') || anchor.target === '_blank') return true;
     try {
       const url = new URL(href, location.href);
-      if (url.origin !== location.origin) return true; // external
-      if (url.pathname === location.pathname && url.search === location.search) return true; // same page
+      if (url.origin !== location.origin) return true;
+      if (url.pathname === location.pathname && url.search === location.search) return true;
     } catch (_) { return true; }
     return false;
   }
@@ -47,19 +116,16 @@
   function hideLoader() {
     loader.classList.remove('dl-visible');
     loader.classList.add('dl-exit');
-    setTimeout(() => loader.classList.remove('dl-exit'), 600);
+    setTimeout(() => loader.classList.remove('dl-exit'), 500);
   }
 
-  // Intercept all clicks
   document.addEventListener('click', function (e) {
     const anchor = e.target.closest('a');
     if (!anchor || shouldSkip(anchor)) return;
-    // Don't double-trigger if already navigating
     if (loader.classList.contains('dl-visible')) return;
     showLoader();
   }, true);
 
-  // Intercept form submits (navigating pages via POST)
   document.addEventListener('submit', function (e) {
     const form = e.target;
     if (form && (!form.target || form.target === '_self') && form.method !== 'dialog') {
@@ -67,14 +133,8 @@
     }
   }, true);
 
-  // Hide on back/forward (pageshow fires even for bfcache restores)
-  window.addEventListener('pageshow', function (e) {
+  window.addEventListener('pageshow', function () {
     hideLoader();
-  });
-
-  // Safety: always hide after 8 s in case navigation stalls
-  window.addEventListener('beforeunload', function () {
-    // keep visible during actual navigation
   });
 })();
 </script>
