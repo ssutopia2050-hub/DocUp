@@ -1587,6 +1587,18 @@ app.post('/signup', async (req, res) => {
     res.redirect('/email_verify');
 });
 /******************************
+ About Us
+ ******************************/
+app.get("/about_us", async (req, res) => {
+    if(!req.session.email){
+        return res.redirect("/signin");
+    }
+    const user_data = await user_profile.findOne({email:req.session.email});
+    res.render("about",{
+        user:user_data
+    });
+})
+/******************************
  SignIn
  ******************************/
 app.get('/signin', (req, res) => {
@@ -2689,6 +2701,52 @@ app.get("/view/:id", async (req, res) => {
         return res.status(500).send("Server Error");
     }
 });
+
+/******************************
+ PDF Proxy — streams R2 PDF through server to avoid CORS
+ ******************************/
+app.get("/pdf-proxy/:id", async (req, res) => {
+    try {
+        if (!req.session.email) {
+            return res.status(401).send("Unauthorized");
+        }
+
+        const doc = await Docs.findById(req.params.id).select("file_url protected uploaded_by").lean();
+
+        if (!doc || !doc.file_url) {
+            return res.status(404).send("Document not found");
+        }
+
+        const response = await fetch(doc.file_url, {
+            headers: { "Accept": "application/pdf" }
+        });
+
+        if (!response.ok) {
+            console.error("R2 fetch failed:", response.status, doc.file_url);
+            return res.status(502).send("Failed to fetch PDF from storage");
+        }
+
+        const contentLength = response.headers.get("content-length");
+        const contentType   = response.headers.get("content-type") || "application/pdf";
+
+        res.setHeader("Content-Type", contentType);
+        res.setHeader("Cache-Control", "private, max-age=300");
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        // Block direct download / external embedding
+        res.setHeader("Content-Disposition", "inline");
+
+        if (contentLength) res.setHeader("Content-Length", contentLength);
+
+        // Stream the body straight to client — no buffering
+        const { Readable } = await import("stream");
+        Readable.fromWeb(response.body).pipe(res);
+
+    } catch (err) {
+        console.error("PDF proxy error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
 app.get("/save/:id", async (req, res) => {
     try {
         const userMail = req.session.email;

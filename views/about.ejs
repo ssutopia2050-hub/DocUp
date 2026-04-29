@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DocUp | About Us — Knowledge Engine</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/dashboard.css">
+    <link rel="stylesheet" href="/page-loader.css">
+
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="fb0fa4fe-2b54-4d33-8482-1efac75331d2"></script>
+    <link rel="shortcut icon" href="/images/android-chrome-512x512.png" type="image/x-icon">
+
+    <style>
+        /* ---------- ADDITIONAL PUNCH & SCROLL ANIMATIONS (Theme preserved) ---------- */
+        .about-container {
+            width: min(1000px, 92%);
+            margin: 40px auto 80px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 48px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* scroll reveal base */
+        .reveal-section {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.7s cubic-bezier(0.2, 0.9, 0.4, 1), transform 0.7s cubic-bezier(0.2, 0.9, 0.4, 1);
+            will-change: opacity, transform;
+        }
+        .reveal-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Hero impact area — enhanced without breaking core theme */
+        .hero-impact {
+            background: radial-gradient(circle at 20% 30%, rgba(255,106,0,0.08), transparent 70%);
+            border-radius: 48px;
+            padding: 48px 36px;
+            border: 1px solid rgba(255,255,255,0.05);
+            backdrop-filter: blur(4px);
+        }
+        .impact-eyebrow {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ff8a47;
+            background: rgba(255,106,0,0.12);
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 40px;
+            margin-bottom: 20px;
+        }
+        .impact-headline {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2.4rem, 7vw, 3.8rem);
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #FFFFFF, #FFB47B);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+        }
+        .impact-subhead {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.75);
+            max-width: 80%;
+            border-left: 3px solid #ff6a00;
+            padding-left: 20px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 700px) {
+            .impact-subhead { max-width: 100%; }
+        }
+        .punch-badge-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .punch-badge {
+            background: rgba(255,106,0,0.1);
+            border: 1px solid rgba(255,106,0,0.3);
+            border-radius: 100px;
+            padding: 6px 18px;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #ffaa70;
+            backdrop-filter: blur(4px);
+        }
+
+        /* special stat counter style */
+        .stat-card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+        .stat-sub-punch {
+            font-size: 0.75rem;
+            color: #ffaa70;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* powerful rewrite cards — ultra punchy */
+        .powercard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 24px;
+            margin-top: 12px;
+        }
+        .power-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 28px;
+            padding: 32px 28px;
+            transition: all 0.25s ease;
+        }
+        .power-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255,106,0,0.4);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+        }
+        .power-icon {
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+        }
+        .power-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: white;
+            line-height: 1.2;
+            margin-bottom: 12px;
+        }
+        .power-desc {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
+        }
+        .accent-glow {
+            background: rgba(255,106,0,0.2);
+            width: fit-content;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #ffaa70;
+            margin-bottom: 14px;
+        }
+
+        /* reimagined step section */
+        .steps-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 28px;
+            margin: 20px 0 10px;
+        }
+        .step-block {
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 32px 24px;
+            border: 1px solid rgba(255,255,255,0.06);
+            transition: all 0.2s;
+        }
+        .step-number-glitch {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.8rem;
+            color: rgba(255,106,0,0.5);
+            line-height: 1;
+            margin-bottom: 16px;
+        }
+        .step-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        /* docscore impact strip */
+        .docscore-impact {
+            background: linear-gradient(95deg, rgba(255,106,0,0.12), rgba(255,106,0,0.02));
+            border-radius: 28px;
+            padding: 28px 32px;
+            border-left: 5px solid #ff6a00;
+        }
+
+        .pill-cta {
+            text-decoration: none;
+            background: #ff6a00;
+            padding: 14px 34px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+            color: #000;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+            box-shadow: 0 8px 18px rgba(255,106,0,0.35);
+        }
+        .pill-cta:hover {
+            background: #ff8833;
+            transform: scale(1.02);
+            box-shadow: 0 12px 26px rgba(255,106,0,0.5);
+        }
+        .section-subtitle-punch {
+            font-size: 1rem;
+            color: #ffaa70;
+            font-weight: 500;
+            letter-spacing: -0.2px;
+        }
+        .inline-highlight {
+            color: #ffaa70;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+    </div>
+
+    <div class="topbar-right">
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= user ? user.Doc_score : 0 %></span>
+            <img src="/fire.png" alt="">
+        </div>
+
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Upload</span>
+        </a>
+
+        <div class="notification-wrap">
+            <button type="button" class="icon-btn notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <% const unreadCount = (user && user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                    <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                <% } %>
+            </button>
+
+            <div style="background: #000407" class="notification-dropdown">
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
+                    <% if (user && user.notifications && user.notifications.length > 0) { %>
+                        <a href="/notifications" class="nd-view-all">View all</a>
+                    <% } %>
+                </div>
+
+                <div class="nd-list">
+                    <% if (user && user.notifications && user.notifications.length > 0) { %>
+                        <% user.notifications.slice().reverse().forEach((item) => { %>
+                            <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
+                                <div class="nd-item-row">
+                                    <span class="nd-dot"></span>
+                                    <span class="nd-when"><%= item.createdAt ? new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Just now" %></span>
+                                </div>
+                                <p class="nd-text"><%= item.content %></p>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="nd-empty">No notifications yet.</div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <div class="avatar-btn">
+            <% if (user && user.avatar_img_path) { %>
+                <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+                <%= user && user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<div class="avatar-dropdown">
+    <a href="/profile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg> Profile</a>
+    <a href="/pricing"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Recharge DocScore</a>
+    <a href="/upgrade-plans"><svg fill="none" height="15" viewBox="0 0 24 24" width="15"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg> Upgrade Plans</a>
+    <a href="/contact"><svg fill="none" height="15" viewBox="0 0 24 24" width="15"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 c.12.89.32 1.76.6 2.6 a2 2 0 0 1-.45 2.11L8.09 9.91 a16 16 0 0 0 6 6l1.48-1.17 a2 2 0 0 1 2.11-.45 c.84.28 1.71.48 2.6.6 a2 2 0 0 1 1.72 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> Contact Us / Feedback</a>
+</div>
+
+<main class="about-container">
+
+    <!-- HERO — IMPACT FIRST (punchline overload but minimal read) -->
+    <div class="hero-impact reveal-section">
+        <span class="impact-eyebrow">⚡ STUDENT FIRST ECOSYSTEM</span>
+        <div class="impact-headline">Stop digging.<br>Start <span style="color:#ff8a47">accelerating</span>.</div>
+        <div class="impact-subhead">No more WhatsApp chaos, broken links, or lost notes.<br>DocUp turns scattered content into structured academic firepower.</div>
+        <div class="punch-badge-group">
+            <span class="punch-badge">📄 10k+ Notes indexed</span>
+            <span class="punch-badge">⚡ Instant discovery</span>
+            <span class="punch-badge">🎓 50+ colleges</span>
+        </div>
+    </div>
+
+    <!-- STATS — DYNAMIC COUNTERS + PUNCH LINE -->
+    <div class="reveal-section">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <h2><span class="stat-num" data-target="10000">0</span>+</h2>
+                <p>Documents Shared</p>
+                <div class="stat-sub-punch">Knowledge fuel</div>
+            </div>
+            <div class="stat-card">
+                <h2><span class="stat-num" data-target="52">0</span>+</h2>
+                <p>Colleges Covered</p>
+                <div class="stat-sub-punch">expanding daily</div>
+            </div>
+            <div class="stat-card">
+                <h2><span class="stat-num" data-target="24">24</span>/<span class="stat-num" data-target="7">7</span></h2>
+                <p>Student Access</p>
+                <div class="stat-sub-punch">unlimited firepower</div>
+            </div>
+            <div class="stat-card">
+                <h2><span class="stat-num" data-target="1000000">0</span>+</h2>
+                <p>Searches Made</p>
+                <div class="stat-sub-punch">smart & instant</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- THE PUNCH: WHY DOCUP WINS (REWRITTEN AS POWERFUL INSIGHTS) -->
+    <div class="reveal-section">
+        <div class="accent-glow">⟡ NOISE CUTTER ⟡</div>
+        <h2 class="section-title" style="font-size:1.9rem">We killed <span style="color:#ff8a47">document hunt</span> for good.</h2>
+        <p class="section-subtitle" style="margin-bottom:24px">Students used to waste hours. Now they find exactly what they need in seconds.</p>
+        <div class="powercard-grid">
+            <div class="power-card">
+                <div class="power-icon">🧠</div>
+                <div class="power-title">Structurize instantly</div>
+                <div class="power-desc">College, branch, subject — auto-tagged engine. No manual sorting ever.</div>
+            </div>
+            <div class="power-card">
+                <div class="power-icon">⚡</div>
+                <div class="power-title">3-second retrieval</div>
+                <div class="power-desc">Because exams don't wait. Lightning-fast search & filter.</div>
+            </div>
+            <div class="power-card">
+                <div class="power-icon">🤝</div>
+                <div class="power-title">Live contribution loop</div>
+                <div class="power-desc">Upload one, access hundreds. Real ecosystem, powered by you.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HOW DOCUP WORKS — REFINED AND PUNCHY -->
+    <div class="reveal-section">
+        <div class="accent-glow">► FLUID ENGINE</div>
+        <h2 class="section-title" style="margin-bottom:4px">From upload to impact in <span style="color:#ff8a47">3 moves</span></h2>
+        <p class="section-subtitle-punch" style="margin-bottom:24px">No friction. No gatekeeping. Pure academic velocity.</p>
+        <div class="steps-row">
+            <div class="step-block">
+                <div class="step-number-glitch">01</div>
+                <div class="step-title">📤 Drop notes</div>
+                <p style="color:rgba(255,255,255,0.72); font-family:'DM Sans';">Any PDF, PPT, handwritten — upload once, structure later.</p>
+            </div>
+            <div class="step-block">
+                <div class="step-number-glitch">02</div>
+                <div class="step-title">⚙️ Auto-orchestrate</div>
+                <p style="color:rgba(255,255,255,0.72); font-family:'DM Sans';">Our AI context engine sorts by subject, semester, college.</p>
+            </div>
+            <div class="step-block">
+                <div class="step-number-glitch">03</div>
+                <div class="step-title">🔥 Instant access</div>
+                <p style="color:rgba(255,255,255,0.72); font-family:'DM Sans';">Any student search → instant preview → full download.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOCSCORE SYSTEM — HIGHLIGHT POWER -->
+    <div class="reveal-section docscore-impact">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+            <div>
+                <span class="accent-glow" style="background: rgba(255,106,0,0.25);">⛓️ CONTRIBUTION ECONOMY</span>
+                <h3 style="font-family: 'Syne'; font-size: 1.8rem; margin: 8px 0 8px; color:white;">DocScore isn't pay-to-win.<br> It's <span class="inline-highlight">share-to-unlock</span>.</h3>
+                <p style="color: rgba(255,255,255,0.75); max-width: 500px;">Earn DocScore by uploading quality content. Use it to access premium material — fair, transparent, community-driven.</p>
+            </div>
+            <a href="/uploads" class="pill-cta" style="white-space: nowrap;">
+                ⚡ Start earning →
+            </a>
+        </div>
+    </div>
+
+    <!-- REAL IMPACT — additional badge line -->
+    <div class="reveal-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; background: rgba(255,255,255,0.02); border-radius: 40px; padding: 20px 32px;">
+        <div>
+            <div style="font-family: 'Archivo Black'; font-size: 1.1rem; color:#ffaa70;">#STUDENTPOWERED</div>
+            <div style="font-weight: 500; font-family:'DM Sans';">Not a corporation. An academic movement.</div>
+        </div>
+        <div style="display: flex; gap: 14px;">
+            <span style="background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 50px;">🚀 1M+ searches</span>
+            <span style="background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 50px;">📚 10k+ docs</span>
+        </div>
+    </div>
+
+    <!-- FINAL CALL TO ACTION — LARGE & IMPACTFUL -->
+    <div class="reveal-section" style="text-align: center; background: linear-gradient(145deg, rgba(255,106,0,0.08), rgba(0,0,0,0.3)); border-radius: 48px; padding: 48px 32px;">
+        <div style="font-family:'Syne'; font-size: 1.9rem; font-weight: 700;">Build the ultimate library <span style="color: #ff8a47">with us</span>.</div>
+        <p style="margin: 15px auto 30px; max-width: 480px; color: rgba(255,255,255,0.7);">Every upload multiplies the value for everyone. Be part of the ecosystem that makes note-hunting obsolete.</p>
+        <a href="/uploads" class="overlay-cta overlay-cta-primary" style="display:inline-block; background:#ff6a00; border:none; font-weight:800; font-size:1.2rem; padding: 14px 42px;">
+            📤 Contribute now — earn DocScore
+        </a>
+        <div style="margin-top: 24px; font-size: 0.75rem; opacity: 0.7;">Join 10k+ active students & faculty</div>
+    </div>
+</main>
+
+<div class="footer">
+    <div style="font-family: 'Archivo Black',sans-serif;display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end" class="footer-left">
+        DocUp
+        <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22)">v<%= process.env.VERSION %></a>
+    </div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">ContactUs</a>
+        <a href="/privacy_policy">Privacy Policy</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<script src="/dashboard.js"></script>
+<script>
+    // preserving all original topbar/dropdown logic and adding scroll animations + stat counters
+
+    (function() {
+        // Logo & existing dropdowns (preserving existing behavior)
+        const homeBtn = document.querySelector(".logo-wordmark");
+        if (homeBtn) homeBtn.addEventListener("click", () => window.location.href = "/dashboard");
+        const avatarBtn = document.querySelector('.avatar-btn');
+        const avatarDropdown = document.querySelector('.avatar-dropdown');
+        if(avatarBtn && avatarDropdown) {
+            avatarBtn.addEventListener('click', (e) => { e.stopPropagation(); avatarDropdown.classList.toggle('active'); });
+            document.addEventListener('click', (e) => { if (!avatarDropdown.contains(e.target)) avatarDropdown.classList.remove('active'); });
+        }
+        const notifBtn = document.querySelector('.notification-btn');
+        const notifDropdown = document.querySelector('.notification-dropdown');
+        if(notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', (e) => { e.stopPropagation(); notifDropdown.classList.toggle('active'); if(avatarDropdown) avatarDropdown.classList.remove('active'); });
+            document.addEventListener('click', (e) => { if (!notifDropdown.contains(e.target)) notifDropdown.classList.remove('active'); });
+        }
+
+        // SCROLL REVEAL INTERSECTION OBSERVER
+        const revealElements = document.querySelectorAll('.reveal-section');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+        revealElements.forEach(el => observer.observe(el));
+        // manually set visible for already visible ones (in case)
+        revealElements.forEach(el => { if(el.getBoundingClientRect().top < window.innerHeight-100) el.classList.add('visible'); });
+
+        // STAT COUNTERS ANIMATION (only when stats become visible)
+        const statNumbers = document.querySelectorAll('.stat-num');
+        let counted = false;
+        const statsObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !counted) {
+                counted = true;
+                statNumbers.forEach(el => {
+                    const target = parseInt(el.getAttribute('data-target'), 10);
+                    if (isNaN(target)) return;
+                    let current = 0;
+                    const increment = Math.ceil(target / 50);
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            el.innerText = target;
+                            clearInterval(timer);
+                        } else {
+                            el.innerText = current;
+                        }
+                    }, 20);
+                });
+                statsObserver.disconnect();
+            }
+        }, { threshold: 0.4 });
+        const statsGrid = document.getElementById('statsGrid');
+        if (statsGrid) statsObserver.observe(statsGrid);
+
+        // Additional micro-interaction: small glow on power-cards
+        const powerCards = document.querySelectorAll('.power-card, .step-block');
+        powerCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transition = 'all 0.2s ease';
+            });
+        });
+    })();
+</script>
+<script src="/dashboard2.js"></script>
+</body>
+</html>

@@ -11,6 +11,7 @@
   },
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1038.0",
     "@emailjs/nodejs": "^5.0.2",
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.99.2",
@@ -30,6 +31,7 @@
     "mongosh": "^2.7.0",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",
+    "node-fetch": "^3.3.2",
     "nodemon": "^3.1.14",
     "openai": "^6.33.0",
     "passport": "^0.7.0",
