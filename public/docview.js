@@ -340,10 +340,124 @@ async function rerenderForNewScale() {
     scheduleVisibleRender();
 }
 
+/* ═══════════════════════════════════════════════
+   PREMIUM PDF LOADER CONTROLLER
+═══════════════════════════════════════════════ */
+const PdfLoader = (() => {
+    const loaderEl  = document.getElementById("pdf-loader");
+    const barEl     = document.getElementById("pl-bar");
+    const trackEl   = barEl ? barEl.closest(".pl-track") : null;
+    const pctEl     = document.getElementById("pl-pct");
+    const sizeEl    = document.getElementById("pl-size");
+    const labelEl   = document.getElementById("pl-label");
+    const etaEl     = document.getElementById("pl-eta");
+    const stepEls   = document.querySelectorAll(".pl-step");
+
+    let startTime   = 0;
+    let lastPct     = 0;
+
+    function formatBytes(bytes) {
+        if (!bytes) return "";
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function setStep(index) {
+        stepEls.forEach((el, i) => {
+            el.classList.remove("pl-step--active", "pl-step--done");
+            if (i < index)  el.classList.add("pl-step--done");
+            if (i === index) el.classList.add("pl-step--active");
+        });
+    }
+
+    function setIndeterminate(on) {
+        if (!trackEl) return;
+        if (on) trackEl.classList.add("pl-indeterminate");
+        else    trackEl.classList.remove("pl-indeterminate");
+    }
+
+    function setProgress(pct, loaded, total) {
+        if (!barEl) return;
+        const p = Math.min(Math.max(pct, 0), 100);
+        barEl.style.width = `${p}%`;
+        if (pctEl) pctEl.textContent = `${Math.round(p)}%`;
+
+        if (total && sizeEl) {
+            sizeEl.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
+        }
+
+        // ETA calculation
+        const elapsed = (Date.now() - startTime) / 1000;
+        if (p > 5 && p < 100 && elapsed > 0.5) {
+            const rate = p / elapsed;           // % per second
+            const remaining = (100 - p) / rate; // seconds remaining
+            if (etaEl && remaining > 0.5) {
+                const secs = Math.round(remaining);
+                etaEl.textContent = secs <= 3
+                    ? "Almost there…"
+                    : `~${secs}s remaining`;
+                etaEl.classList.add("pl-eta--active");
+            }
+        }
+
+        lastPct = p;
+    }
+
+    function show() {
+        if (!loaderEl) return;
+        startTime = Date.now();
+        loaderEl.classList.remove("pl-hidden");
+        setIndeterminate(true);
+        setStep(0);
+        if (labelEl) labelEl.textContent = "Fetching document…";
+        if (etaEl)   { etaEl.textContent = "\u00a0"; etaEl.classList.remove("pl-eta--active"); }
+        if (pctEl)   pctEl.textContent = "0%";
+        if (sizeEl)  sizeEl.textContent = "\u00a0";
+        if (barEl)   barEl.style.width = "0%";
+    }
+
+    function onProgress(loaded, total) {
+        setIndeterminate(false);
+        setStep(1);
+        if (labelEl) labelEl.textContent = "Downloading PDF…";
+        const pct = total ? (loaded / total) * 100 : 0;
+        setProgress(pct, loaded, total);
+    }
+
+    function onRendering() {
+        setIndeterminate(false);
+        setStep(2);
+        if (labelEl) labelEl.textContent = "Rendering pages…";
+        if (etaEl)   { etaEl.textContent = "Almost there…"; etaEl.classList.add("pl-eta--active"); }
+        setProgress(95, 0, 0);
+    }
+
+    function hide() {
+        if (!loaderEl) return;
+        setProgress(100, 0, 0);
+        setStep(3); // all done
+        if (labelEl) labelEl.textContent = "Document ready";
+        if (etaEl)   { etaEl.textContent = "Enjoy reading!"; etaEl.classList.add("pl-eta--active"); }
+        setTimeout(() => loaderEl.classList.add("pl-hidden"), 480);
+    }
+
+    return { show, onProgress, onRendering, hide };
+})();
+
 async function loadPdf() {
     try {
         pageStatus.textContent = "Loading PDF...";
-        pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+        PdfLoader.show();
+
+        const loadingTask = pdfjsLib.getDocument(pdfUrl);
+
+        loadingTask.onProgress = ({ loaded, total }) => {
+            PdfLoader.onProgress(loaded, total);
+        };
+
+        pdfDoc = await loadingTask.promise;
+
+        PdfLoader.onRendering();
 
         totalPageNumberEl.textContent = pdfDoc.numPages;
         if (pageJumpTotal) {
@@ -351,9 +465,12 @@ async function loadPdf() {
         }
 
         await initializeLazyPages();
+
+        PdfLoader.hide();
     } catch (error) {
         console.error("PDF load error:", error);
         pageStatus.textContent = "Failed to load PDF";
+        PdfLoader.hide();
     }
 }
 

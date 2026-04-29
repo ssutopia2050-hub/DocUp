@@ -496,15 +496,58 @@ college_data.image : '/images/default.png' %>"
             </div>
         </div>
 
+        <!-- Replace your current pdf-canvas-area section with this -->
         <div class="pdf-canvas-area" id="pdf-scroll-area">
-            <div class="reader-watermark-shell">
-                <div
-                        class="reader-watermark-layer"
-                        id="reader-watermark-layer"
+            <!-- ═══ PREMIUM PDF LOADER ═══ (moved OUTSIDE watermark shell) -->
+            <div id="pdf-loader" class="pdf-loader" aria-live="polite" aria-label="Loading PDF">
+                <div class="pdf-loader-inner">
+                    <!-- Ambient glow rings -->
+                    <div class="pl-glow-ring pl-glow-ring--outer"></div>
+                    <div class="pl-glow-ring pl-glow-ring--inner"></div>
 
-                        aria-hidden="true"
-                        data-watermark="DocUp • <%= user.email %> • Private View"
-                ></div>
+                    <!-- Animated logo mark -->
+                    <div class="pl-icon-wrap">
+                        <svg class="pl-icon-svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                        </svg>
+                        <div class="pl-icon-pulse"></div>
+                    </div>
+
+                    <!-- Text block -->
+                    <div class="pl-text-block">
+                        <p class="pl-label" id="pl-label">Fetching document…</p>
+                        <p class="pl-eta" id="pl-eta">&nbsp;</p>
+                    </div>
+
+                    <!-- Progress track -->
+                    <div class="pl-track-wrap">
+                        <div class="pl-track">
+                            <div class="pl-bar" id="pl-bar"></div>
+                            <div class="pl-bar-shimmer"></div>
+                        </div>
+                        <div class="pl-track-meta">
+                            <span class="pl-pct" id="pl-pct">0%</span>
+                            <span class="pl-size" id="pl-size">&nbsp;</span>
+                        </div>
+                    </div>
+
+                    <!-- Step dots -->
+                    <div class="pl-steps">
+                        <span class="pl-step pl-step--active" data-step="0">Connecting</span>
+                        <span class="pl-step-sep">·</span>
+                        <span class="pl-step" data-step="1">Downloading</span>
+                        <span class="pl-step-sep">·</span>
+                        <span class="pl-step" data-step="2">Rendering</span>
+                    </div>
+                </div>
+            </div>
+            <!-- ═══════════════════════════ -->
+
+            <div class="reader-watermark-shell">
+                <div class="reader-watermark-layer" id="reader-watermark-layer" aria-hidden="true" data-watermark="DocUp • <%= user.email %> • Private View"></div>
                 <div id="pdf-container"></div>
             </div>
         </div>
