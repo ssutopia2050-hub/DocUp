@@ -249,11 +249,6 @@
             <span>FindDocs</span>
         </a>
 
-        <div class="docscore-pill">
-            <span class="docscore-label">DocScore</span>
-            <span class="docscore-value"><%= user ? user.Doc_score : 0 %></span>
-            <img src="/fire.png" alt="">
-        </div>
 
         <a href="/uploads" class="topbar-pill">
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
@@ -263,51 +258,8 @@
             <span>Upload</span>
         </a>
 
-        <div class="notification-wrap">
-            <button type="button" class="icon-btn notification-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <% const unreadCount = (user && user.notifications || []).filter(n => !n.isRead).length; %>
-                <% if (unreadCount > 0) { %>
-                    <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
-                <% } %>
-            </button>
 
-            <div style="background: #000407" class="notification-dropdown">
-                <div class="nd-header">
-                    <span class="nd-title">Notifications</span>
-                    <% if (user && user.notifications && user.notifications.length > 0) { %>
-                        <a href="/notifications" class="nd-view-all">View all</a>
-                    <% } %>
-                </div>
 
-                <div class="nd-list">
-                    <% if (user && user.notifications && user.notifications.length > 0) { %>
-                        <% user.notifications.slice().reverse().forEach((item) => { %>
-                            <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
-                                <div class="nd-item-row">
-                                    <span class="nd-dot"></span>
-                                    <span class="nd-when"><%= item.createdAt ? new Date(item.createdAt).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Just now" %></span>
-                                </div>
-                                <p class="nd-text"><%= item.content %></p>
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <div class="nd-empty">No notifications yet.</div>
-                    <% } %>
-                </div>
-            </div>
-        </div>
-
-        <div class="avatar-btn">
-            <% if (user && user.avatar_img_path) { %>
-                <img src="<%= user.avatar_img_path %>" alt="">
-            <% } else { %>
-                <%= user && user.name ? user.name.charAt(0).toUpperCase() : "U" %>
-            <% } %>
-        </div>
     </div>
 </header>
 
@@ -326,7 +278,7 @@
         <div class="impact-headline">Stop digging.<br>Start <span style="color:#ff8a47">accelerating</span>.</div>
         <div class="impact-subhead">No more WhatsApp chaos, broken links, or lost notes.<br>DocUp turns scattered content into structured academic firepower.</div>
         <div class="punch-badge-group">
-            <span class="punch-badge">📄 10k+ Notes indexed</span>
+            <span class="punch-badge">📄 150+ Notes indexed</span>
             <span class="punch-badge">⚡ Instant discovery</span>
             <span class="punch-badge">🎓 50+ colleges</span>
         </div>
@@ -336,7 +288,7 @@
     <div class="reveal-section">
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
-                <h2><span class="stat-num" data-target="10000">0</span>+</h2>
+                <h2><span class="stat-num" data-target="150">0</span>+</h2>
                 <p>Documents Shared</p>
                 <div class="stat-sub-punch">Knowledge fuel</div>
             </div>
@@ -346,12 +298,12 @@
                 <div class="stat-sub-punch">expanding daily</div>
             </div>
             <div class="stat-card">
-                <h2><span class="stat-num" data-target="24">24</span>/<span class="stat-num" data-target="7">7</span></h2>
+                <h2><span class="stat-num" data-target="50">24</span>/<span class="stat-num" data-target="7">7</span></h2>
                 <p>Student Access</p>
                 <div class="stat-sub-punch">unlimited firepower</div>
             </div>
             <div class="stat-card">
-                <h2><span class="stat-num" data-target="1000000">0</span>+</h2>
+                <h2><span class="stat-num" data-target="100000">0</span>+</h2>
                 <p>Searches Made</p>
                 <div class="stat-sub-punch">smart & instant</div>
             </div>
@@ -428,7 +380,7 @@
         </div>
         <div style="display: flex; gap: 14px;">
             <span style="background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 50px;">🚀 1M+ searches</span>
-            <span style="background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 50px;">📚 10k+ docs</span>
+            <span style="background: rgba(255,255,255,0.05); padding: 6px 16px; border-radius: 50px;">📚 150+ docs</span>
         </div>
     </div>
 

@@ -1590,13 +1590,7 @@ app.post('/signup', async (req, res) => {
  About Us
  ******************************/
 app.get("/about_us", async (req, res) => {
-    if(!req.session.email){
-        return res.redirect("/signin");
-    }
-    const user_data = await user_profile.findOne({email:req.session.email});
-    res.render("about",{
-        user:user_data
-    });
+    res.render("about");
 })
 /******************************
  SignIn
