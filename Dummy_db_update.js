@@ -1,45 +1,31 @@
+import dotenv from "dotenv";
 import mongoose from "mongoose";
-import College from "./models/college.js";
+import Docs from "./models/Docs.js";
 
-const MONGO_URI = "mongodb+srv://shikhar_admin:0ucVuj6vWR1uDRq0@shikhar.7nkj3vq.mongodb.net/DocUp?appName=Shikhar";
+dotenv.config();
 
-const exams = [
-    { name: "JEE Main",    branch: "Engineering", image: "/images/JEE_MAIN.png" },
-    { name: "JEE Advanced",branch: "Engineering", image: "/images/JEE_ADVANCED.png" },
-    { name: "NEET",        branch: "Medical",     image: "/images/NEET.png" },
-    { name: "BITSAT",      branch: "Engineering", image: "/images/BITSAT.png" },
-    { name: "VITEEE",      branch: "Engineering", image: "/images/VITEEE.png" },
-    { name: "MHT CET",     branch: "Engineering", image: "/images/MHT_CET.png" },
-    { name: "CUET",        branch: "Engineering", image: "/images/CUET.png" },
-    { name: "COMEDK",      branch: "Engineering", image: "/images/COMEDK.png" },
-    { name: "WBJEE",       branch: "Engineering", image: "/images/WBJEE.png" },
-    { name: "KCET",        branch: "Engineering", image: "/images/KCET.png" },
-    { name: "Other",       branch: "Engineering", image: "/images/OTHER.png" }
-];
+const MONGO_URI = process.env.MONGO_URI;
 
-async function seedExams() {
+async function updateProtectedField() {
     try {
+        if (!MONGO_URI) {
+            throw new Error("MONGO_URI is missing in .env");
+        }
+
         await mongoose.connect(MONGO_URI);
-        console.log("MongoDB Connected");
+        console.log("Connected to MongoDB");
 
-        // ✅ Remove old broken entries first
-        await College.deleteMany({ college_name: { $in: exams.map(e => e.name) } });
+        const result = await Docs.updateMany(
+            {},
+            { $set: { protected: true } }
+        );
 
-        // ✅ No extra [ ] wrapping — exams.map returns the array directly
-        const formattedData = exams.map(exam => ({
-            college_name: exam.name,
-            branch: exam.branch,
-            state: "Delhi",
-            image: exam.image
-        }));
+        console.log(`Updated ${result.modifiedCount} documents`);
 
-        await College.insertMany(formattedData);
-        console.log("✅ Exams inserted successfully");
-        process.exit();
-    } catch (error) {
-        console.error("❌ Error inserting exams:", error);
-        process.exit(1);
+        await mongoose.disconnect();
+    } catch (err) {
+        console.error("Error:", err);
     }
 }
 
-seedExams();
+updateProtectedField();
