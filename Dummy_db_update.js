@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Docs from "./models/Docs.js";
+import users from "./models/users.js";
 
 dotenv.config();
 
@@ -15,10 +16,24 @@ async function updateProtectedField() {
         await mongoose.connect(MONGO_URI);
         console.log("Connected to MongoDB");
 
-        const result = await Docs.updateMany(
+        const result = await users.updateMany(
             {},
-            { $set: { protected: true } }
+             {
+                $push: {
+                    popup: {
+                        title: "🎉 New Feature!",
+                        body: "You can now upload more formats.",
+                        url: "/uploads",
+                        subject:"pdf format and xml allowed",
+                        college:"UPES",
+                        button_text: "Try it now",
+                        startDate: "2026-04-30",
+                        endDate: "2026-05-07"
+                    }
+                }
+            }
         );
+        // const result = await users.updateMany({}, { $set: { popup: [] } });
 
         console.log(`Updated ${result.modifiedCount} documents`);
 

@@ -1,16 +1,115 @@
 document.addEventListener("DOMContentLoaded", function () {
     const filterBtn = document.getElementById("filter-toggle");
     const filterDropdown = document.getElementById("filter-dropdown");
-    const streamSelect = document.getElementById("stream");
-    const branchSelect = document.getElementById("branch");
+    const streamSelect = document.getElementById("stream");       // hidden input
+    const branchSelect = document.getElementById("branch");       // hidden input
     const searchInput = document.getElementById("search_parameter_text");
     const suggestionsBox = document.getElementById("college-suggestions");
     const searchForm = document.querySelector(".search-form");
     const resultsContainer = document.getElementById("search-results-container");
-    const yearSelect = document.querySelector('select[name="year"]');
+    const yearSelect = document.getElementById("year");           // hidden input
     const collegeResultsStrip = document.getElementById("college-results-strip");
     const collegeResultsStripInner = document.getElementById("college-results-strip-inner");
     const searchBtn = document.querySelector(".search-btn");
+
+    // ── Custom select helpers ──────────────────────────────────────────────────
+    function initCustomSelects() {
+        document.querySelectorAll(".custom-select").forEach(sel => {
+            const trigger = sel.querySelector(".custom-select-trigger");
+            const optionsEl = sel.querySelector(".custom-select-options");
+            const hidden = sel.querySelector("input[type='hidden']");
+
+            trigger.addEventListener("click", e => {
+                e.stopPropagation();
+                // close every other open custom-select first
+                document.querySelectorAll(".custom-select.open").forEach(s => {
+                    if (s !== sel) s.classList.remove("open");
+                });
+                sel.classList.toggle("open");
+            });
+
+            optionsEl.querySelectorAll(".custom-option").forEach(opt => {
+                opt.addEventListener("click", () => {
+                    optionsEl.querySelectorAll(".custom-option").forEach(o => o.classList.remove("selected"));
+                    opt.classList.add("selected");
+                    trigger.textContent = opt.textContent;
+                    hidden.value = opt.dataset.value;
+                    sel.classList.remove("open");
+                    // fire change so stream→branch repopulation still works
+                    hidden.dispatchEvent(new Event("change", { bubbles: true }));
+                });
+            });
+        });
+
+        // close open custom-selects when clicking outside
+        document.addEventListener("click", () => {
+            document.querySelectorAll(".custom-select.open").forEach(s => s.classList.remove("open"));
+        });
+    }
+
+    // Repopulate branch custom-select options (mirrors old populateBranches for <select>)
+    function populateBranches(stream) {
+        const branchCustomSel = document.getElementById("branch-custom-select");
+        if (!branchCustomSel) return;
+
+        const optionsEl = branchCustomSel.querySelector(".custom-select-options");
+        const trigger   = branchCustomSel.querySelector(".custom-select-trigger");
+        const hidden    = branchCustomSel.querySelector("input[type='hidden']");
+
+        // reset to "All Branches"
+        optionsEl.innerHTML = `<div class="custom-option selected" data-value="all">All Branches</div>`;
+        trigger.textContent = "All Branches";
+        hidden.value = "all";
+
+        if (!branchData[stream]) return;
+
+        branchData[stream].forEach(branch => {
+            const div = document.createElement("div");
+            div.className = "custom-option";
+            div.dataset.value = branch;
+            div.textContent = branch;
+            optionsEl.appendChild(div);
+        });
+
+        // re-attach click listeners for the newly created options
+        optionsEl.querySelectorAll(".custom-option").forEach(opt => {
+            opt.addEventListener("click", () => {
+                optionsEl.querySelectorAll(".custom-option").forEach(o => o.classList.remove("selected"));
+                opt.classList.add("selected");
+                trigger.textContent = opt.textContent;
+                hidden.value = opt.dataset.value;
+                branchCustomSel.classList.remove("open");
+                hidden.dispatchEvent(new Event("change", { bubbles: true }));
+            });
+        });
+    }
+
+    // Helper: set a custom-select's value and update its trigger label
+    function setCustomSelect(customSelId, value) {
+        const sel = document.getElementById(customSelId);
+        if (!sel) return;
+        const hidden  = sel.querySelector("input[type='hidden']");
+        const trigger = sel.querySelector(".custom-select-trigger");
+        const opts    = sel.querySelectorAll(".custom-option");
+        let matched   = false;
+
+        opts.forEach(opt => {
+            if (opt.dataset.value === value) {
+                opt.classList.add("selected");
+                trigger.textContent = opt.textContent;
+                if (hidden) hidden.value = value;
+                matched = true;
+            } else {
+                opt.classList.remove("selected");
+            }
+        });
+
+        // fallback: write the hidden value even if the option isn't rendered yet
+        if (!matched && hidden) {
+            hidden.value = value;
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     const suggestionBar = document.getElementById("search-suggestion-bar");
     const suggestionBtn = document.getElementById("search-suggestion-btn");
@@ -221,21 +320,6 @@ document.addEventListener("DOMContentLoaded", function () {
         suggestionBar.style.display = "flex";
     }
 
-    function populateBranches(stream) {
-        if (!branchSelect) return;
-
-        branchSelect.innerHTML = `<option value="all">All Branches</option>`;
-
-        if (!branchData[stream]) return;
-
-        branchData[stream].forEach(branch => {
-            const option = document.createElement("option");
-            option.value = branch;
-            option.textContent = branch;
-            branchSelect.appendChild(option);
-        });
-    }
-
     function setSearchButtonLoading(isLoading) {
         if (!searchBtn) return;
 
@@ -366,16 +450,17 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             if (typeof state.selectedYear === "string" && yearSelect) {
-                yearSelect.value = state.selectedYear;
+                setCustomSelect("year-custom-select", state.selectedYear);
             }
 
             if (typeof state.selectedStream === "string" && streamSelect) {
-                streamSelect.value = state.selectedStream;
+                setCustomSelect("stream-custom-select", state.selectedStream);
                 populateBranches(state.selectedStream);
             }
 
             if (typeof state.selectedBranch === "string" && branchSelect) {
-                branchSelect.value = state.selectedBranch;
+                // branch options may have just been re-rendered by populateBranches above
+                setCustomSelect("branch-custom-select", state.selectedBranch);
             }
 
             if (state.collegeStripHTML && collegeResultsStripInner) {
@@ -669,6 +754,9 @@ document.addEventListener("DOMContentLoaded", function () {
             populateBranches(this.value);
         });
     }
+
+    // Initialise all custom-select widgets (must run after DOM is ready)
+    initCustomSelects();
 
     if (searchInput) {
         searchInput.addEventListener("input", function () {

@@ -5080,6 +5080,25 @@ app.get("/notes/:collegeSlug", async (req, res) => {
 app.get("/notes/:collegeSlug/:subjectSlug", async (req, res) => {
     return renderCollegeSeoPage(req, res);
 });
+// Mark all notifications as read
+app.post("/notifications/mark-all-read", async (req, res) => {
+    await UserProfile.updateOne(
+        { _id: req.user._id },
+        { $set: { "notifications.$[].isRead": true } }
+    );
+    res.sendStatus(200);
+});
+
+// Dismiss (delete) a single notification — since _id:false, match by index or use a generated id
+// Simplest approach: use array index passed from client, or switch _id:false → _id:true on the subdoc
+app.delete("/notifications/:id/dismiss", async (req, res) => {
+    // If you enable _id on notifications subdoc, use $pull:
+    await UserProfile.updateOne(
+        { _id: req.user._id },
+        { $pull: { notifications: { _id: req.params.id } } }
+    );
+    res.sendStatus(200);
+});
 app.get("/sitemap.xml", async (req, res) => {
     try {
         const allDocs = await Docs.find({}, "college subject updatedAt createdAt").lean();

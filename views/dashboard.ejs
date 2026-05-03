@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/dashboard.css">
     <link rel="stylesheet" href="/page-loader.css">
@@ -18,34 +17,49 @@
     <title>DocUp | Dashboard</title>
 </head>
 <body>
+
+<%
+/* ── Category & Time Helpers for Notifications ── */
+function catMeta(cat) {
+    const map = {
+        document: { label: 'Document', clr: '#4b9eff', bg: 'rgba(75,158,255,0.10)', border: 'rgba(75,158,255,0.22)', glow: 'rgba(75,158,255,0.5)' },
+        docscore: { label: 'DocScore', clr: '#ffb700', bg: 'rgba(255,183,0,0.10)', border: 'rgba(255,183,0,0.22)', glow: 'rgba(255,183,0,0.5)' },
+        system: { label: 'System', clr: '#a78bfa', bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.22)', glow: 'rgba(167,139,250,0.5)' },
+        profile: { label: 'Profile', clr: '#34d399', bg: 'rgba(52,211,153,0.10)', border: 'rgba(52,211,153,0.22)', glow: 'rgba(52,211,153,0.5)' },
+        payment: { label: 'Payment', clr: '#4ade80', bg: 'rgba(74,222,128,0.10)', border: 'rgba(74,222,128,0.22)', glow: 'rgba(74,222,128,0.5)' }
+    };
+    return map[cat] || { label: 'General', clr: '#ff6a00', bg: 'rgba(255,106,0,0.10)', border: 'rgba(255,106,0,0.22)', glow: 'rgba(255,106,0,0.5)' };
+}
+
+function relativeTime(date) {
+    if (!date) return 'Just now';
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+}
+
+function fullTime(date) {
+    if (!date) return '';
+    return new Date(date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+}
+%>
+
 <header class="topbar">
     <div class="topbar-left">
-        <a href="/dashboard" class="logo-wordmark">DocUp</a>
-
-<!--        <div class="topbar-divider"></div>-->
-
-<!--        <span class="topbar-breadcrumb">-->
-<!--            <a href="/dashboard">Dashboard</a>-->
-<!--            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">-->
-<!--                <path d="M4.5 2.5L7.5 6L4.5 9.5"-->
-<!--                      stroke="currentColor"-->
-<!--                      stroke-width="1.4"-->
-<!--                      stroke-linecap="round"-->
-<!--                      stroke-linejoin="round"/>-->
-<!--            </svg>-->
-<!--            <span class="breadcrumb-current">FindDocs</span>-->
-<!--        </span>-->
+        <a href="/dashboard" class="logo-wordmark"><span>Doc</span>Up</a>
     </div>
 
     <div class="topbar-right">
-
         <!-- FindDocs -->
         <a href="/dashboard" class="topbar-pill">
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
-                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"/>
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
             <span>FindDocs</span>
         </a>
@@ -60,15 +74,8 @@
         <!-- Upload -->
         <a href="/uploads" class="topbar-pill">
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
-                <path d="M12 16V4M12 4l-4 4M12 4l4 4"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"/>
-                <path d="M5 18.5h14"
-                      stroke="currentColor"
-                      stroke-width="1.8"
-                      stroke-linecap="round"/>
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
             <span>Upload</span>
         </a>
@@ -77,52 +84,48 @@
         <div class="notification-wrap">
             <button type="button" class="icon-btn notification-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
-                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20"
-                          stroke="currentColor"
-                          stroke-width="1.7"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"/>
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
 
                 <% const unreadCount = (data.notifications || []).filter(n => !n.isRead).length; %>
                 <% if (unreadCount > 0) { %>
-                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                    <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
                 <% } %>
             </button>
 
-            <div style="background: #000407" class="notification-dropdown">
+            <!-- Redesigned Premium Notification Dropdown -->
+            <div class="notification-dropdown">
                 <div class="nd-header">
                     <span class="nd-title">Notifications</span>
                     <% if (data.notifications && data.notifications.length > 0) { %>
-                    <a href="/notifications" class="nd-view-all">View all</a>
+                        <a href="/notifications" class="nd-view-all">View all</a>
                     <% } %>
                 </div>
 
                 <div class="nd-list">
                     <% if (data.notifications && data.notifications.length > 0) { %>
-                    <% data.notifications.slice().reverse().forEach((item) => { %>
-                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>">
-                        <div class="nd-item-row">
-                            <span class="nd-dot"></span>
-                            <span class="nd-when">
-                                <%= item.createdAt
-                                    ? new Date(item.createdAt).toLocaleString("en-IN", {
-                                        dateStyle: "medium",
-                                        timeStyle: "short"
-                                    })
-                                    : "Just now" %>
-                            </span>
+                        <% data.notifications.slice().reverse().slice(0,8).forEach((item) => {
+                            const m = catMeta(item.category);
+                        %>
+                        <div class="nd-item <%= item.isRead ? '' : 'unread' %>" data-cat="<%= item.category || '' %>">
+                            <div class="nd-item-row">
+                                <div class="nd-item-left">
+                                    <span class="nd-dot" style="--dot-clr:<%=m.clr%>;--dot-glow:<%=m.glow%>"></span>
+                                    <span class="nd-cat-pill" style="--pill-clr:<%=m.clr%>;--pill-bg:<%=m.bg%>;--pill-border:<%=m.border%>"><%=m.label%></span>
+                                </div>
+                                <span class="nd-when" title="<%= fullTime(item.createdAt) %>"><%= relativeTime(item.createdAt) %></span>
+                            </div>
+                            <p class="nd-text"><%= item.content %></p>
                         </div>
-                        <p class="nd-text"><%= item.content %></p>
-                    </div>
-                    <% }) %>
+                        <% }) %>
                     <% } else { %>
-                    <div class="nd-empty">No notifications yet.</div>
+                        <div class="nd-empty">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" style="margin-bottom:6px;opacity:0.3">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                            </svg>
+                            No notifications yet.
+                        </div>
                     <% } %>
                 </div>
             </div>
@@ -131,12 +134,11 @@
         <!-- Avatar -->
         <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
-            <img src="<%= data.avatar_img_path %>" alt="">
+                <img src="<%= data.avatar_img_path %>" alt="">
             <% } else { %>
-            <%= data.name ? data.name.charAt(0).toUpperCase() : "U" %>
+                <%= data.name ? data.name.charAt(0).toUpperCase() : "U" %>
             <% } %>
         </div>
-
     </div>
 </header>
 
@@ -145,76 +147,36 @@
     <a href="/profile">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
         Profile
     </a>
 
     <a href="/pricing">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Recharge DocScore
     </a>
     <a href="/upgrade-plans">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="1.6"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
         </svg>
         Upgrade Plans
     </a>
     <a href="/contact">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2
-                 19.79 19.79 0 0 1-8.63-3.07
-                 19.5 19.5 0 0 1-6-6
-                 19.79 19.79 0 0 1-3.07-8.67
-                 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72
-                 c.12.89.32 1.76.6 2.6
-                 a2 2 0 0 1-.45 2.11L8.09 9.91
-                 a16 16 0 0 0 6 6l1.48-1.17
-                 a2 2 0 0 1 2.11-.45
-                 c.84.28 1.71.48 2.6.6
-                 a2 2 0 0 1 1.72 2z"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 c.12.89.32 1.76.6 2.6 a2 2 0 0 1-.45 2.11L8.09 9.91 a16 16 0 0 0 6 6l1.48-1.17 a2 2 0 0 1 2.11-.45 c.84.28 1.71.48 2.6.6 a2 2 0 0 1 1.72 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Contact Us / Feedback
     </a>
 </div>
+
 <div class="search-param-container">
     <form class="search-form">
-
         <div class="search-input-wrapper">
-            <input
-                    type="text"
-                    placeholder="Search Docs . . ."
-                    name="search_parameter_text"
-                    id="search_parameter_text"
-                    required
-                    spellcheck="false"
-                    autocomplete="off"
-            >
-            <span id="clear-search" style="
-position:absolute;
-right:15px;
-top:50%;
-transform:translateY(-50%);
-cursor:pointer;
-font-size:18px;
-color:rgba(255,255,255,0.4);
-display:none;
-user-select:none;
-">✕</span>
+            <input type="text" placeholder="Search Docs . . ." name="search_parameter_text" id="search_parameter_text" required spellcheck="false" autocomplete="off">
+            <span id="clear-search" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:18px; color:rgba(255,255,255,0.4); display:none; user-select:none;">✕</span>
             <div id="college-suggestions" class="suggestions-box"></div>
         </div>
 
@@ -231,33 +193,44 @@ user-select:none;
 
             <div id="filter-dropdown" class="filter-dropdown">
                 <label>Year</label>
-                <select name="year">
-                    <option value="all">All Years</option>
-                    <option value="year1">Year 1</option>
-                    <option value="year2">Year 2</option>
-                    <option value="year3">Year 3</option>
-                    <option value="year4">Year 4</option>
-                </select>
+                <div class="custom-select" id="year-custom-select" data-name="year">
+                    <div class="custom-select-trigger">All Years</div>
+                    <div class="custom-select-options">
+                        <div class="custom-option selected" data-value="all">All Years</div>
+                        <div class="custom-option" data-value="year1">Year 1</div>
+                        <div class="custom-option" data-value="year2">Year 2</div>
+                        <div class="custom-option" data-value="year3">Year 3</div>
+                        <div class="custom-option" data-value="year4">Year 4</div>
+                    </div>
+                    <input type="hidden" name="year" id="year" value="all">
+                </div>
 
                 <label>Stream</label>
-                <select name="stream" id="stream">
-                    <option value="all">All Streams</option>
-                    <option value="engineering">Engineering</option>
-                    <option value="mbbs">MBBS</option>
-                    <option value="bpharma">BPharma</option>
-                    <option value="mba">MBA</option>
-                    <option value="bba">BBA</option>
-                    <option value="bcom">BCom</option>
-                </select>
+                <div class="custom-select" id="stream-custom-select" data-name="stream">
+                    <div class="custom-select-trigger">All Streams</div>
+                    <div class="custom-select-options">
+                        <div class="custom-option selected" data-value="all">All Streams</div>
+                        <div class="custom-option" data-value="engineering">Engineering</div>
+                        <div class="custom-option" data-value="mbbs">MBBS</div>
+                        <div class="custom-option" data-value="bpharma">BPharma</div>
+                        <div class="custom-option" data-value="mba">MBA</div>
+                        <div class="custom-option" data-value="bba">BBA</div>
+                        <div class="custom-option" data-value="bcom">BCom</div>
+                    </div>
+                    <input type="hidden" name="stream" id="stream" value="all">
+                </div>
 
                 <label>Branch</label>
-                <select name="branch" id="branch">
-                    <option value="all">All Branches</option>
-                </select>
+                <div class="custom-select" id="branch-custom-select" data-name="branch">
+                    <div class="custom-select-trigger">All Branches</div>
+                    <div class="custom-select-options">
+                        <div class="custom-option selected" data-value="all">All Branches</div>
+                    </div>
+                    <input type="hidden" name="branch" id="branch" value="all">
+                </div>
             </div>
         </div>
     </form>
-
 </div>
 <div id="search-suggestion-bar" class="search-suggestion-bar" style="display:none;">
     <span class="search-suggestion-label">Did you mean  :</span>
@@ -269,165 +242,288 @@ user-select:none;
 <div class="search-results-container" id="search-results-container">
     <div id="initial-college-grid" class="discovery-empty-state">
 
-
-
         <!-- ── SAVED COLLEGES ── -->
         <section class="discovery-section saved-section">
             <div class="discovery-section-header">
-<!--                <span class="discovery-section-badge saved-badge">-->
-<!--                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">-->
-<!--                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
-<!--                    </svg>-->
-<!--                    Saved-->
-<!--                </span>-->
                 <h2 class="discovery-section-title">Your Saved Colleges</h2>
                 <p class="discovery-section-sub">Colleges from documents you've bookmarked</p>
             </div>
             <%
-                const savedColleges = [...new Set(
+            const savedColleges = [...new Set(
                     (data.saved_documents || [])
-                        .map(d => d.college)
-                        .filter(Boolean)
-                )];
+                            .map(d => d.college)
+                            .filter(Boolean)
+            )];
             %>
             <% if (savedColleges.length > 1) { %>
-            <%
-                const savedDocCounts = {};
-                (data.saved_documents || []).forEach(d => {
-                    if (d.college) savedDocCounts[d.college] = (savedDocCounts[d.college] || 0) + 1;
-                });
-                const maxSavedCount = Math.max(...Object.values(savedDocCounts), 1);
-            %>
-            <div class="saved-rich-header">
-<!--                <span class="saved-rich-count"><%= savedColleges.length %> college<%= savedColleges.length !== 1 ? 's' : '' %> saved</span>-->
-                <a href="/dashboard" class="saved-rich-explore-all">
-                    Explore all
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </a>
-            </div>
-            <div class="saved-rich-grid" id="saved-colleges-grid">
-                <% savedColleges.forEach((clg, i) => { %>
                 <%
-                    const docCount = savedDocCounts[clg] || 0;
-                    const barWidth = Math.max(12, Math.round((docCount / maxSavedCount) * 100));
+                    const savedDocCounts = {};
+                    (data.saved_documents || []).forEach(d => {
+                        if (d.college) savedDocCounts[d.college] = (savedDocCounts[d.college] || 0) + 1;
+                    });
+                    const maxSavedCount = Math.max(...Object.values(savedDocCounts), 1);
                 %>
-                <a href="/college/<%= encodeURIComponent(clg) %>" class="saved-rich-card">
-                    <div class="saved-rich-card-glow"></div>
-                    <div class="saved-rich-card-top">
-                        <div class="saved-rich-logo">
-                            <img src="<%= collegeImageMap[clg.toLowerCase()] || '/images/default.png' %>" alt="<%= clg %>">
-                        </div>
-                        <div class="saved-rich-arrow">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </div>
-                    </div>
-                    <div class="saved-rich-card-body">
-                        <span class="saved-rich-name"><%= clg %></span>
-                        <span class="saved-rich-meta">
+                <div class="saved-rich-header">
+                    <a href="/dashboard" class="saved-rich-explore-all">
+                        Explore all
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                </div>
+                <div class="saved-rich-grid" id="saved-colleges-grid">
+                    <% savedColleges.forEach((clg, i) => { %>
+                        <%
+                            const docCount = savedDocCounts[clg] || 0;
+                            const barWidth = Math.max(12, Math.round((docCount / maxSavedCount) * 100));
+                        %>
+                        <a href="/college/<%= encodeURIComponent(clg) %>" class="saved-rich-card">
+                            <div class="saved-rich-card-glow"></div>
+                            <div class="saved-rich-card-top">
+                                <div class="saved-rich-logo">
+                                    <img src="<%= collegeImageMap[clg.toLowerCase()] || '/images/default.png' %>" alt="<%= clg %>">
+                                </div>
+                                <div class="saved-rich-arrow">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </div>
+                            </div>
+                            <div class="saved-rich-card-body">
+                                <span class="saved-rich-name"><%= clg %></span>
+                                <span class="saved-rich-meta">
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             <%= docCount %> saved doc<%= docCount !== 1 ? 's' : '' %>
                         </span>
-                    </div>
-                    <div class="saved-rich-bar-wrap">
-                        <div class="saved-rich-bar" style="width:<%= barWidth %>%"></div>
-                    </div>
-                </a>
-                <% }) %>
-            </div>
+                            </div>
+                            <div class="saved-rich-bar-wrap">
+                                <div class="saved-rich-bar" style="width:<%= barWidth %>%"></div>
+                            </div>
+                        </a>
+                    <% }) %>
+                </div>
             <% } else if (savedColleges.length === 1) { %>
-            <!-- ── SPARSE STATE: exactly 1 college ── -->
-            <div class="saved-sparse-state">
-                <a href="/college/<%= encodeURIComponent(savedColleges[0]) %>" class="saved-sparse-hero">
-                    <div class="saved-sparse-glow"></div>
-                    <div class="saved-sparse-left">
-                        <div class="saved-sparse-img-wrap">
-                            <img src="<%= collegeImageMap[savedColleges[0].toLowerCase()] || '/images/default.png' %>" alt="<%= savedColleges[0] %>">
+                <!-- ── SPARSE STATE: exactly 1 college ── -->
+                <div class="saved-sparse-state">
+                    <a href="/college/<%= encodeURIComponent(savedColleges[0]) %>" class="saved-sparse-hero">
+                        <div class="saved-sparse-glow"></div>
+                        <div class="saved-sparse-left">
+                            <div class="saved-sparse-img-wrap">
+                                <img src="<%= collegeImageMap[savedColleges[0].toLowerCase()] || '/images/default.png' %>" alt="<%= savedColleges[0] %>">
+                            </div>
+                            <div class="saved-sparse-info">
+                                <span class="saved-sparse-label">Your first save</span>
+                                <span class="saved-sparse-name"><%= savedColleges[0] %></span>
+                                <span class="saved-sparse-hint">Tap to explore all docs →</span>
+                            </div>
                         </div>
-                        <div class="saved-sparse-info">
-                            <span class="saved-sparse-label">Your first save</span>
-                            <span class="saved-sparse-name"><%= savedColleges[0] %></span>
-                            <span class="saved-sparse-hint">Tap to explore all docs →</span>
-                        </div>
-                    </div>
-                    <div class="saved-sparse-badge">1 college</div>
-                </a>
-                <div class="saved-sparse-nudge-row">
-                    <div class="saved-sparse-nudge-card">
-                        <div class="saved-sparse-nudge-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </div>
-                        <p>Save docs from more colleges to unlock your personal collection</p>
-                    </div>
-                    <div class="saved-sparse-nudge-card">
-                        <div class="saved-sparse-nudge-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-                        </div>
-                        <p>Use FindDocs above to discover papers from other colleges</p>
-                    </div>
-                    <a href="/uploads" class="saved-sparse-nudge-card saved-sparse-nudge-cta">
-                        <div class="saved-sparse-nudge-icon accent-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-                        </div>
-                        <p>Upload a doc &amp; earn +1 DocScore</p>
+                        <div class="saved-sparse-badge">1 college</div>
                     </a>
+                    <div class="saved-sparse-nudge-row">
+                        <div class="saved-sparse-nudge-card">
+                            <div class="saved-sparse-nudge-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <p>Save docs from more colleges to unlock your personal collection</p>
+                        </div>
+                        <div class="saved-sparse-nudge-card">
+                            <div class="saved-sparse-nudge-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                            </div>
+                            <p>Use FindDocs above to discover papers from other colleges</p>
+                        </div>
+                        <a href="/uploads" class="saved-sparse-nudge-card saved-sparse-nudge-cta">
+                            <div class="saved-sparse-nudge-icon accent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                            </div>
+                            <p>Upload a doc &amp; earn +1 DocScore</p>
+                        </a>
+                    </div>
                 </div>
-            </div>
             <% } else { %>
-            <!-- ── EMPTY STATE: zero saved colleges ── -->
-            <div class="saved-zero-state">
-                <div class="saved-zero-hero">
-                    <div class="saved-zero-orb"></div>
-                    <div class="saved-zero-icon-ring">
-                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                <!-- ── EMPTY STATE: zero saved colleges ── -->
+                <div class="saved-zero-state">
+                    <div class="saved-zero-hero">
+                        <div class="saved-zero-orb"></div>
+                        <div class="saved-zero-icon-ring">
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="saved-zero-text-group">
+                            <h3 class="saved-zero-title">Your collection is empty</h3>
+                            <p class="saved-zero-sub">Save any document from search results and its college will live here — ready to revisit anytime.</p>
+                        </div>
+                        <div class="saved-zero-actions">
+                            <a href="/dashboard" class="saved-zero-btn primary-btn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                Search docs
+                            </a>
+                            <a href="/uploads" class="saved-zero-btn secondary-btn">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                Upload a doc
+                            </a>
+                        </div>
                     </div>
-                    <div class="saved-zero-text-group">
-                        <h3 class="saved-zero-title">Your collection is empty</h3>
-                        <p class="saved-zero-sub">Save any document from search results and its college will live here — ready to revisit anytime.</p>
-                    </div>
-                    <div class="saved-zero-actions">
-                        <a href="/dashboard" class="saved-zero-btn primary-btn">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                            Search docs
-                        </a>
-                        <a href="/uploads" class="saved-zero-btn secondary-btn">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                            Upload a doc
-                        </a>
+                    <div class="saved-zero-steps">
+                        <div class="saved-zero-step">
+                            <span class="step-num">01</span>
+                            <div class="step-body">
+                                <span class="step-title">Search for a document</span>
+                                <span class="step-desc">Use FindDocs to find papers, notes & past exams from your college</span>
+                            </div>
+                        </div>
+                        <div class="saved-zero-step-divider"></div>
+                        <div class="saved-zero-step">
+                            <span class="step-num">02</span>
+                            <div class="step-body">
+                                <span class="step-title">Bookmark what matters</span>
+                                <span class="step-desc">Hit the save icon on any document to pin it to your collection</span>
+                            </div>
+                        </div>
+                        <div class="saved-zero-step-divider"></div>
+                        <div class="saved-zero-step">
+                            <span class="step-num">03</span>
+                            <div class="step-body">
+                                <span class="step-title">Your colleges appear here</span>
+                                <span class="step-desc">Each saved doc surfaces its college so you can jump back instantly</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="saved-zero-steps">
-                    <div class="saved-zero-step">
-                        <span class="step-num">01</span>
-                        <div class="step-body">
-                            <span class="step-title">Search for a document</span>
-                            <span class="step-desc">Use FindDocs to find papers, notes & past exams from your college</span>
-                        </div>
-                    </div>
-                    <div class="saved-zero-step-divider"></div>
-                    <div class="saved-zero-step">
-                        <span class="step-num">02</span>
-                        <div class="step-body">
-                            <span class="step-title">Bookmark what matters</span>
-                            <span class="step-desc">Hit the save icon on any document to pin it to your collection</span>
-                        </div>
-                    </div>
-                    <div class="saved-zero-step-divider"></div>
-                    <div class="saved-zero-step">
-                        <span class="step-num">03</span>
-                        <div class="step-body">
-                            <span class="step-title">Your colleges appear here</span>
-                            <span class="step-desc">Each saved doc surfaces its college so you can jump back instantly</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <% } %>
         </section>
 
     </div>
 </div>
+<%
+const activePopups = (data.popup || []).filter(p => {
+    if (!p.startDate && !p.endDate) return true;
+    const now = new Date();
+    const start = p.startDate ? new Date(p.startDate) : null;
+    const end   = p.endDate   ? new Date(p.endDate)   : null;
+    if (start && now < start) return false;
+    if (end   && now > end)   return false;
+    return true;
+});
+%>
+<% if (activePopups && activePopups.length > 0) { %>
+    <div id="popup-overlay" class="popup-overlay" aria-modal="true" role="dialog" aria-label="Announcements">
+        <div class="popup-box">
+
+            <!-- close -->
+            <button type="button" class="popup-close" id="popup-close-btn" aria-label="Close">×</button>
+
+            <!-- progress dots -->
+            <div class="popup-dots" id="popup-dots">
+                <% activePopups.forEach((_, i) => { %>
+                    <span class="popup-dot <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>"></span>
+                <% }) %>
+            </div>
+
+            <!-- slides -->
+            <div class="popup-slides" id="popup-slides">
+                <% activePopups.forEach((p, i) => { %>
+                    <div class="popup-slide <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>">
+
+                        <% if (p.image) { %>
+                            <div class="popup-img-wrap">
+                                <img src="<%= p.image %>" alt="<%= p.title || 'Announcement' %>">
+                            </div>
+                        <% } %>
+
+                        <% if (p.subject || p.college) { %>
+                            <div class="popup-meta">
+                                <% if (p.subject) { %><span class="popup-tag"><%= p.subject %></span><% } %>
+                                <% if (p.college) { %><span class="popup-tag popup-tag-college"><%= p.college %></span><% } %>
+                            </div>
+                        <% } %>
+
+                        <% if (p.title) { %>
+                            <h2 class="popup-title"><%= p.title %></h2>
+                        <% } %>
+
+                        <% if (p.body) { %>
+                            <p class="popup-body"><%= p.body %></p>
+                        <% } %>
+
+                        <% if (p.url) { %>
+                            <a href="<%= p.url %>" class="popup-cta overlay-cta overlay-cta-primary" target="_blank" rel="noopener">
+                                <%= p.button_text || 'Learn More' %>
+                            </a>
+                        <% } %>
+
+                    </div>
+                <% }) %>
+            </div>
+
+            <!-- nav arrows (only when >1 popup) -->
+            <% if (activePopups.length > 1) { %>
+                <div class="popup-nav">
+                    <button type="button" class="popup-arrow" id="popup-prev" aria-label="Previous">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <span class="popup-counter" id="popup-counter">1 / <%= activePopups.length %></span>
+                    <button type="button" class="popup-arrow" id="popup-next" aria-label="Next">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            <% } %>
+
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const overlay  = document.getElementById("popup-overlay");
+            const closeBtn = document.getElementById("popup-close-btn");
+            const slides   = Array.from(document.querySelectorAll(".popup-slide"));
+            const dots     = Array.from(document.querySelectorAll(".popup-dot"));
+            const prevBtn  = document.getElementById("popup-prev");
+            const nextBtn  = document.getElementById("popup-next");
+            const counter  = document.getElementById("popup-counter");
+            const total    = slides.length;
+            let   current  = 0;
+
+            function goTo(idx) {
+                slides[current].classList.remove("active");
+                dots[current] && dots[current].classList.remove("active");
+                current = (idx + total) % total;
+                slides[current].classList.add("active");
+                dots[current] && dots[current].classList.add("active");
+                if (counter) counter.textContent = `${current + 1} / ${total}`;
+            }
+
+            function closePopup() {
+                overlay.classList.remove("active");
+                overlay.setAttribute("aria-hidden", "true");
+                document.body.style.overflow = "";
+            }
+
+            // open on load
+            overlay.classList.add("active");
+            overlay.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+
+            closeBtn && closeBtn.addEventListener("click", closePopup);
+            prevBtn  && prevBtn.addEventListener("click",  () => goTo(current - 1));
+            nextBtn  && nextBtn.addEventListener("click",  () => goTo(current + 1));
+
+            dots.forEach(dot => dot.addEventListener("click", () => goTo(+dot.dataset.index)));
+
+            overlay.addEventListener("click", e => {
+                if (!e.target.closest(".popup-box")) closePopup();
+            });
+
+            document.addEventListener("keydown", e => {
+                if (!overlay.classList.contains("active")) return;
+                if (e.key === "Escape")     closePopup();
+                if (e.key === "ArrowRight") goTo(current + 1);
+                if (e.key === "ArrowLeft")  goTo(current - 1);
+            });
+        })();
+    </script>
+<% } %>
 <div id="upload-loader" class="upload-loader-overlay" aria-hidden="true">
     <div class="upload-loader-box" role="dialog" aria-modal="true" aria-labelledby="docscore-overlay-title">
         <button type="button" class="upload-loader-close" id="docscore-overlay-close" aria-label="Close overlay">
@@ -468,27 +564,13 @@ user-select:none;
 </div>
 <button id="backToTopBtn" class="back-to-top-btn">
     <svg class="progress-ring" width="60" height="60">
-        <circle
-                class="progress-ring-bg"
-                cx="30"
-                cy="30"
-                r="26"
-        />
-        <circle
-                class="progress-ring-circle"
-                cx="30"
-                cy="30"
-                r="26"
-        />
+        <circle class="progress-ring-bg" cx="30" cy="30" r="26"/>
+        <circle class="progress-ring-circle" cx="30" cy="30" r="26"/>
     </svg>
 
     <div class="btn-center-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 19V5M12 5L5 12M12 5L19 12"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
     </div>
 </button>
@@ -592,7 +674,6 @@ user-select:none;
             }
 
             dashboardViewLocks.add(href);
-
             link.classList.add("is-opening");
 
             setTimeout(() => {
@@ -601,7 +682,6 @@ user-select:none;
             }, 20000);
         });
 
-        // 🔥 VERY IMPORTANT
         window.addEventListener("pageshow", () => {
             resetDashboardViewLinks();
             dashboardViewLocks.clear();
