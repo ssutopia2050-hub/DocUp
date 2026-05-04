@@ -39,6 +39,7 @@
     "paytm-pg-node-sdk": "^1.0.6",
     "paytmchecksum": "^1.5.1",
     "razorpay": "^2.9.6",
+    "redis": "^5.12.1",
     "resend": "^6.9.4",
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",

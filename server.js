@@ -37,6 +37,69 @@ import { UAParser } from "ua-parser-js";
 import Fuse from "fuse.js";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+/******************************
+ Redis Client Setup
+ ******************************/
+import { createClient as createRedisClient } from "redis";
+
+const redisClient = createRedisClient({
+    url: process.env.REDIS_URL || "redis://localhost:6379"
+});
+
+redisClient.on("error", (err) => console.error("Redis error:", err));
+redisClient.on("connect", () => console.log("Redis connected ✅"));
+
+await redisClient.connect();
+
+// TTL constants (seconds)
+const TTL = {
+    COLLEGE_LIST:       60 * 60 * 6,   // 6 hours  — rarely changes
+    COLLEGE_DOCS:       60 * 10,        // 10 min   — docs get uploaded occasionally
+    DOC_VIEW_COUNT:     60 * 2,         // 2 min    — view counts, near-real-time is fine
+    TRENDING_COLLEGES:  60 * 15,        // 15 min   — heavy aggregation, cache aggressively
+    MOST_VIEWED:        60 * 15,        // 15 min
+    SITEMAP:            60 * 60 * 2,    // 2 hours  — SEO sitemap, rarely needs live data
+    SEARCH_DOCS:        60 * 5,         // 5 min    — search index (all docs lean)
+    SEO_PAGE:           60 * 10,        // 10 min   — college SEO pages
+    DOC_META:           60 * 5,         // 5 min    — individual doc metadata
+    COLLEGE_DATA:       60 * 60 * 2,    // 2 hours  — college images/info
+    CHAT_HISTORY:       60 * 2,         // 2 min    — chat messages
+    USER_DOCSCORE:      30,             // 30 sec   — docscore polling endpoint
+};
+
+// Helper: get or set cache
+async function getOrSet(key, ttl, fn) {
+    try {
+        const cached = await redisClient.get(key);
+        if (cached !== null) return JSON.parse(cached);
+        const fresh = await fn();
+        await redisClient.setEx(key, ttl, JSON.stringify(fresh));
+        return fresh;
+    } catch (err) {
+        console.error(`Redis getOrSet error [${key}]:`, err.message);
+        return fn(); // fallback to DB on Redis failure
+    }
+}
+
+// Helper: invalidate a key or pattern
+async function invalidate(key) {
+    try {
+        await redisClient.del(key);
+    } catch (err) {
+        console.error(`Redis invalidate error [${key}]:`, err.message);
+    }
+}
+
+// Helper: invalidate multiple keys by prefix pattern
+async function invalidatePattern(pattern) {
+    try {
+        const keys = await redisClient.keys(pattern);
+        if (keys.length) await redisClient.del(keys);
+    } catch (err) {
+        console.error(`Redis invalidatePattern error [${pattern}]:`, err.message);
+    }
+}
 const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
 import os from "os";
 /******************************
@@ -138,6 +201,8 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
                         }
                     }
                 );
+                // Invalidate docscore cache for this user
+                await invalidate(`docscore:${user.email}`);
             }
         }
 
@@ -1864,43 +1929,49 @@ app.get("/dashboard", async (req, res) => {
             .findOne({ email: req.session.email })
             .populate("saved_documents", "college subject chapter reviewed");
 
-        const clg = await college.find({});
+        // Cache the college list (images + names) — rarely changes
+        const clg = await getOrSet("college:list", TTL.COLLEGE_LIST, () =>
+            college.find({}).lean()
+        );
+
         const msg = { err: null };
-// 🔥 create map: { "IIT Delhi": "image-url", ... }
         const collegeImageMap = {};
         clg.forEach(c => {
             collegeImageMap[c.college_name.toLowerCase()] = c.image;
         });
 
-        // Trending colleges: most-viewed docs in last 7 days
-        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        const trendingColleges = await docs_view_data.aggregate([
-            { $match: { DocViewedAt: { $gte: oneWeekAgo } } },
-            { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
-            { $unwind: "$doc" },
-            { $group: { _id: "$doc.college", count: { $sum: 1 } } },
-            { $sort: { count: -1 } },
-            { $limit: 6 },
-            { $project: { _id: 0, college: "$_id", count: 1 } }
-        ]);
+        // Cache trending colleges aggregation
+        const trendingColleges = await getOrSet("stats:trending_colleges", TTL.TRENDING_COLLEGES, async () => {
+            const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+            return docs_view_data.aggregate([
+                { $match: { DocViewedAt: { $gte: oneWeekAgo } } },
+                { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+                { $unwind: "$doc" },
+                { $group: { _id: "$doc.college", count: { $sum: 1 } } },
+                { $sort: { count: -1 } },
+                { $limit: 6 },
+                { $project: { _id: 0, college: "$_id", count: 1 } }
+            ]);
+        });
 
-        // Most viewed colleges: all-time doc views
-        const mostViewedColleges = await docs_view_data.aggregate([
-            { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
-            { $unwind: "$doc" },
-            { $group: { _id: "$doc.college", views: { $sum: 1 } } },
-            { $sort: { views: -1 } },
-            { $limit: 6 },
-            { $project: { _id: 0, college: "$_id", views: 1 } }
-        ]);
-
+        // Cache most-viewed colleges aggregation
+        const mostViewedColleges = await getOrSet("stats:most_viewed_colleges", TTL.MOST_VIEWED, async () => {
+            return docs_view_data.aggregate([
+                { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+                { $unwind: "$doc" },
+                { $group: { _id: "$doc.college", views: { $sum: 1 } } },
+                { $sort: { views: -1 } },
+                { $limit: 6 },
+                { $project: { _id: 0, college: "$_id", views: 1 } }
+            ]);
+        });
 
         res.render("dashboard", {
             data,
             colleges: collegesList,
             results: [],
             college_specific_data: clg,
-            collegeImageMap, // ✅ send this
+            collegeImageMap,
             msg,
             trendingColleges,
             mostViewedColleges,
@@ -1960,7 +2031,11 @@ app.post("/api/dashboard-search", async (req, res) => {
             ...(branch && branch !== "all" ? { branch } : {})
         };
 
-        const docs = await Docs.find(mongoFilter).lean();
+        // Cache the full docs list used for search — massive win since this loads ALL docs
+        const cacheKey = `search:docs:${year || "all"}:${branch || "all"}`;
+        const docs = await getOrSet(cacheKey, TTL.SEARCH_DOCS, () =>
+            Docs.find(mongoFilter).lean()
+        );
 
         if (!docs.length) {
             return res.json({
@@ -2066,11 +2141,17 @@ app.get("/college/:collegeName", async (req, res) => {
     try {
         const collegeName = decodeURIComponent(req.params.collegeName).trim();
 
-        const docs = await Docs.find({
-            college: collegeName
-        }).lean();
+        // Cache docs for this college
+        const docs = await getOrSet(
+            `college:docs:${collegeName.toLowerCase()}`,
+            TTL.COLLEGE_DOCS,
+            () => Docs.find({ college: collegeName }).lean()
+        );
 
-        const allCollegeRows = await college.find({}).lean();
+        // Cache all college rows (images, names)
+        const allCollegeRows = await getOrSet("college:list", TTL.COLLEGE_LIST, () =>
+            college.find({}).lean()
+        );
 
         function normalizeText(str) {
             return String(str || "")
@@ -2347,6 +2428,14 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
         if (req.file?.path && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
+
+        // 🔄 INVALIDATE CACHES affected by new upload
+        await Promise.all([
+            invalidate(`college:docs:${(college || "").toLowerCase()}`),
+            invalidatePattern("search:docs:*"),
+            invalidate("sitemap:xml"),
+            invalidate("stats:trending_colleges"),
+        ]);
 
         return res.json({
             success: true,
@@ -2649,15 +2738,21 @@ app.get("/view/:id", async (req, res) => {
         const collegeName = (document.college || "").trim();
         const safeCollegeName = escapeRegex(collegeName);
 
-        let collegeData = await college.findOne({
-            college_name: { $regex: `^${safeCollegeName}$`, $options: "i" }
-        }).lean();
-
-        if (!collegeData) {
-            collegeData = await college.findOne({
-                college_name: { $regex: safeCollegeName, $options: "i" }
-            }).lean();
-        }
+        let collegeData = await getOrSet(
+            `college:data:${collegeName.toLowerCase()}`,
+            TTL.COLLEGE_DATA,
+            async () => {
+                let data = await college.findOne({
+                    college_name: { $regex: `^${safeCollegeName}$`, $options: "i" }
+                }).lean();
+                if (!data) {
+                    data = await college.findOne({
+                        college_name: { $regex: safeCollegeName, $options: "i" }
+                    }).lean();
+                }
+                return data;
+            }
+        );
 
         if (!document.comment_section) {
             document.comment_section = [];
@@ -2667,6 +2762,9 @@ app.get("/view/:id", async (req, res) => {
             email: req.session.email,
             doc_id: docId,
         });
+
+        // Invalidate cached view count so next load picks up the new view
+        await invalidate(`doc:views:${docId}`);
 
         let uploaderProfile = null;
 
@@ -2678,8 +2776,12 @@ app.get("/view/:id", async (req, res) => {
                 ]
             }).select("_id name avatar_img_path user_type");
         }
-        // Count directly (fast)
-        const total_views = await docs_view_data.countDocuments({ doc_id: docId });
+        // Count directly (fast) — cache for 2 min since it's displayed on page load
+        const total_views = await getOrSet(
+            `doc:views:${docId}`,
+            TTL.DOC_VIEW_COUNT,
+            () => docs_view_data.countDocuments({ doc_id: docId })
+        );
 
         return res.render("docview", {
             doc: document,
@@ -2776,21 +2878,19 @@ app.get("/api/docscore", async (req, res) => {
             return res.status(401).json({ success: false, message: "Not logged in" });
         }
 
-        const user = await user_profile.findOne(
-            { email: req.session.email },
-            { Doc_score: 1, _id: 0 }
-        );
-
-        return res.json({
-            success: true,
-            Doc_score: user ? user.Doc_score : 0
+        const cacheKey = `docscore:${req.session.email}`;
+        const Doc_score = await getOrSet(cacheKey, TTL.USER_DOCSCORE, async () => {
+            const user = await user_profile.findOne(
+                { email: req.session.email },
+                { Doc_score: 1, _id: 0 }
+            );
+            return user ? user.Doc_score : 0;
         });
+
+        return res.json({ success: true, Doc_score });
     } catch (err) {
         console.error(err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+        return res.status(500).json({ success: false, message: "Server error" });
     }
 });
 app.get("/update_likes/:id", async (req, res) => {
@@ -2833,6 +2933,9 @@ app.get("/update_likes/:id", async (req, res) => {
             { email: userEmail },
             { $inc: { Doc_score: 1 } }
         );
+
+        // Invalidate docscore cache for this user
+        await invalidate(`docscore:${userEmail}`);
 
         return res.redirect("/view/" + req.params.id);
     } catch (err) {
@@ -3354,6 +3457,9 @@ app.post("/payment/verify", async (req, res) => {
             } catch (mailErr) {
                 console.error("Recharge success email failed:", mailErr.message);
             }
+
+            // Invalidate docscore cache — user just got new credits
+            await invalidate(`docscore:${req.session.email}`);
         }
 
         return res.json({
@@ -3813,6 +3919,9 @@ io.on("connection", (socket) => {
                 message
             });
 
+            // Invalidate chat history cache for this room
+            await invalidate(`chat:history:${socket.data.roomId}`);
+
             console.log("emitting receive_message to room:", socket.data.roomId);
 
             io.to(socket.data.roomId).emit("receive_message", {
@@ -3920,10 +4029,14 @@ app.get("/college_chat/:collegeName", async (req, res) => {
             return res.redirect("/signin");
         }
 
-        const oldMessages = await ChatMessage.find({ room_id: roomId })
-            .sort({ createdAt: 1 })
-            .limit(100)
-            .lean();
+        const oldMessages = await getOrSet(
+            `chat:history:${roomId}`,
+            TTL.CHAT_HISTORY,
+            () => ChatMessage.find({ room_id: roomId })
+                .sort({ createdAt: 1 })
+                .limit(100)
+                .lean()
+        );
 
         return res.render("college_chat", {
             collegeName,
@@ -4921,7 +5034,9 @@ async function renderCollegeSeoPage(req, res) {
 
         let resolvedCollegeName = resolveCollegeNameFromSlug(rawCollegeSlug);
 
-        const allCollegeRows = await college.find({}).lean();
+        const allCollegeRows = await getOrSet("college:list", TTL.COLLEGE_LIST, () =>
+            college.find({}).lean()
+        );
 
         if (!resolvedCollegeName) {
             const matchedCollege =
@@ -4944,12 +5059,16 @@ async function renderCollegeSeoPage(req, res) {
             allCollegeRows.find(c => normalizeCompact(c.college_name) === requestedCompact) ||
             null;
 
-        const allCollegeDocs = await Docs.find({
-            college: {
-                $regex: `^${escapeRegexSEO(resolvedCollegeName)}$`,
-                $options: "i"
-            }
-        }).lean();
+        const allCollegeDocs = await getOrSet(
+            `college:docs:${resolvedCollegeName.toLowerCase()}`,
+            TTL.COLLEGE_DOCS,
+            () => Docs.find({
+                college: {
+                    $regex: `^${escapeRegexSEO(resolvedCollegeName)}$`,
+                    $options: "i"
+                }
+            }).lean()
+        );
 
         if (!allCollegeDocs.length) {
             return res.status(404).send("Page not found");
@@ -5101,78 +5220,96 @@ app.delete("/notifications/:id/dismiss", async (req, res) => {
 });
 app.get("/sitemap.xml", async (req, res) => {
     try {
-        const allDocs = await Docs.find({}, "college subject updatedAt createdAt").lean();
+        const xml = await getOrSet("sitemap:xml", TTL.SITEMAP, async () => {
+            const allDocs = await Docs.find({}, "college subject updatedAt createdAt").lean();
 
-        const urlMap = new Map();
+            const urlMap = new Map();
 
-        urlMap.set("home", {
-            loc: "https://www.docup.in/",
-            priority: "1.0",
-            lastmod: new Date().toISOString().split("T")[0]
-        });
+            urlMap.set("home", {
+                loc: "https://www.docup.in/",
+                priority: "1.0",
+                lastmod: new Date().toISOString().split("T")[0]
+            });
 
-        const grouped = new Map();
+            for (const doc of allDocs) {
+                const collegeName = (doc.college || "").trim();
+                const subjectName = (doc.subject || "").trim();
+                const docDate = new Date(doc.updatedAt || doc.createdAt || Date.now())
+                    .toISOString()
+                    .split("T")[0];
 
-        for (const doc of allDocs) {
-            const collegeName = (doc.college || "").trim();
-            const subjectName = (doc.subject || "").trim();
-            const docDate = new Date(doc.updatedAt || doc.createdAt || Date.now())
-                .toISOString()
-                .split("T")[0];
+                if (!collegeName) continue;
 
-            if (!collegeName) continue;
+                const collegeSlug = getCollegeSlug(collegeName);
+                const collegeKey = `college:${collegeSlug}`;
 
-            const collegeSlug = getCollegeSlug(collegeName);
-            const collegeKey = `college:${collegeSlug}`;
-
-            if (!urlMap.has(collegeKey)) {
-                urlMap.set(collegeKey, {
-                    loc: `https://www.docup.in/notes/${collegeSlug}`,
-                    priority: "0.9",
-                    lastmod: docDate
-                });
-            } else {
-                const existing = urlMap.get(collegeKey);
-                if (docDate > existing.lastmod) {
-                    existing.lastmod = docDate;
-                }
-            }
-
-            if (subjectName) {
-                const subjectSlug = slugifyText(subjectName);
-                const subjectKey = `subject:${collegeSlug}:${subjectSlug}`;
-
-                if (!urlMap.has(subjectKey)) {
-                    urlMap.set(subjectKey, {
-                        loc: `https://www.docup.in/notes/${collegeSlug}/${subjectSlug}`,
-                        priority: "0.8",
+                if (!urlMap.has(collegeKey)) {
+                    urlMap.set(collegeKey, {
+                        loc: `https://www.docup.in/notes/${collegeSlug}`,
+                        priority: "0.9",
                         lastmod: docDate
                     });
                 } else {
-                    const existing = urlMap.get(subjectKey);
-                    if (docDate > existing.lastmod) {
-                        existing.lastmod = docDate;
+                    const existing = urlMap.get(collegeKey);
+                    if (docDate > existing.lastmod) existing.lastmod = docDate;
+                }
+
+                if (subjectName) {
+                    const subjectSlug = slugifyText(subjectName);
+                    const subjectKey = `subject:${collegeSlug}:${subjectSlug}`;
+
+                    if (!urlMap.has(subjectKey)) {
+                        urlMap.set(subjectKey, {
+                            loc: `https://www.docup.in/notes/${collegeSlug}/${subjectSlug}`,
+                            priority: "0.8",
+                            lastmod: docDate
+                        });
+                    } else {
+                        const existing = urlMap.get(subjectKey);
+                        if (docDate > existing.lastmod) existing.lastmod = docDate;
                     }
                 }
             }
-        }
 
-        const xml = `<?xml version="1.0" encoding="UTF-8"?>
+            return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${Array.from(urlMap.values())
-            .map(url => `    <url>
+                .map(url => `    <url>
         <loc>${url.loc}</loc>
         <lastmod>${url.lastmod}</lastmod>
         <changefreq>daily</changefreq>
         <priority>${url.priority}</priority>
     </url>`)
-            .join("\n")}
+                .join("\n")}
 </urlset>`;
+        });
 
         res.header("Content-Type", "application/xml");
         return res.send(xml);
     } catch (error) {
         console.log("Sitemap error:", error);
         return res.status(500).send("Server error");
+    }
+});
+/******************************
+ Admin — Cache Management
+ (Protect this with your own admin middleware in production)
+ ******************************/
+app.post("/admin/cache/clear", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+    try {
+        const { pattern } = req.body;
+        if (pattern) {
+            await invalidatePattern(pattern);
+            return res.json({ success: true, message: `Cleared keys matching: ${pattern}` });
+        }
+        await redisClient.flushDb();
+        return res.json({ success: true, message: "All cache cleared" });
+    } catch (err) {
+        console.error("Cache clear error:", err);
+        return res.status(500).json({ success: false, message: "Failed to clear cache" });
     }
 });
