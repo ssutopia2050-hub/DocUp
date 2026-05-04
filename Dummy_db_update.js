@@ -16,20 +16,11 @@ async function updateProtectedField() {
         await mongoose.connect(MONGO_URI);
         console.log("Connected to MongoDB");
 
-        const result = await users.updateMany(
+        const result = await Docs.updateMany(
             {},
              {
-                $push: {
-                    popup: {
-                        title: "🎉 New Feature!",
-                        body: "You can now upload more formats.",
-                        url: "/uploads",
-                        subject:"pdf format and xml allowed",
-                        college:"UPES",
-                        button_text: "Try it now",
-                        startDate: "2026-04-30",
-                        endDate: "2026-05-07"
-                    }
+                $set: {
+                   reviewed: true,
                 }
             }
         );
