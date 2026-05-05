@@ -2686,7 +2686,9 @@ app.get("/view/:id", async (req, res) => {
         let renderUser = chargedUser;
 
         if (!chargedUser) {
-            const freshUser = await user_profile.findOne({ email: req.session.email });
+            const freshUser = await user_profile
+                .findOne({ email: req.session.email })
+                .populate("saved_documents", "college subject chapter reviewed");
 
             if (!freshUser) {
                 return res.redirect(`/signin?next=${encodeURIComponent(`/view/${req.params.id}`)}`);
@@ -2707,12 +2709,44 @@ app.get("/view/:id", async (req, res) => {
                 const msg = { err: "Insufficient DocScore" };
                 const clg = await college.find({});
 
+                const collegeImageMap = {};
+                clg.forEach(c => {
+                    collegeImageMap[c.college_name.toLowerCase()] = c.image;
+                });
+
+                const trendingColleges = await getOrSet("stats:trending_colleges", TTL.TRENDING_COLLEGES, async () => {
+                    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                    return docs_view_data.aggregate([
+                        { $match: { DocViewedAt: { $gte: oneWeekAgo } } },
+                        { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+                        { $unwind: "$doc" },
+                        { $group: { _id: "$doc.college", count: { $sum: 1 } } },
+                        { $sort: { count: -1 } },
+                        { $limit: 6 },
+                        { $project: { _id: 0, college: "$_id", count: 1 } }
+                    ]);
+                });
+
+                const mostViewedColleges = await getOrSet("stats:most_viewed_colleges", TTL.MOST_VIEWED, async () => {
+                    return docs_view_data.aggregate([
+                        { $lookup: { from: "docs", localField: "doc_id", foreignField: "_id", as: "doc" } },
+                        { $unwind: "$doc" },
+                        { $group: { _id: "$doc.college", views: { $sum: 1 } } },
+                        { $sort: { views: -1 } },
+                        { $limit: 6 },
+                        { $project: { _id: 0, college: "$_id", views: 1 } }
+                    ]);
+                });
+
                 return res.render("dashboard", {
                     data: freshUser,
                     colleges: collegesList,
                     results: [],
                     college_specific_data: clg,
-                    msg
+                    collegeImageMap,
+                    msg,
+                    trendingColleges,
+                    mostViewedColleges,
                 });
             }
 

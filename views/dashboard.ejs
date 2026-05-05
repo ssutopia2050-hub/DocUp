@@ -530,10 +530,6 @@ const activePopups = (data.popup || []).filter(p => {
             ×
         </button>
 
-        <div class="upload-loader-icon">
-            <img src="/fire.png" alt="DocScore">
-        </div>
-
         <p id="docscore-overlay-title" class="upload-loader-title">Insufficient DocScore</p>
         <p class="upload-loader-subtext">
             You need at least <span>1 DocScore</span> to view this document.
@@ -576,16 +572,6 @@ const activePopups = (data.popup || []).filter(p => {
 </button>
 
 </body>
-<script src="/dashboard2.js"></script>
-<script src="/dashboard.js"></script>
-<script id="colleges-data" type="application/json">
-    <%- JSON.stringify(colleges || []) %>
-</script>
-
-<script id="college-specific-data" type="application/json">
-    <%- JSON.stringify(college_specific_data || []) %>
-</script>
-
 <script>
     const msg = <%- JSON.stringify(msg || null) %>;
 
@@ -615,6 +601,9 @@ const activePopups = (data.popup || []).filter(p => {
     }
 
     if (msg && msg.err === "Insufficient DocScore") {
+        // Clear any cached search state so restoreDashboardState() doesn't
+        // overwrite the initial college grid with stale search results
+        sessionStorage.removeItem("dashboardState");
         openDocscoreOverlay();
     }
 
@@ -651,6 +640,17 @@ const activePopups = (data.popup || []).filter(p => {
         });
     }
 </script>
+<script src="/dashboard2.js"></script>
+<script src="/dashboard.js"></script>
+<script id="colleges-data" type="application/json">
+    <%- JSON.stringify(colleges || []) %>
+</script>
+
+<script id="college-specific-data" type="application/json">
+    <%- JSON.stringify(college_specific_data || []) %>
+</script>
+
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         const dashboardViewLocks = new Set();
