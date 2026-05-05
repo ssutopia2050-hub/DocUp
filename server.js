@@ -291,12 +291,12 @@ const sessionMiddleware = session({
 });
 
 app.use(sessionMiddleware);
-app.use((req, res, next) => {
-    if (req.headers.host === "docup.in") {
-        return res.redirect(301, "https://www.docup.in" + req.url);
-    }
-    next();
-});
+// app.use((req, res, next) => {
+//     if (req.headers.host === "docup.in") {
+//         return res.redirect(301, "https://www.docup.in" + req.url);
+//     }
+//     next();
+// });
 app.get("/health", (req, res) => {
     res.status(200).send("OK");
 });
