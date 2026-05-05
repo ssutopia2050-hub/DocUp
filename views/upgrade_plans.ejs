@@ -13,8 +13,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
     <title>Upgrade Plans | DocUp</title>
+
+    <style>
+        /* ── Sale Banner ── */
+        .sale-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(90deg, #ff5e00, #ff8c00);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+        .sale-banner .sale-badge {
+            background: rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Strike-through original price when sale active ── */
+        .price-original {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.38);
+            text-decoration: line-through;
+            margin-right: 6px;
+            font-family: 'DM Sans', sans-serif;
+        }
+    </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SALE BANNER — only rendered when a sale is active
+════════════════════════════════════════════════════════════ -->
+<% if (saleConfig) { %>
+<div class="sale-banner">
+    <span class="sale-badge">Sale</span>
+    <span><%= saleConfig.sale_label %> — <strong><%= saleConfig.discount_percent %>% off</strong> all plans</span>
+    <span style="opacity:0.7;font-size:0.8rem;">Ends <%= new Date(saleConfig.ends_at).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></span>
+</div>
+<% } %>
 
 <header class="topbar">
     <div class="topbar-left">
@@ -53,28 +100,14 @@
     </a>
     <a href="/upgrade-plans">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="1.6"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
         </svg>
         Upgrade Plans
     </a>
     <a href="/contact">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2
-                 19.79 19.79 0 0 1-8.63-3.07
-                 19.5 19.5 0 0 1-6-6
-                 19.79 19.79 0 0 1-3.07-8.67
-                 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72
-                 c.12.89.32 1.76.6 2.6
-                 a2 2 0 0 1-.45 2.11L8.09 9.91
-                 a16 16 0 0 0 6 6l1.48-1.17
-                 a2 2 0 0 1 2.11-.45
-                 c.84.28 1.71.48 2.6.6
-                 a2 2 0 0 1 1.72 2z"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.89.32 1.76.6 2.6a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.48-1.17a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.6.6a2 2 0 0 1 1.72 2z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Contact Us / Feedback
     </a>
@@ -91,14 +124,33 @@
     </div>
 </section>
 
+<%
+    // Server-side: compute sale prices for display
+    const SUB_PLANS = {
+        essential_monthly: { amount: 99  },
+        standard_monthly:  { amount: 149 },
+        power_monthly:     { amount: 250 }
+    };
+    function salePrice(base) {
+        if (!saleConfig) return null;
+        return Math.max(1, Math.round(base * (1 - saleConfig.discount_percent / 100)));
+    }
+%>
+
 <section class="pricing-section">
+
     <div class="pricing-card starter">
         <p class="plan-tag">Prep</p>
         <h2>Essential Monthly</h2>
 
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= SUB_PLANS.essential_monthly.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">99 <span style="margin-left:-10px;font-size:2rem;font-family: 'DM Sans',sans-serif;color:rgba(255,69,0,0.76)" >/month</span> </span>
+            <span class="price"><%= saleConfig ? salePrice(SUB_PLANS.essential_monthly.amount) : SUB_PLANS.essential_monthly.amount %>
+                <span style="margin-left:-10px;font-size:2rem;font-family:'DM Sans',sans-serif;color:rgba(255,69,0,0.76)">/month</span>
+            </span>
         </div>
 
         <p class="docscore-count">+100 DocScore / month</p>
@@ -120,8 +172,13 @@
         <h2>Standard Monthly</h2>
 
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= SUB_PLANS.standard_monthly.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">149 <span style="margin-left:-10px;font-size:2rem;font-family: 'DM Sans',sans-serif;color:rgba(255,69,0,0.76)" >/month</span> </span>
+            <span class="price"><%= saleConfig ? salePrice(SUB_PLANS.standard_monthly.amount) : SUB_PLANS.standard_monthly.amount %>
+                <span style="margin-left:-10px;font-size:2rem;font-family:'DM Sans',sans-serif;color:rgba(255,69,0,0.76)">/month</span>
+            </span>
         </div>
 
         <p class="docscore-count">+200 DocScore / month</p>
@@ -142,8 +199,13 @@
         <h2>Power Monthly</h2>
 
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= SUB_PLANS.power_monthly.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">250 <span style="margin-left:-10px;font-size:2rem;font-family: 'DM Sans',sans-serif;color:rgba(255,69,0,0.76)" >/month</span> </span>
+            <span class="price"><%= saleConfig ? salePrice(SUB_PLANS.power_monthly.amount) : SUB_PLANS.power_monthly.amount %>
+                <span style="margin-left:-10px;font-size:2rem;font-family:'DM Sans',sans-serif;color:rgba(255,69,0,0.76)">/month</span>
+            </span>
         </div>
 
         <p class="docscore-count">+300 DocScore / month</p>
@@ -158,6 +220,7 @@
             Upgrade Now
         </button>
     </div>
+
 </section>
 
 <section class="comparison-section">
@@ -167,7 +230,6 @@
             A subscription plan gives you DocScore automatically every month, so you do not have
             to manually recharge again and again while using DocUp regularly.
         </p>
-
         <div class="comparison-points">
             <div class="comparison-point">Automatic monthly renewal</div>
             <div class="comparison-point">Predictable DocScore every month</div>
@@ -178,18 +240,15 @@
 
 <section class="faq-section">
     <h2>Frequently Asked Questions</h2>
-
     <div class="faq-grid">
         <div class="faq-card">
             <h3>Is this a recurring plan?</h3>
             <p>Yes, these are monthly subscription plans intended for recurring billing.</p>
         </div>
-
         <div class="faq-card">
             <h3>When will DocScore be added?</h3>
             <p>DocScore should be added each month after the subscription charge succeeds.</p>
         </div>
-
         <div class="faq-card">
             <h3>Can I cancel later?</h3>
             <p>Yes, subscription plans should be cancellable from your subscription flow or backend controls.</p>
@@ -198,13 +257,12 @@
 </section>
 
 <div class="footer">
-    <div style="display:flex;flex-direction:row;justify-content:flex-end;align-items:flex-end;font-family: 'Archivo Black',sans-serif" class="footer-left">
+    <div style="display:flex;flex-direction:row;justify-content:flex-end;align-items:flex-end;font-family:'Archivo Black',sans-serif" class="footer-left">
         DocUp
         <a href="/version_report" style="font-size:0.8rem;color:rgba(255,255,255,0.22);text-decoration:none">
             v<%= process.env.VERSION %>
         </a>
     </div>
-
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
         <a href="/uploads">Upload</a>
@@ -214,7 +272,6 @@
         <a href="/pricing">Recharge</a>
         <a href="/about_us">About Us</a>
         <a href="/logout">Logout</a>
-
     </div>
 </div>
 
@@ -222,118 +279,110 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-    const avatarBtn = document.getElementById("avatarBtn");
-    const avatarDropdown = document.getElementById("avatarDropdown");
+/* ──────────────────────────────────────────────────────────────
+   AVATAR DROPDOWN
+────────────────────────────────────────────────────────────── */
+const avatarBtn      = document.getElementById("avatarBtn");
+const avatarDropdown = document.getElementById("avatarDropdown");
 
-    if (avatarBtn && avatarDropdown) {
-        avatarBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            avatarDropdown.classList.toggle("active");
-        });
+if (avatarBtn && avatarDropdown) {
+    avatarBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        avatarDropdown.classList.toggle("active");
+    });
+    document.addEventListener("click", (e) => {
+        if (!avatarDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+            avatarDropdown.classList.remove("active");
+        }
+    });
+}
 
-        document.addEventListener("click", (e) => {
-            if (!avatarDropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
-                avatarDropdown.classList.remove("active");
-            }
-        });
-    }
+/* ──────────────────────────────────────────────────────────────
+   SUBSCRIPTION BUTTONS
+────────────────────────────────────────────────────────────── */
+const buttons = document.querySelectorAll(".subscription-btn");
 
-    const buttons = document.querySelectorAll(".subscription-btn");
+buttons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+        const originalText = btn.innerText;
 
-    buttons.forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const originalText = btn.innerText;
+        try {
+            btn.disabled = true;
+            btn.innerText = "Please wait...";
 
-            try {
-                btn.disabled = true;
-                btn.innerText = "Please wait...";
+            const plan = btn.dataset.plan;
 
-                const plan = btn.dataset.plan;
+            const response = await fetch("/buy-subscription", {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ plan })
+            });
 
-                const response = await fetch("/buy-subscription", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ plan })
-                });
+            const data = await response.json();
 
-                const data = await response.json();
-
-                if (!data.success) {
-                    alert(data.message || "Could not start subscription");
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                    return;
-                }
-
-                const options = {
-                    key: data.key,
-                    subscription_id: data.subscriptionId,
-                    name: "DocUp",
-                    description: data.planLabel || "DocUp Monthly Subscription",
-                    prefill: {
-                        email: data.userEmail
-                    },
-                    theme: {
-                        color: "#ff5e00"
-                    },
-                    handler: async function (paymentResponse) {
-                        try {
-                            const verifyRes = await fetch("/subscription/verify", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    ...paymentResponse,
-                                    plan
-                                })
-                            });
-
-                            const verifyData = await verifyRes.json();
-
-                            if (verifyData.success) {
-                                window.location.href = verifyData.redirectUrl || "/profile";
-                            } else {
-                                btn.disabled = false;
-                                btn.innerText = originalText;
-                                alert(verifyData.message || "Subscription verification failed");
-                            }
-                        } catch (err) {
-                            console.error(err);
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                            alert("Subscription verification failed");
-                        }
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                        }
-                    }
-                };
-
-                const rzp = new Razorpay(options);
-
-                rzp.on("payment.failed", function () {
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                    alert("Payment failed. Please try again.");
-                });
-
-                rzp.open();
-
-            } catch (err) {
-                console.error(err);
-                alert("Something went wrong");
+            if (!data.success) {
+                alert(data.message || "Could not start subscription");
                 btn.disabled = false;
                 btn.innerText = originalText;
+                return;
             }
-        });
+
+            const options = {
+                key:             data.key,
+                subscription_id: data.subscriptionId,
+                name:            "DocUp",
+                description:     data.planLabel || "DocUp Monthly Subscription",
+                prefill:         { email: data.userEmail },
+                theme:           { color: "#ff5e00" },
+                handler: async function (paymentResponse) {
+                    try {
+                        const verifyRes = await fetch("/subscription/verify", {
+                            method:  "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body:    JSON.stringify({ ...paymentResponse, plan })
+                        });
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            window.location.href = verifyData.redirectUrl || "/profile";
+                        } else {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                            alert(verifyData.message || "Subscription verification failed");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                        alert("Subscription verification failed");
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                    }
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.on("payment.failed", function () {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                alert("Payment failed. Please try again.");
+            });
+            rzp.open();
+
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong");
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     });
+});
 </script>
+
 <%- include('partials/page-loader') %>
 </body>
 </html>

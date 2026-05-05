@@ -1,37 +1,34 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
-import Docs from "./models/Docs.js";
-import users from "./models/users.js";
+import dotenv from "dotenv";
+import Coupon from "./models/Coupon.js";
 
 dotenv.config();
 
-const MONGO_URI = process.env.MONGO_URI;
-
-async function updateProtectedField() {
+async function run() {
     try {
-        if (!MONGO_URI) {
-            throw new Error("MONGO_URI is missing in .env");
-        }
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("Connected to DB ✅");
 
-        await mongoose.connect(MONGO_URI);
-        console.log("Connected to MongoDB");
+        const coupon = new Coupon({
+            code: "LAUNCH50",
+            type: "flat",           // "flat" or "docscore"
+            flat_discount: 50,      // ₹50 off
+            docscore_bonus: 0,      // only used if type = "docscore"
+            max_uses: 100,
+            applies_to: "both",     // "recharge" | "subscription" | "both"
+            description: "Test launch coupon",
+            active: true
+        });
 
-        const result = await Docs.updateMany(
-            {},
-             {
-                $set: {
-                   reviewed: true,
-                }
-            }
-        );
-        // const result = await users.updateMany({}, { $set: { popup: [] } });
+        await coupon.save();
 
-        console.log(`Updated ${result.modifiedCount} documents`);
+        console.log("Coupon created 🚀:", coupon.code);
 
-        await mongoose.disconnect();
+        process.exit(0);
     } catch (err) {
-        console.error("Error:", err);
+        console.error("Error ❌:", err.message);
+        process.exit(1);
     }
 }
 
-updateProtectedField();
+run();

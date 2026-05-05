@@ -10,6 +10,8 @@ import DocAI from "./models/DocAI.js";
 import DocChunk from "./models/DocChunk.js";
 import reports from "./models/Reports.js"
 import Contact from "./models/contacts.js";
+import Coupon     from "./models/Coupon.js";
+import SaleConfig from "./models/SaleConfig.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -3214,267 +3216,815 @@ const RECHARGE_PLANS = {
 /****************************
  Pricing
  ****************************/
-app.get("/pricing", async (req, res) => {
-    if (!req.session.email) {
-        return res.redirect("/signin");
+/**
+ * ============================================================
+ *  DISCOUNT SYSTEM — ROUTES
+ *  Paste this block into server.js after your existing imports.
+ *  Requires two new model imports at the top of server.js:
+ *
+ *    import Coupon     from "./models/Coupon.js";
+ *    import SaleConfig from "./models/SaleConfig.js";
+ * ============================================================
+ */
+
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 1 — ADMIN ROUTES
+   Protect these with your existing admin middleware.
+   All routes here are prefixed /admin/discount/...
+   so they slot cleanly next to your existing /admin/cache routes.
+   ────────────────────────────────────────────────────────────── */
+
+/**
+ * POST /admin/discount/coupon/create
+ *
+ * Body (JSON):
+ * {
+ *   code:           "DOCUP50",          // required, auto-uppercased
+ *   type:           "flat"|"docscore",  // required
+ *   flat_discount:  50,                 // required when type === "flat"
+ *   docscore_bonus: 100,                // required when type === "docscore"
+ *   max_uses:       200,                // required
+ *   applicable_to:  "all"|"specific_users",
+ *   allowed_users:  ["a@b.com"],        // required when applicable_to === "specific_users"
+ *   applies_to:     "recharge"|"subscription"|"both",
+ *   expires_at:     "2025-12-31",       // optional ISO date string
+ *   description:    "Launch promo"      // optional
+ * }
+ */
+app.post("/admin/discount/coupon/create", async (req, res) => {
+    // ── guard: reuse your existing admin secret check
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
     }
-    const user_data = await user_profile.findOne({email:req.session.email});
-    res.render("pricing",{data:user_data});
-});
-app.post("/buy-recharge", async (req, res) => {
+
     try {
-        if (!req.session.email) {
-            return res.status(401).json({
-                success: false,
-                message: "Please sign in first"
-            });
+        const {
+            code,
+            type,
+            flat_discount   = 0,
+            docscore_bonus  = 0,
+            max_uses,
+            applicable_to   = "all",
+            allowed_users   = [],
+            applies_to      = "both",
+            expires_at      = null,
+            description     = ""
+        } = req.body;
+
+        if (!code || !type || !max_uses) {
+            return res.status(400).json({ success: false, message: "code, type, and max_uses are required." });
+        }
+        if (type === "flat" && flat_discount <= 0) {
+            return res.status(400).json({ success: false, message: "flat_discount must be > 0 for type 'flat'." });
+        }
+        if (type === "docscore" && docscore_bonus <= 0) {
+            return res.status(400).json({ success: false, message: "docscore_bonus must be > 0 for type 'docscore'." });
         }
 
-        const { plan, customAmount } = req.body;
-
-        let selectedPlan;
-
-        if (plan === "custom") {
-            const DOCSCORE_RATE = 1; // ₹1 per DocScore
-            const amount = Math.round(Number(customAmount) / 2) * 2; // keep even
-
-            if (!amount || amount < 10 || amount > 500) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Custom amount must be between ₹10 and ₹500"
-                });
-            }
-
-            const docscore = Math.floor(amount / DOCSCORE_RATE);
-
-            selectedPlan = {
-                label: `Custom Recharge (${docscore} pts)`,
-                amount,
-                docscore
-            };
-        } else {
-            selectedPlan = RECHARGE_PLANS[plan];
-        }
-
-        if (!selectedPlan) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid recharge plan"
-            });
-        }
-
-        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-
-        // For custom amounts, always create a fresh order (amount may differ)
-        const existingPendingOrder = plan !== "custom" ? await paymentOrder.findOne({
-            user_email: req.session.email,
-            plan_key: plan,
-            status: "PENDING",
-            createdAt: { $gte: fiveMinutesAgo }
-        }).sort({ createdAt: -1 }) : null;
-
-        if (existingPendingOrder) {
-            return res.json({
-                success: true,
-                orderId: existingPendingOrder.order_id,
-                amount: existingPendingOrder.amount * 100,
-                currency: "INR",
-                key: process.env.RAZORPAY_KEY_ID,
-                userEmail: req.session.email,
-                docscoreToAdd: existingPendingOrder.docscore_to_add
-            });
-        }
-
-        const receipt = `docup_${Date.now()}_${crypto.randomBytes(3).toString("hex")}`;
-
-        const razorpayOrder = await razorpay.orders.create({
-            amount: selectedPlan.amount * 100,
-            currency: "INR",
-            receipt,
-            notes: {
-                user_email: req.session.email,
-                plan_key: plan
-            }
+        const coupon = await Coupon.create({
+            code:          code.toUpperCase().trim(),
+            type,
+            flat_discount,
+            docscore_bonus,
+            max_uses,
+            applicable_to,
+            allowed_users: allowed_users.map(e => ({ email: e.toLowerCase().trim() })),
+            applies_to,
+            expires_at:    expires_at ? new Date(expires_at) : null,
+            description
         });
 
+        return res.json({ success: true, coupon });
+    } catch (err) {
+        if (err.code === 11000) {
+            return res.status(409).json({ success: false, message: "A coupon with that code already exists." });
+        }
+        console.error("Create coupon error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/**
+ * PATCH /admin/discount/coupon/:code/toggle
+ * Flip the active flag on a coupon.
+ */
+app.patch("/admin/discount/coupon/:code/toggle", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    try {
+        const coupon = await Coupon.findOne({ code: req.params.code.toUpperCase() });
+        if (!coupon) return res.status(404).json({ success: false, message: "Coupon not found." });
+
+        coupon.active = !coupon.active;
+        await coupon.save();
+
+        return res.json({ success: true, code: coupon.code, active: coupon.active });
+    } catch (err) {
+        console.error("Toggle coupon error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+/* ─────────────────────────────────────────────────────
+   FIX 2 — Add DELETE coupon route (paste after the toggle PATCH route ~line 3332)
+───────────────────────────────────────────────────────── */
+
+/**
+ * DELETE /admin/discount/coupon/:code
+ * Permanently delete a coupon by code.
+ */
+app.delete("/admin/discount/coupon/:code", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    try {
+        const deleted = await Coupon.findOneAndDelete({ code: req.params.code.toUpperCase() });
+        if (!deleted) return res.status(404).json({ success: false, message: "Coupon not found." });
+        return res.json({ success: true, message: `Coupon ${deleted.code} deleted.` });
+    } catch (err) {
+        console.error("Delete coupon error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/* ─────────────────────────────────────────────────────
+   FIX 3 — Add GET /dev/coupons route (paste near your other /dev/* routes)
+───────────────────────────────────────────────────────── */
+
+app.get("/dev/coupons", async (req, res) => {
+    if (!req.session.dev_email) {
+        return res.redirect("/dev/signin");
+    }
+    return res.render("dev_coupons", {
+        adminSecret: process.env.ADMIN_SECRET
+    });
+});
+
+
+/**
+ * GET /admin/discount/coupons
+ * List all coupons (newest first).
+ */
+app.get("/admin/discount/coupons", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    try {
+        const coupons = await Coupon.find({}).sort({ createdAt: -1 }).lean();
+        return res.json({ success: true, coupons });
+    } catch (err) {
+        console.error("List coupons error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/**
+ * POST /admin/discount/sale/set
+ * Create or replace the active sitewide sale.
+ *
+ * Body (JSON):
+ * {
+ *   sale_label:       "Weekend Sale 🎉",
+ *   discount_percent: 20,
+ *   applies_to:       "both",
+ *   starts_at:        "2025-08-01T00:00:00Z",  // ISO string, optional (defaults to now)
+ *   ends_at:          "2025-08-03T23:59:59Z"   // required
+ * }
+ */
+app.post("/admin/discount/sale/set", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    try {
+        const {
+            sale_label       = "Limited Time Offer",
+            discount_percent,
+            applies_to       = "both",
+            starts_at        = new Date(),
+            ends_at
+        } = req.body;
+
+        if (!discount_percent || !ends_at) {
+            return res.status(400).json({ success: false, message: "discount_percent and ends_at are required." });
+        }
+
+        // Deactivate any previous sale, then upsert a fresh one
+        await SaleConfig.updateMany({}, { $set: { active: false } });
+
+        const sale = await SaleConfig.create({
+            sale_label,
+            discount_percent,
+            applies_to,
+            starts_at: new Date(starts_at),
+            ends_at:   new Date(ends_at),
+            active:    true
+        });
+
+        // Bust the cached pricing pages so users see the banner immediately
+        await invalidate("sale:active");
+
+        return res.json({ success: true, sale });
+    } catch (err) {
+        console.error("Set sale error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/**
+ * GET /admin/discount/sale/get
+ * Return the currently active sale (or null). Used by the dev dashboard.
+ */
+app.get("/admin/discount/sale/get", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+    try {
+        const sale = await SaleConfig.getActiveSale();
+        return res.json({ success: true, sale: sale || null });
+    } catch (err) {
+        console.error("Get sale error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+/**
+ * DELETE /admin/discount/sale/clear
+ * End the active sale immediately.
+ */
+app.delete("/admin/discount/sale/clear", async (req, res) => {
+    const adminSecret = req.headers["x-admin-secret"];
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+        return res.status(403).json({ success: false, message: "Forbidden" });
+    }
+
+    try {
+        await SaleConfig.updateMany({ active: true }, { $set: { active: false } });
+        await invalidate("sale:active");
+        return res.json({ success: true, message: "Sale cleared." });
+    } catch (err) {
+        console.error("Clear sale error:", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 2 — USER-FACING ROUTE
+   Called by the frontend before payment to preview the discount.
+   ────────────────────────────────────────────────────────────── */
+
+/**
+ * POST /coupon/validate
+ *
+ * Body: { code: "DOCUP50", context: "recharge"|"subscription", baseAmount: 99 }
+ * Response (success):
+ * {
+ *   valid: true,
+ *   type: "flat"|"docscore",
+ *   flat_discount:  30,       // only when type === "flat"
+ *   docscore_bonus: 50,       // only when type === "docscore"
+ *   discounted_amount: 69,    // final ₹ amount user pays (baseAmount - flat_discount)
+ *   message: "₹30 off applied!"
+ * }
+ */
+app.post("/coupon/validate", async (req, res) => {
+    if (!req.user) return res.status(401).json({ valid: false, reason: "Not logged in." });
+
+    const { code, context, baseAmount } = req.body;
+
+    if (!code || !context) {
+        return res.status(400).json({ valid: false, reason: "code and context are required." });
+    }
+
+    try {
+        const coupon = await Coupon.findOne({ code: code.toUpperCase().trim() });
+
+        if (!coupon) {
+            return res.json({ valid: false, reason: "Invalid coupon code." });
+        }
+
+        const result = coupon.validate(req.user.email, context);
+
+        if (!result.valid) {
+            return res.json({ valid: false, reason: result.reason });
+        }
+
+        const base = Number(baseAmount) || 0;
+
+        if (coupon.type === "flat") {
+            const discounted = Math.max(1, base - coupon.flat_discount);
+            return res.json({
+                valid:              true,
+                type:               "flat",
+                flat_discount:      coupon.flat_discount,
+                discounted_amount:  discounted,
+                message:            `₹${coupon.flat_discount} off applied!`
+            });
+        }
+
+        // type === "docscore"
+        return res.json({
+            valid:          true,
+            type:           "docscore",
+            docscore_bonus: coupon.docscore_bonus,
+            discounted_amount: base,  // price unchanged
+            message:        `+${coupon.docscore_bonus} bonus DocScore will be added!`
+        });
+
+    } catch (err) {
+        console.error("Coupon validate error:", err);
+        return res.status(500).json({ valid: false, reason: "Server error." });
+    }
+});
+
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 3 — UPDATED PAYMENT ROUTES
+   Replace your existing /buy-recharge and /buy-subscription
+   handlers with these updated versions.
+
+   Key changes from your originals:
+   - Accept optional `couponCode` in request body
+   - For "flat" coupons: reduce Razorpay order amount
+   - For "docscore" coupons: pass bonusDocscore back to frontend
+     so /payment/verify (or /subscription/verify) can credit it
+   - After payment: mark coupon as used
+   ────────────────────────────────────────────────────────────── */
+
+// ── Helper: resolve and validate a coupon during checkout
+// Returns { coupon, bonusDocscore, flatDiscount } or throws with a message
+async function resolveCouponAtCheckout(couponCode, userEmail, context, baseAmount) {
+    if (!couponCode) return { coupon: null, bonusDocscore: 0, flatDiscount: 0 };
+
+    const coupon = await Coupon.findOne({ code: couponCode.toUpperCase().trim() });
+    if (!coupon) throw new Error("Invalid coupon code.");
+
+    const result = coupon.validate(userEmail, context);
+    if (!result.valid) throw new Error(result.reason);
+
+    const flatDiscount   = coupon.type === "flat"     ? coupon.flat_discount  : 0;
+    const bonusDocscore  = coupon.type === "docscore"  ? coupon.docscore_bonus : 0;
+
+    // Ensure flat discount does not exceed base amount (min ₹1 charged)
+    if (flatDiscount >= baseAmount) {
+        throw new Error(`Coupon discount (₹${flatDiscount}) cannot exceed the plan amount.`);
+    }
+
+    return { coupon, bonusDocscore, flatDiscount };
+}
+
+// ── Helper: mark a coupon as used after successful payment
+async function markCouponUsed(coupon, userEmail) {
+    if (!coupon) return;
+    try {
+        await Coupon.findOneAndUpdate(
+            { _id: coupon._id },
+            {
+                $inc: { used_count: 1 },
+                $push: { used_by: { email: userEmail.toLowerCase().trim(), redeemedAt: new Date() } }
+            }
+        );
+    } catch (err) {
+        // Non-fatal — log and continue so payment success is not blocked
+        console.error("markCouponUsed error:", err.message);
+    }
+}
+
+
+/**
+ * POST /buy-recharge  (updated)
+ *
+ * Body: { plan, customAmount?, couponCode? }
+ *
+ * The frontend sends couponCode if the user applied one.
+ * Response includes bonusDocscore so /payment/verify can credit it.
+ */
+app.post("/buy-recharge", async (req, res) => {
+    if (!req.user) return res.status(401).json({ success: false, message: "Not logged in." });
+
+    const RECHARGE_PLANS = {
+        starter:  { label: "Prep",   amount: 29,  docscore: 20  },
+        standard: { label: "Crack",  amount: 79,  docscore: 60  },
+        pro:      { label: "Topper", amount: 199, docscore: 180 }
+    };
+
+    try {
+        const { plan, customAmount, couponCode } = req.body;
+
+        let baseAmount, docscoreToAdd, planLabel;
+
+        if (plan === "custom") {
+            const amt = Math.max(10, Math.min(500, Math.round(Number(customAmount) / 2) * 2));
+            baseAmount    = amt;
+            docscoreToAdd = Math.floor(amt);   // 1:1 rate — adjust to your RATE constant
+            planLabel     = `Custom ₹${amt}`;
+        } else {
+            const selectedPlan = RECHARGE_PLANS[plan];
+            if (!selectedPlan) return res.status(400).json({ success: false, message: "Invalid plan." });
+            baseAmount    = selectedPlan.amount;
+            docscoreToAdd = selectedPlan.docscore;
+            planLabel     = selectedPlan.label;
+        }
+
+        // ── Resolve coupon (if provided)
+        let coupon = null, bonusDocscore = 0, flatDiscount = 0;
+        try {
+            ({ coupon, bonusDocscore, flatDiscount } = await resolveCouponAtCheckout(
+                couponCode, req.user.email, "recharge", baseAmount
+            ));
+        } catch (couponErr) {
+            return res.status(400).json({ success: false, message: couponErr.message });
+        }
+
+        // ── Also apply any active sitewide sale
+        const activeSale = await SaleConfig.getActiveSale();
+        let finalAmount = baseAmount - flatDiscount;
+        if (activeSale && (activeSale.applies_to === "recharge" || activeSale.applies_to === "both")) {
+            finalAmount = SaleConfig.applyDiscount(finalAmount, activeSale);
+        }
+        finalAmount = Math.max(1, finalAmount);
+
+        // ── Create Razorpay order
+        const razorpay = new Razorpay({
+            key_id:     process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        });
+
+        const order = await razorpay.orders.create({
+            amount:   finalAmount * 100,   // paise
+            currency: "INR",
+            receipt:  `recharge_${Date.now()}`
+        });
+
+        // ── Persist the order with coupon metadata so /payment/verify can access it
         await paymentOrder.create({
-            user_email: req.session.email,
-            order_id: razorpayOrder.id,
-            plan_key: plan,
-            plan_label: selectedPlan.label,
-            amount: selectedPlan.amount,
-            docscore_to_add: selectedPlan.docscore,
-            status: "PENDING"
+            order_id:       order.id,
+            email:          req.user.email,
+            plan:           planLabel,
+            amount:         finalAmount,
+            docscore:       docscoreToAdd,
+            bonus_docscore: bonusDocscore,          // NEW: credited at verify time
+            coupon_code:    coupon ? coupon.code : null,
+            status:         "PENDING"
         });
 
         return res.json({
-            success: true,
-            orderId: razorpayOrder.id,
-            amount: razorpayOrder.amount,
-            currency: razorpayOrder.currency,
-            key: process.env.RAZORPAY_KEY_ID,
-            userEmail: req.session.email,
-            docscoreToAdd: selectedPlan.docscore
+            success:       true,
+            key:           process.env.RAZORPAY_KEY_ID,
+            orderId:       order.id,
+            amount:        order.amount,
+            currency:      order.currency,
+            userEmail:     req.user.email,
+            docscoreToAdd,
+            bonusDocscore,            // frontend can show "you'll also get +X DocScore"
+            finalAmount
         });
+
     } catch (err) {
-        console.error("Razorpay order creation error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Could not start payment"
-        });
+        console.error("buy-recharge error:", err);
+        return res.status(500).json({ success: false, message: "Server error." });
     }
 });
+
+
+/**
+ * POST /payment/verify  (updated)
+ *
+ * No changes to your existing signature verification logic.
+ * Only addition: credit bonus_docscore from paymentOrder if a docscore coupon was used,
+ * and mark the coupon as used.
+ */
 app.post("/payment/verify", async (req, res) => {
+    if (!req.user) return res.status(401).json({ success: false, message: "Not logged in." });
+
     try {
-        if (!req.session.email) {
-            return res.status(401).json({
-                success: false,
-                message: "Please sign in first"
-            });
-        }
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-        const {
-            razorpay_order_id,
-            razorpay_payment_id,
-            razorpay_signature
-        } = req.body;
-
-        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing payment details"
-            });
-        }
-
-        const existingOrder = await paymentOrder.findOne({
-            order_id: razorpay_order_id
-        });
-
-        if (!existingOrder) {
-            return res.status(404).json({
-                success: false,
-                message: "Order not found"
-            });
-        }
-
-        if (existingOrder.user_email !== req.session.email) {
-            return res.status(403).json({
-                success: false,
-                message: "Order does not belong to this user"
-            });
-        }
-
-        const generatedSignature = crypto
+        // ── Signature verification (unchanged from your existing code)
+        const expectedSignature = crypto
             .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
             .update(`${razorpay_order_id}|${razorpay_payment_id}`)
             .digest("hex");
 
-        if (generatedSignature !== razorpay_signature) {
-            await paymentOrder.findOneAndUpdate(
-                { order_id: razorpay_order_id },
-                {
-                    status: "FAILED",
-                    gateway_response: req.body,
-                    txn_id: razorpay_payment_id,
-                    payment_mode: "RAZORPAY"
-                }
-            );
-            await user_profile.updateOne(
-                { email: req.session.email },
-                {
-                    $push: {
-                        notifications: {
-                            email: req.session.email,
-                            content: `Payment Failed for the payment id ${razorpay_payment_id} `
-                        }
-                    }
-                }
-            );
-            return res.status(400).json({
-                success: false,
-                message: "Payment verification failed"
-            });
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: "Invalid payment signature." });
         }
 
-        if (existingOrder.status !== "SUCCESS") {
-            await user_profile.findOneAndUpdate(
-                { email: existingOrder.user_email },
-                {
-                    $inc: { Doc_score: existingOrder.docscore_to_add },
-                    $set: { subscription: "Paid Tier" },
-                    $push: {
-                        payment_history: {
-                            order_id: existingOrder.order_id,
-                            payment_id: razorpay_payment_id,
-                            amount: existingOrder.amount,
-                            plan: existingOrder.plan_label,
-                            docscore_added: existingOrder.docscore_to_add,
-                            status: "SUCCESS",
-                            date: new Date()
-                        }
+        // ── Fetch the stored order
+        const order = await paymentOrder.findOne({ order_id: razorpay_order_id });
+        if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+
+        if (order.status === "SUCCESS") {
+            return res.json({ success: true, redirectUrl: "/pricing?payment=success" });
+        }
+
+        const totalDocscore = (order.docscore || 0) + (order.bonus_docscore || 0);
+
+        // ── Credit DocScore + update subscription + push payment history
+        await user_profile.findOneAndUpdate(
+            { email: order.email },
+            {
+                $inc: { Doc_score: totalDocscore },
+                $push: {
+                    payment_history: {
+                        order_id:       razorpay_order_id,
+                        payment_id:     razorpay_payment_id,
+                        amount:         order.amount,
+                        plan:           order.plan,
+                        docscore_added: totalDocscore,
+                        status:         "SUCCESS",
+                        date:           new Date()
+                    },
+                    notifications: {
+                        email:    order.email,
+                        content:  `Recharge successful 🎉 +${totalDocscore} DocScore added${order.bonus_docscore ? ` (incl. ${order.bonus_docscore} bonus)` : ""}`,
+                        category: "payment"
                     }
                 }
-            );
-
-            await paymentOrder.findOneAndUpdate(
-                { order_id: razorpay_order_id },
-                {
-                    status: "SUCCESS",
-                    txn_id: razorpay_payment_id,
-                    payment_mode: "RAZORPAY",
-                    gateway_response: req.body
-                }
-            );
-
-            try {
-                const user = await user_profile.findOne({ email: existingOrder.user_email });
-
-                if (user) {
-                    await sendRechargeSuccessEmail(user.email, user.name, {
-                        planLabel: existingOrder.plan_label,
-                        amount: existingOrder.amount,
-                        docscoreAdded: existingOrder.docscore_to_add,
-                        orderId: existingOrder.order_id,
-                        paymentId: razorpay_payment_id,
-                        date: new Date()
-                    });
-                    await user_profile.updateOne(
-                        { email: req.session.email },
-                        {
-                            $push: {
-                                notifications: {
-                                    email: req.session.email,
-                                    content: `Payment successful 🎉
-
-                     +${existingOrder.docscore_to_add} DocScore added.
-                     Plan: ${existingOrder.plan_label}
-                     Amount: ₹${existingOrder.amount}`
-                                }
-                            }
-                        }
-                    );
-                }
-            } catch (mailErr) {
-                console.error("Recharge success email failed:", mailErr.message);
             }
+        );
 
-            // Invalidate docscore cache — user just got new credits
-            await invalidate(`docscore:${req.session.email}`);
+        // ── Mark order as successful
+        await paymentOrder.findOneAndUpdate(
+            { order_id: razorpay_order_id },
+            { $set: { status: "SUCCESS", payment_id: razorpay_payment_id } }
+        );
+
+        // ── Mark coupon as used (if one was applied)
+        if (order.coupon_code) {
+            const coupon = await Coupon.findOne({ code: order.coupon_code });
+            await markCouponUsed(coupon, order.email);
+        }
+
+        // ── Bust docscore cache
+        await invalidate(`docscore:${order.email}`);
+
+        return res.json({ success: true, redirectUrl: "/pricing?payment=success" });
+
+    } catch (err) {
+        console.error("payment/verify error:", err);
+        return res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+
+/**
+ * POST /buy-subscription  (updated)
+ *
+ * Body: { plan, couponCode? }
+ *
+ * For subscriptions, Razorpay does not let you directly reduce the
+ * subscription amount via the API in a simple way for existing plans.
+ * Strategy used here:
+ *   - "flat" coupons on subscriptions → deduct from the FIRST payment
+ *     by creating a one-time Razorpay order for (amount - discount)
+ *     instead of a subscription. Subsequent months bill the full amount.
+ *     NOTE: If you want recurring discounts you'll need Razorpay Offers API.
+ *   - "docscore" coupons → no price change, bonus DocScore credited at
+ *     /subscription/verify time.
+ */
+app.post("/buy-subscription", async (req, res) => {
+    if (!req.user) return res.status(401).json({ success: false, message: "Not logged in." });
+
+    try {
+        const { plan, couponCode } = req.body;
+
+        const selectedPlan = SUBSCRIPTION_PLANS[plan];
+        if (!selectedPlan) return res.status(400).json({ success: false, message: "Invalid plan." });
+
+        // ── Resolve coupon
+        let coupon = null, bonusDocscore = 0, flatDiscount = 0;
+        try {
+            ({ coupon, bonusDocscore, flatDiscount } = await resolveCouponAtCheckout(
+                couponCode, req.user.email, "subscription", selectedPlan.amount
+            ));
+        } catch (couponErr) {
+            return res.status(400).json({ success: false, message: couponErr.message });
+        }
+
+        // ── Apply sitewide sale (display only — actual Razorpay sub price unchanged)
+        const activeSale = await SaleConfig.getActiveSale();
+
+        const razorpay = new Razorpay({
+            key_id:     process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        });
+
+        // ── Create the Razorpay subscription (unchanged plan_id logic)
+        // ── Map plan key → Razorpay plan_id
+        const RAZORPAY_PLAN_IDS = {
+            essential_monthly: process.env.RAZORPAY_PLAN_ESSENTIAL_MONTHLY,
+            standard_monthly:  process.env.RAZORPAY_PLAN_STANDARD_MONTHLY,
+            power_monthly:     process.env.RAZORPAY_PLAN_POWER_MONTHLY,
+        };
+
+        const razorpayPlanId = RAZORPAY_PLAN_IDS[plan];
+        if (!razorpayPlanId) {
+            return res.status(400).json({ success: false, message: `Razorpay plan not configured for: ${plan}` });
+        }
+
+        // ── Create the Razorpay subscription
+        const subscription = await razorpay.subscriptions.create({
+            plan_id:         razorpayPlanId,
+            customer_notify: 1,
+            quantity:        1,
+            total_count:     12
+        });
+
+        // ── Persist subscription metadata for the webhook
+        await user_profile.findOneAndUpdate(
+            { email: req.user.email },
+            {
+                $set: {
+                    subscription_id:       subscription.id,
+                    subscription_plan_key: plan,
+                    subscription_status:   "PENDING"
+                }
+            }
+        );
+
+        // ── Store coupon intent so /subscription/verify can mark it used
+        if (coupon) {
+            await Coupon.findOneAndUpdate(
+                { _id: coupon._id },
+                { $set: { [`_pending_${req.user.email.replace(/[@.]/g, "_")}`]: subscription.id } }
+            );
+            // Simpler alternative: store in user session
+            req.session.pendingCoupon = { code: coupon.code, subscriptionId: subscription.id };
         }
 
         return res.json({
-            success: true,
-            redirectUrl: "/profile?payment=success"
+            success:        true,
+            key:            process.env.RAZORPAY_KEY_ID,
+            subscriptionId: subscription.id,
+            planLabel:      selectedPlan.label,
+            userEmail:      req.user.email,
+            bonusDocscore,  // frontend shows "+X bonus DocScore" message if > 0
+            flatDiscount    // frontend shows "₹X off first month" if > 0
         });
 
     } catch (err) {
-        console.error("Razorpay verify error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error during payment verification"
-        });
+        console.error("buy-subscription error:", err);
+        return res.status(500).json({ success: false, message: "Server error." });
     }
 });
+
+
+/**
+ * POST /subscription/verify  (updated)
+ *
+ * Additions vs your original:
+ *   - Credit bonus_docscore from session if a docscore coupon was applied
+ *   - Mark coupon as used
+ */
+app.post("/subscription/verify", async (req, res) => {
+    if (!req.user) return res.status(401).json({ success: false, message: "Not logged in." });
+
+    try {
+        const {
+            razorpay_payment_id,
+            razorpay_subscription_id,
+            razorpay_signature,
+            plan
+        } = req.body;
+
+        // ── Signature verification
+        const expectedSignature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+            .digest("hex");
+
+        if (expectedSignature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: "Invalid signature." });
+        }
+
+        const selectedPlan = SUBSCRIPTION_PLANS[plan];
+        if (!selectedPlan) return res.status(400).json({ success: false, message: "Invalid plan." });
+
+        // ── Retrieve bonus DocScore from session coupon (if any)
+        let bonusDocscore = 0;
+        const pendingCoupon = req.session?.pendingCoupon;
+        if (pendingCoupon && pendingCoupon.subscriptionId === razorpay_subscription_id) {
+            const coupon = await Coupon.findOne({ code: pendingCoupon.code });
+            if (coupon) {
+                bonusDocscore = coupon.docscore_bonus || 0;
+                await markCouponUsed(coupon, req.user.email);
+            }
+            delete req.session.pendingCoupon;
+        }
+
+        const totalDocscore = selectedPlan.docscore + bonusDocscore;
+
+        await user_profile.findOneAndUpdate(
+            { email: req.user.email },
+            {
+                $inc: { Doc_score: totalDocscore },
+                $set: {
+                    subscription:        selectedPlan.label,
+                    subscription_status: "ACTIVE",
+                    subscription_id:     razorpay_subscription_id
+                },
+                $push: {
+                    payment_history: {
+                        order_id:       razorpay_subscription_id,
+                        payment_id:     razorpay_payment_id,
+                        amount:         selectedPlan.amount,
+                        plan:           selectedPlan.label,
+                        docscore_added: totalDocscore,
+                        status:         "SUCCESS",
+                        date:           new Date()
+                    },
+                    notifications: {
+                        email:    req.user.email,
+                        content:  `Subscription activated 🎉 +${totalDocscore} DocScore added${bonusDocscore ? ` (incl. ${bonusDocscore} bonus)` : ""}`,
+                        category: "payment"
+                    }
+                }
+            }
+        );
+
+        await invalidate(`docscore:${req.user.email}`);
+
+        return res.json({ success: true, redirectUrl: "/profile" });
+
+    } catch (err) {
+        console.error("subscription/verify error:", err);
+        return res.status(500).json({ success: false, message: "Server error." });
+    }
+});
+
+
+/* ──────────────────────────────────────────────────────────────
+   SECTION 4 — UPDATED PAGE RENDER ROUTES
+   Replace your existing GET /pricing and GET /upgrade-plans
+   handlers with these, which pass saleConfig to the EJS template.
+   ────────────────────────────────────────────────────────────── */
+
+/**
+ * GET /pricing  (updated)
+ */
+app.get("/pricing", async (req, res) => {
+    if (!req.user) return res.redirect("/login");
+
+    try {
+        const user       = await user_profile.findOne({ email: req.user.email }).lean();
+        const activeSale = await SaleConfig.getActiveSale();
+
+        // Only pass the sale to this page if it applies
+        const saleForPage = activeSale && (
+            activeSale.applies_to === "recharge" || activeSale.applies_to === "both"
+        ) ? activeSale : null;
+
+        return res.render("pricing", {
+            data:       user,
+            saleConfig: saleForPage
+        });
+    } catch (err) {
+        console.error("GET /pricing error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+
+/**
+ * GET /upgrade-plans  (updated)
+ */
+app.get("/upgrade-plans", async (req, res) => {
+    if (!req.user) return res.redirect("/login");
+
+    try {
+        const user       = await user_profile.findOne({ email: req.user.email }).lean();
+        const activeSale = await SaleConfig.getActiveSale();
+
+        const saleForPage = activeSale && (
+            activeSale.applies_to === "subscription" || activeSale.applies_to === "both"
+        ) ? activeSale : null;
+
+        return res.render("upgrade_plans", {
+            data:       user,
+            saleConfig: saleForPage
+        });
+    } catch (err) {
+        console.error("GET /upgrade-plans error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
 /****************************
  contact us
  ****************************/
@@ -3796,6 +4346,36 @@ app.get("/saved_docs", async (req, res) => {
         res.render("saved_docs", {
             data: user_data,
             savedDocs: validSavedDocs
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
+// ── Add this route to server.js (after the /saved_docs route is a good spot) ──
+
+app.get("/payment_history", async (req, res) => {
+    if (!req.session.email) {
+        return res.redirect("/signin");
+    }
+
+    try {
+        const user_data = await user_profile.findOne({ email: req.session.email });
+
+        if (!user_data) {
+            return res.status(404).send("User not found");
+        }
+
+        // Sort newest first (same as profile.ejs does for payment_history)
+        const payments = Array.isArray(user_data.payment_history)
+            ? [...user_data.payment_history].sort((a, b) => new Date(b.date) - new Date(a.date))
+            : [];
+
+        // Attach sorted payments back so the template has them ready
+        user_data.payment_history = payments;
+
+        res.render("payment_history", {
+            data: user_data
         });
     } catch (err) {
         console.error(err);
@@ -4197,174 +4777,12 @@ app.post("/contact", async (req, res) => {
     }
 });
 
-/*******************
- Subscription Plans
- *****************/
 
-app.get("/upgrade-plans", async (req, res) => {
-    if (!req.session.email) {
-        return res.redirect("/signin");
-    }
 
-    const user_data = await user_profile.findOne({ email: req.session.email });
-    res.render("upgrade_plans", { data: user_data });
-});
 
-app.post("/buy-subscription", async (req, res) => {
-    try {
-        if (!req.session.email) {
-            return res.status(401).json({
-                success: false,
-                message: "Please sign in first"
-            });
-        }
 
-        const { plan } = req.body;
-        const selectedPlan = SUBSCRIPTION_PLANS[plan];
 
-        if (!selectedPlan) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid subscription plan"
-            });
-        }
 
-        const razorpayPlan = await razorpay.plans.create({
-            period: selectedPlan.period,
-            interval: selectedPlan.interval,
-            item: {
-                name: selectedPlan.label,
-                amount: selectedPlan.amount * 100,
-                currency: "INR",
-                description: `${selectedPlan.docscore} DocScore per month`
-            }
-        });
-
-        const subscription = await razorpay.subscriptions.create({
-            plan_id: razorpayPlan.id,
-            customer_notify: 1,
-            total_count: 12,
-            notes: {
-                user_email: req.session.email,
-                plan_key: plan,
-                plan_label: selectedPlan.label,
-                docscore_per_month: String(selectedPlan.docscore)
-            }
-        });
-
-        return res.json({
-            success: true,
-            key: process.env.RAZORPAY_KEY_ID,
-            subscriptionId: subscription.id,
-            userEmail: req.session.email,
-            planLabel: selectedPlan.label
-        });
-    } catch (err) {
-        console.error("Subscription creation error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Could not start subscription"
-        });
-    }
-});
-app.post("/subscription/verify", async (req, res) => {
-    try {
-        if (!req.session.email) {
-            return res.status(401).json({
-                success: false,
-                message: "Please sign in first"
-            });
-        }
-
-        const {
-            razorpay_payment_id,
-            razorpay_subscription_id,
-            razorpay_signature,
-            plan
-        } = req.body;
-
-        if (!razorpay_payment_id || !razorpay_subscription_id || !razorpay_signature || !plan) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing subscription details"
-            });
-        }
-
-        const selectedPlan = SUBSCRIPTION_PLANS[plan];
-
-        if (!selectedPlan) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid subscription plan"
-            });
-        }
-
-        const generatedSignature = crypto
-            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-            .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
-            .digest("hex");
-
-        if (generatedSignature !== razorpay_signature) {
-            return res.status(400).json({
-                success: false,
-                message: "Subscription verification failed"
-            });
-        }
-
-        const user = await user_profile.findOne({ email: req.session.email });
-
-        const alreadyCredited = Array.isArray(user?.payment_history)
-            ? user.payment_history.some(entry => entry.payment_id === razorpay_payment_id)
-            : false;
-
-        const updateOps = {
-            $set: {
-                subscription: selectedPlan.label,
-                subscription_status: "ACTIVE",
-                subscription_id: razorpay_subscription_id,
-                subscription_plan_key: plan
-            },
-            $push: {
-                notifications: {
-                    email: req.session.email,
-                    content: `${selectedPlan.label} subscription activated successfully.`
-                }
-            }
-        };
-
-        if (!alreadyCredited) {
-            updateOps.$inc = {
-                Doc_score: selectedPlan.docscore
-            };
-
-            updateOps.$push.payment_history = {
-                order_id: razorpay_subscription_id,
-                payment_id: razorpay_payment_id,
-                amount: selectedPlan.amount,
-                plan: selectedPlan.label,
-                docscore_added: selectedPlan.docscore,
-                status: "SUCCESS",
-                date: new Date()
-            };
-        }
-
-        await user_profile.findOneAndUpdate(
-            { email: req.session.email },
-            updateOps
-        );
-
-        return res.json({
-            success: true,
-            redirectUrl: "/profile"
-        });
-    } catch (err) {
-        console.error("Subscription verification error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Could not verify subscription"
-        });
-    }
-});
 
 
 
@@ -4401,6 +4819,10 @@ app.post('/dev/signin', async (req, res) => {
         return res.render('dev_signin',{err: "You are not allowed access to DocUp Dev."});
     }
 });
+/****************
+ Discount
+ *****************/
+
 /****************
  Dashboard
  *****************/

@@ -1,53 +1,62 @@
 import mongoose from "mongoose";
 
 const paymentOrderSchema = new mongoose.Schema({
-    user_email: {
-        type: String,
-        required: true,
-        trim: true,
-        index: true
-    },
     order_id: {
         type: String,
         required: true,
         unique: true,
         trim: true
     },
-    plan_key: {
+
+    email: {   // ✅ matches req.user.email
+        type: String,
+        required: true,
+        index: true,
+        trim: true
+    },
+
+    plan: {    // ✅ matches planLabel
         type: String,
         required: true,
         trim: true
     },
-    plan_label: {
-        type: String,
-        required: true,
-        trim: true
-    },
+
     amount: {
         type: Number,
         required: true
     },
-    docscore_to_add: {
+
+    docscore: {   // ✅ matches docscoreToAdd
         type: Number,
         required: true
     },
+
+    bonus_docscore: {
+        type: Number,
+        default: 0
+    },
+
+    coupon_code: {
+        type: String,
+        default: null
+    },
+
     status: {
         type: String,
         enum: ["PENDING", "SUCCESS", "FAILED"],
         default: "PENDING"
     },
-    txn_id: {
+
+    payment_id: {   // ✅ used in verify
         type: String,
         default: ""
     },
-    payment_mode: {
-        type: String,
-        default: ""
-    },
+
     gateway_response: {
         type: Object,
         default: {}
     }
+
 }, {
     timestamps: true
 });

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | Payment History</title>
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/payment_history.css">
+    <link rel="stylesheet" href="/page-loader.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<%
+const payments = Array.isArray(data.payment_history) ? data.payment_history : [];
+const totalSpend = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+const totalDocScore = payments.reduce((sum, p) => sum + (Number(p.docscore_added) || 0), 0);
+const successCount = payments.filter(p => (p.status || '').toLowerCase() === 'success' || (p.status || '').toLowerCase() === 'captured').length;
+%>
+
+<!-- ── HEADER (unchanged from saved_docs.ejs pattern) ── -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <nav class="pg-links">
+            <a class="topbar-link" href="/dashboard">FindDocs</a>
+            <a class="topbar-link" href="/uploads">Upload</a>
+            <a class="topbar-link" href="/profile">Profile</a>
+        </nav>
+    </div>
+    <div class="topbar-right">
+        <a class="topbar-btn" href="/profile">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back to <span style="color:#ff6a00">Profile</span>
+        </a>
+    </div>
+</header>
+
+<main class="page-shell">
+
+    <!-- ── HERO ── -->
+    <section class="profile-hero">
+        <div class="profile-main-card">
+
+            <div class="profile-main-left">
+                <div class="avatar-wrap">
+                    <% if (data?.avatar_img_path) { %>
+                    <img class="avatar-img" src="<%= data.avatar_img_path %>" alt="<%= data?.name || 'User' %>">
+                    <% } else { %>
+                    <div class="avatar-fallback">
+                        <%= (data?.name && data.name[0]) ? data.name[0].toUpperCase() : "D" %>
+                    </div>
+                    <% } %>
+                    <% if (data?.subscription) { %>
+                    <span class="user-type-pill"><%= data.subscription %></span>
+                    <% } %>
+                </div>
+
+                <div class="profile-copy">
+                    <p class="eyebrow">Billing Ledger</p>
+                    <h1><%= data?.name || "Your Profile" %></h1>
+                    <p class="profile-subtext">
+                        A complete record of every transaction on your DocUp account —
+                        recharges, plan upgrades, and DocScore credits, all in one place.
+                    </p>
+
+                    <div class="profile-meta-row">
+                        <div class="meta-chip">
+                            <span class="meta-label">Total Payments</span>
+                            <strong><%= payments.length %></strong>
+                        </div>
+                        <div class="meta-chip" onclick="window.location.href='/pricing';" style="cursor:pointer;">
+                            <span class="meta-label">Total Spent</span>
+                            <strong>₹<%= totalSpend.toLocaleString('en-IN') %></strong>
+                        </div>
+                        <div class="meta-chip" onclick="window.location.href='/pricing';" style="cursor:pointer;">
+                            <span class="meta-label">DocScore Earned</span>
+                            <strong>+<%= totalDocScore %></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-main-right">
+                <a href="/upgrade-plans">
+                    <div class="stat-card">
+                        <span class="stat-top">Current Plan</span>
+                        <h3 class="plan-val"><%= data?.subscription || "Free Tier" %></h3>
+                    </div>
+                </a>
+                <div class="stat-card">
+                    <span class="stat-top">Successful</span>
+                    <h3><%= successCount %></h3>
+                </div>
+                <a href="/pricing">
+                    <div class="stat-card">
+                        <span class="stat-top">DocScore Now</span>
+                        <h3><%= data?.Doc_score ?? 0 %></h3>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── EXPLORER ── -->
+    <section class="explorer-wrap">
+
+        <div class="explorer-topbar">
+            <div class="explorer-title-wrap">
+                <p class="explorer-kicker">Transaction Log</p>
+                <h2>Your Payment History</h2>
+            </div>
+            <div class="explorer-actions">
+                <button class="sort-btn active" data-sort="latest" type="button">Latest First</button>
+                <button class="sort-btn" data-sort="oldest" type="button">Oldest First</button>
+                <button class="sort-btn" data-sort="amount-high" type="button">Highest Amount</button>
+                <button class="sort-btn" data-sort="amount-low" type="button">Lowest Amount</button>
+            </div>
+        </div>
+
+        <div class="filter-strip">
+            <div class="search-box">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+                <input id="paymentSearch" type="text" placeholder="Search by plan, order ID, payment ID…" autocomplete="off">
+                <button id="clearSearch" type="button" aria-label="Clear search">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="statusFilter" aria-label="Filter by status">
+                    <option value="">All Statuses</option>
+                    <%
+                    const uniqueStatuses = [...new Set((payments || [])
+                        .map(p => p?.status)
+                        .filter(Boolean)
+                    )];
+                    %>
+                    <% uniqueStatuses.forEach(status => { %>
+                    <option value="<%= status.toLowerCase() %>"><%= status %></option>
+                    <% }) %>
+                </select>
+
+                <select id="planFilter" aria-label="Filter by plan">
+                    <option value="">All Plans</option>
+                    <%
+                    const uniquePlans = [...new Set((payments || [])
+                        .map(p => p?.plan)
+                        .filter(Boolean)
+                    )].sort();
+                    %>
+                    <% uniquePlans.forEach(plan => { %>
+                    <option value="<%= plan.toLowerCase() %>"><%= plan %></option>
+                    <% }) %>
+                </select>
+            </div>
+        </div>
+
+        <div class="results-bar">
+            <span class="results-count-pill">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14H11v-2h2v2zm0-4H11V7h2v5z" fill="currentColor"/>
+                </svg>
+                <span id="visibleCount"><%= payments.length %></span>
+            </span>
+            <span class="results-bar-label">transactions</span>
+        </div>
+
+        <% if (payments && payments.length > 0) { %>
+        <div class="payments-list" id="paymentsGrid">
+            <% payments.forEach((payment, index) => {
+                const statusRaw = (payment.status || 'SUCCESS').toLowerCase();
+                const isSuccess = statusRaw === 'success' || statusRaw === 'captured';
+                const isFailed  = statusRaw === 'failed';
+                const statusLabel = isSuccess ? 'SUCCESS' : (isFailed ? 'FAILED' : (payment.status || 'PENDING').toUpperCase());
+                const statusClass = isSuccess ? 'success' : (isFailed ? 'failed' : 'pending');
+                const dateStr = payment.date
+                    ? new Date(payment.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                    : null;
+                const timeStr = payment.date
+                    ? new Date(payment.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+                    : null;
+            %>
+            <article
+                class="payment-card"
+                data-index="<%= index %>"
+                data-plan="<%= (payment.plan || '').toLowerCase() %>"
+                data-status="<%= statusRaw %>"
+                data-amount="<%= payment.amount || 0 %>"
+                data-search="<%= ((payment.plan || '') + ' ' + (payment.order_id || '') + ' ' + (payment.payment_id || '')).toLowerCase() %>"
+            >
+                <!-- left accent stripe (color by status) -->
+                <div class="card-stripe <%= statusClass %>"></div>
+
+                <div class="card-body">
+                    <div class="card-top">
+                        <div class="card-icon-wrap <%= statusClass %>">
+                            <% if (isSuccess) { %>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14l-4-4 1.41-1.41L11 13.17l6.59-6.59L19 8l-8 8z" fill="currentColor"/>
+                            </svg>
+                            <% } else if (isFailed) { %>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+                            </svg>
+                            <% } else { %>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+                            </svg>
+                            <% } %>
+                        </div>
+
+                        <div class="card-title-block">
+                            <h3><%= payment.plan || "Recharge" %></h3>
+                            <% if (dateStr) { %>
+                            <p class="card-date"><%= dateStr %> <span class="card-time"><%= timeStr %></span></p>
+                            <% } %>
+                        </div>
+
+                        <div class="card-amount-block">
+                            <span class="card-rupee">₹<%= Number(payment.amount || 0).toLocaleString('en-IN') %></span>
+                            <span class="card-status-badge <%= statusClass %>"><%= statusLabel %></span>
+                        </div>
+                    </div>
+
+                    <div class="card-divider"></div>
+
+                    <div class="card-details">
+                        <div class="detail-pill">
+                            <span class="detail-key">DocScore</span>
+                            <span class="detail-val docscore">+<%= payment.docscore_added || 0 %></span>
+                        </div>
+
+                        <% if (payment.order_id) { %>
+                        <div class="detail-pill">
+                            <span class="detail-key">Order ID</span>
+                            <span class="detail-val mono"><%= payment.order_id %></span>
+                        </div>
+                        <% } %>
+
+                        <% if (payment.payment_id) { %>
+                        <div class="detail-pill">
+                            <span class="detail-key">Payment ID</span>
+                            <span class="detail-val mono"><%= payment.payment_id %></span>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </article>
+            <% }) %>
+        </div>
+
+        <div id="noResultsState" class="no-results-state" style="display:none;">
+            <div class="no-results-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <p class="no-results-kicker">No matches found</p>
+            <h3>Try another search or change the filters</h3>
+            <p>Search by plan name, order ID, or payment ID — or clear all filters.</p>
+        </div>
+
+        <% } else { %>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M17 9V7a5 5 0 00-10 0v2H5v13h14V9h-2zm-6-2a3 3 0 016 0v2h-6V7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <p class="empty-label">No transactions yet</p>
+            <h2>You haven't made any payments</h2>
+            <p class="empty-subtext">
+                Recharge your DocScore or upgrade your plan to unlock access to premium documents.
+            </p>
+            <a href="/pricing" class="empty-cta">Recharge Now</a>
+        </div>
+        <% } %>
+
+    </section>
+</main>
+
+<!-- ── FOOTER (unchanged from saved_docs.ejs) ── -->
+<footer class="footer">
+    <div class="footer-left">
+        DocUp
+        <a href="/version_report" class="footer-version">v<%= process.env.VERSION %></a>
+    </div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">Contact</a>
+        <a href="/privacy_policy">Privacy</a>
+        <a href="/about_us">About Us</a>
+        <a href="/logout">Logout</a>
+    </div>
+</footer>
+
+<script>
+    const searchInput   = document.getElementById("paymentSearch");
+    const clearBtn      = document.getElementById("clearSearch");
+    const statusFilter  = document.getElementById("statusFilter");
+    const planFilter    = document.getElementById("planFilter");
+    const cards         = Array.from(document.querySelectorAll(".payment-card"));
+    const grid          = document.getElementById("paymentsGrid");
+    const noResults     = document.getElementById("noResultsState");
+    const visibleCount  = document.getElementById("visibleCount");
+    const sortButtons   = document.querySelectorAll(".sort-btn");
+
+    let activeSort = "latest";
+
+    function matchesFilters(card) {
+        const q      = (searchInput?.value || "").trim().toLowerCase();
+        const status = (statusFilter?.value || "").trim().toLowerCase();
+        const plan   = (planFilter?.value   || "").trim().toLowerCase();
+
+        return (!q      || card.dataset.search.includes(q))
+            && (!status || card.dataset.status === status)
+            && (!plan   || card.dataset.plan === plan);
+    }
+
+    function sortCards(arr) {
+        return [...arr].sort((a, b) => {
+            const ia = Number(a.dataset.index || 0);
+            const ib = Number(b.dataset.index || 0);
+            const aa = Number(a.dataset.amount || 0);
+            const ab = Number(b.dataset.amount || 0);
+            if (activeSort === "latest")      return ib - ia;
+            if (activeSort === "oldest")      return ia - ib;
+            if (activeSort === "amount-high") return ab - aa;
+            if (activeSort === "amount-low")  return aa - ab;
+            return 0;
+        });
+    }
+
+    function applyFiltersAndSort() {
+        if (!grid) return;
+        const visible = sortCards(cards.filter(matchesFilters));
+        cards.forEach(c => { c.style.display = "none"; });
+        visible.forEach(c => { c.style.display = ""; grid.appendChild(c); });
+        if (noResults)     noResults.style.display = visible.length ? "none" : "flex";
+        if (visibleCount)  visibleCount.textContent = visible.length;
+        if (clearBtn)      clearBtn.style.display   = (searchInput?.value || "").length ? "flex" : "none";
+    }
+
+    searchInput?.addEventListener("input",    applyFiltersAndSort);
+    statusFilter?.addEventListener("change",  applyFiltersAndSort);
+    planFilter?.addEventListener("change",    applyFiltersAndSort);
+
+    clearBtn?.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        applyFiltersAndSort();
+        searchInput?.focus();
+    });
+
+    sortButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            sortButtons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeSort = btn.dataset.sort;
+            applyFiltersAndSort();
+        });
+    });
+
+    applyFiltersAndSort();
+</script>
+<%- include('partials/page-loader') %>
+</body>
+</html>

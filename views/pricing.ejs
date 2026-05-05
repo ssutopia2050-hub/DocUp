@@ -6,9 +6,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/pricing.css">
     <link rel="stylesheet" href="/page-loader.css">
@@ -16,21 +13,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
     <title>Recharge | DocUp</title>
+
+    <style>
+        /* ── Sale Banner ── */
+        .sale-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(90deg, #ff5e00, #ff8c00);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+        .sale-banner .sale-badge {
+            background: rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Coupon Bar ── */
+        .coupon-bar {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 0;
+            /*padding: 0 20px;*/
+            max-width: 480px;
+            margin: 0 auto 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1.5px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .coupon-bar:focus-within {
+            border-color: rgba(255,94,0,0.5);
+            background: rgba(255,94,0,0.03);
+        }
+        .coupon-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 10px;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            min-width: 0;
+        }
+        .coupon-bar input::placeholder { color: rgba(255,255,255,0.28); text-transform: none; letter-spacing: 0; font-weight: 400; }
+        .coupon-apply-btn {
+            background: transparent;
+            color: #ff5e00;
+            border: none;
+            border-left: 1.5px solid rgba(255,255,255,0.08);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 700;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+
+        }
+        .coupon-apply-btn:hover:not(:disabled) { background: rgba(255,94,0,0.1); color: #ff7a2e; }
+        .coupon-apply-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .coupon-apply-btn.applied { color: #4ade80; }
+
+        /* ── Coupon Result ── */
+        .coupon-result {
+            text-align: center;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+            min-height: 20px;
+            letter-spacing: 0.01em;
+        }
+        .coupon-result.success { color: #4ade80; }
+        .coupon-result.error   { color: #ff6b6b; }
+
+        /* ── Strike-through original price when sale active ── */
+        .price-original {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.38);
+            text-decoration: line-through;
+            margin-right: 6px;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        /* ── Coupon discount price UI ── */
+        .price-row {
+            position: relative;
+        }
+
+        .price-coupon-original {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.35);
+            font-family: 'DM Sans', sans-serif;
+            margin-right: 4px;
+            display: inline-block;
+            position: relative;
+        }
+        .price-coupon-original::after {
+            content: '';
+            position: absolute;
+            left: -2px;
+            right: -2px;
+            top: 50%;
+            height: 2px;
+            background: #ff5e00;
+            border-radius: 1px;
+            transform: rotate(-6deg) translateY(-50%);
+        }
+        .price-coupon-new {
+            color: #4ade80;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 800;
+            font-size: 3.8rem;
+            line-height: 1;
+            animation: coupon-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+        @keyframes coupon-pop {
+            0%   { transform: scale(0.7) translateY(6px); opacity: 0; }
+            100% { transform: scale(1)   translateY(0);   opacity: 1; }
+        }
+        .coupon-saving-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(74,222,128,0.08);
+            border: 1px solid rgba(74,222,128,0.2);
+            color: #4ade80;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 6px;
+            animation: coupon-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+            animation-delay: 0.05s;
+            letter-spacing: 0.02em;
+        }
+        .coupon-saving-tag.bonus-tag {
+            background: rgba(255,173,100,0.08);
+            border-color: rgba(255,173,100,0.2);
+            color: #ffad64;
+        }
+    </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SALE BANNER — only rendered when a sale is active
+════════════════════════════════════════════════════════════ -->
+<% if (saleConfig) { %>
+<div class="sale-banner">
+    <span class="sale-badge">Sale</span>
+    <span><%= saleConfig.sale_label %> — <strong><%= saleConfig.discount_percent %>% off</strong> all recharges</span>
+    <span style="opacity:0.7;font-size:0.8rem;">Ends <%= new Date(saleConfig.ends_at).toLocaleDateString('en-IN', {day:'numeric',month:'short'}) %></span>
+</div>
+<% } %>
 
 <header class="topbar">
     <div class="topbar-left">
         <a href="/dashboard" class="logo-wordmark">DocUp</a>
-
-<!--       -->
     </div>
 
     <div class="topbar-right">
-
-        <a href="/dashboard" class="topbar-pill">
-            FindDocs
-        </a>
+        <a href="/dashboard" class="topbar-pill">FindDocs</a>
 
         <div class="docscore-pill">
             <span class="docscore-label">DocScore</span>
@@ -38,9 +202,7 @@
             <img src="/fire.png" alt="">
         </div>
 
-        <a href="/uploads" class="topbar-pill">
-            Upload
-        </a>
+        <a href="/uploads" class="topbar-pill">Upload</a>
 
         <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
@@ -56,52 +218,31 @@
     <a href="/profile">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         </svg>
         Profile
     </a>
-
     <a href="/pricing">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Recharge DocScore
     </a>
     <a href="/upgrade-plans">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                  stroke-width="1.6"/>
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
         </svg>
         Upgrade Plans
     </a>
     <a href="/contact">
         <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2
-                 19.79 19.79 0 0 1-8.63-3.07
-                 19.5 19.5 0 0 1-6-6
-                 19.79 19.79 0 0 1-3.07-8.67
-                 A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72
-                 c.12.89.32 1.76.6 2.6
-                 a2 2 0 0 1-.45 2.11L8.09 9.91
-                 a16 16 0 0 0 6 6l1.48-1.17
-                 a2 2 0 0 1 2.11-.45
-                 c.84.28 1.71.48 2.6.6
-                 a2 2 0 0 1 1.72 2z"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.89.32 1.76.6 2.6a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.48-1.17a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.6.6a2 2 0 0 1 1.72 2z"
+                  stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         Contact Us / Feedback
     </a>
 </div>
+
 <section class="hero-section">
     <div class="hero-content">
         <p class="hero-tag">DocScore Recharge</p>
@@ -111,6 +252,16 @@
         </p>
     </div>
 </section>
+
+<!-- ══════════════════════════════════════════════════════════
+     COUPON BAR
+════════════════════════════════════════════════════════════ -->
+<div class="coupon-bar">
+    <input type="text" id="coupon-input" placeholder="Have a coupon code?" maxlength="30" autocomplete="off" spellcheck="false" />
+    <button class="coupon-apply-btn" id="coupon-apply-btn">Apply</button>
+</div>
+<div class="coupon-result" id="coupon-result"></div>
+
 <!-- ===== CUSTOM AMOUNT TRIGGER ===== -->
 <section class="custom-trigger-section">
     <button type="button" class="custom-trigger-btn" id="open-custom-modal">
@@ -124,23 +275,39 @@
         <span class="custom-trigger-sub">Choose exactly how much to recharge for...</span>
     </button>
 </section>
+
 <section class="pricing-section">
+
+    <%
+        // Server-side: compute sale prices for display
+        const RECHARGE_PLANS = {
+            starter:  { amount: 29  },
+            standard: { amount: 79  },
+            pro:      { amount: 199 }
+        };
+        function salePrice(base) {
+            if (!saleConfig) return null;
+            return Math.max(1, Math.round(base * (1 - saleConfig.discount_percent / 100)));
+        }
+    %>
+
     <div class="pricing-card starter">
         <p class="plan-tag">Basic</p>
         <h2>Prep</h2>
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= RECHARGE_PLANS.starter.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">29</span>
+            <span class="price" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
         </div>
         <p class="docscore-count">+20 DocScore</p>
-
         <div class="features">
             <div class="feature">Access more protected documents</div>
             <div class="feature">Low-cost quick recharge</div>
             <div class="feature">Perfect for casual users</div>
         </div>
-
-        <button type="button" class="buy-btn recharge-btn" data-plan="starter">
+        <button type="button" class="buy-btn recharge-btn" data-plan="starter" data-base="<%= RECHARGE_PLANS.starter.amount %>" data-original="<%= RECHARGE_PLANS.starter.amount %>">
             Recharge Now
         </button>
     </div>
@@ -150,18 +317,19 @@
         <p class="plan-tag">Value</p>
         <h2>Crack</h2>
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= RECHARGE_PLANS.standard.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">79</span>
+            <span class="price" id="price-standard"><%= saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount %></span>
         </div>
         <p class="docscore-count">+60 DocScore</p>
-
         <div class="features">
             <div class="feature">Better value than single recharge</div>
             <div class="feature">Great for regular usage</div>
             <div class="feature">Balanced price and access</div>
         </div>
-
-        <button type="button" class="buy-btn featured-btn recharge-btn" data-plan="standard">
+        <button type="button" class="buy-btn featured-btn recharge-btn" data-plan="standard" data-base="<%= RECHARGE_PLANS.standard.amount %>" data-original="<%= RECHARGE_PLANS.standard.amount %>">
             Recharge Now
         </button>
     </div>
@@ -170,24 +338,24 @@
         <p class="plan-tag">Pro</p>
         <h2>Topper</h2>
         <div class="price-row">
+            <% if (saleConfig) { %>
+            <span class="price-original">₹<%= RECHARGE_PLANS.pro.amount %></span>
+            <% } %>
             <span class="currency">₹</span>
-            <span class="price">199</span>
+            <span class="price" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
         </div>
         <p class="docscore-count">+180 DocScore</p>
-
         <div class="features">
             <div class="feature">Best value overall</div>
             <div class="feature">Ideal for heavy users</div>
             <div class="feature">Longer uninterrupted access</div>
         </div>
-
-        <button type="button" class="buy-btn recharge-btn" data-plan="pro">
+        <button type="button" class="buy-btn recharge-btn" data-plan="pro" data-base="<%= RECHARGE_PLANS.pro.amount %>" data-original="<%= RECHARGE_PLANS.pro.amount %>">
             Recharge Now
         </button>
     </div>
+
 </section>
-
-
 
 <!-- ===== CUSTOM RECHARGE OVERLAY ===== -->
 <div class="cr-overlay" id="cr-overlay">
@@ -240,7 +408,6 @@
         <p>
             Every time you open a protected document on DocUp, DocScore is used. Recharging lets you keep discovering notes without interruption.
         </p>
-
         <div class="comparison-points">
             <div class="comparison-point">Fast access to more study resources</div>
             <div class="comparison-point">Flexible plans for every kind of student</div>
@@ -251,18 +418,15 @@
 
 <section class="faq-section">
     <h2>Frequently Asked Questions</h2>
-
     <div class="faq-grid">
         <div class="faq-card">
             <h3>What is DocScore?</h3>
             <p>DocScore is the access credit used when opening protected documents on DocUp.</p>
         </div>
-
         <div class="faq-card">
             <h3>Does recharge expire?</h3>
             <p>No, they don't expire unless you use all recharged DocScores.</p>
         </div>
-
         <div class="faq-card">
             <h3>When is score added?</h3>
             <p>Instantly after payment is verified successfully.</p>
@@ -271,9 +435,9 @@
 </section>
 
 <div class="footer">
-    <div style="display: flex;flex-direction: row;justify-content: flex-end;align-items: flex-end; font-family:'Archivo Black', sans-serif" class="footer-left">
+    <div style="display:flex;flex-direction:row;justify-content:flex-end;align-items:flex-end;font-family:'Archivo Black',sans-serif" class="footer-left">
         DocUp
-        <a href="/version_report" style="font-size: 0.8rem ; color:rgba(255,255,255,0.22);text-decoration: none">v<%= process.env.VERSION %></a>
+        <a href="/version_report" style="font-size:0.8rem;color:rgba(255,255,255,0.22);text-decoration:none">v<%= process.env.VERSION %></a>
     </div>
     <div class="footer-right">
         <a href="/dashboard">FindDocs</a>
@@ -286,228 +450,383 @@
         <a href="/logout">Logout</a>
     </div>
 </div>
+
 <script src="/dashboard2.js"></script>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-    const buttons = document.querySelectorAll(".recharge-btn");
+/* ──────────────────────────────────────────────────────────────
+   COUPON LOGIC
+────────────────────────────────────────────────────────────── */
+let appliedCoupon = null;
 
-    buttons.forEach((btn) => {
-        btn.addEventListener("click", async () => {
-            const originalText = btn.innerText;
+const couponInput    = document.getElementById("coupon-input");
+const couponApplyBtn = document.getElementById("coupon-apply-btn");
+const couponResult   = document.getElementById("coupon-result");
 
-            try {
-                btn.disabled = true;
-                btn.innerText = "Please wait...";
+async function applyCoupon() {
+    const code = couponInput.value.trim().toUpperCase();
+    if (!code) {
+        showCouponResult("Please enter a coupon code.", "error");
+        return;
+    }
 
-                const plan = btn.dataset.plan;
+    couponApplyBtn.disabled = true;
+    couponApplyBtn.textContent = "Checking…";
+    couponResult.className = "coupon-result";
+    couponResult.textContent = "";
 
-                const response = await fetch("/buy-recharge", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ plan })
+    try {
+        const res  = await fetch("/coupon/validate", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body:    JSON.stringify({ code, context: "recharge" })
+        });
+        const data = await res.json();
+
+        if (data.valid) {
+            appliedCoupon = { code, ...data };
+            showCouponResult("✓ " + data.message, "success");
+            updateCouponPrices(appliedCoupon);
+            couponApplyBtn.textContent = "✓ Applied";
+            couponApplyBtn.classList.add("applied");
+        } else {
+            appliedCoupon = null;
+            showCouponResult(data.reason || "Invalid coupon.", "error");
+            resetCouponPrices();
+            couponApplyBtn.textContent = "Apply";
+            couponApplyBtn.classList.remove("applied");
+        }
+    } catch (err) {
+        appliedCoupon = null;
+        showCouponResult("Could not validate coupon. Try again.", "error");
+        resetCouponPrices();
+        couponApplyBtn.textContent = "Apply";
+        couponApplyBtn.classList.remove("applied");
+    } finally {
+        couponApplyBtn.disabled = false;
+    }
+}
+
+function updateCouponPrices(coupon) {
+    resetCouponPrices();
+
+    if (coupon.type !== "flat" || !coupon.flat_discount) {
+        // docscore coupon: price unchanged, show bonus tag
+        document.querySelectorAll(".recharge-btn").forEach(btn => {
+            const priceEl = document.getElementById("price-" + btn.dataset.plan);
+            if (!priceEl) return;
+            const tag = document.createElement("div");
+            tag.className = "coupon-saving-tag bonus-tag coupon-injected";
+            tag.textContent = "＋" + coupon.docscore_bonus + " Bonus DocScore on purchase";
+            priceEl.closest(".price-row").after(tag);
+        });
+        return;
+    }
+
+    document.querySelectorAll(".recharge-btn").forEach(btn => {
+        const plan = btn.dataset.plan;
+        const priceEl = document.getElementById("price-" + plan);
+        if (!priceEl) return;
+
+        const priceRow = priceEl.closest(".price-row");
+        if (!priceRow) return;
+
+        // Read original from server-rendered data attribute — never from DOM text
+        const trueOriginal = parseInt(btn.dataset.original, 10);
+        if (!trueOriginal) return;
+
+        const discounted = Math.max(1, trueOriginal - coupon.flat_discount);
+        const saving     = trueOriginal - discounted;
+
+        // Hide all existing price spans
+        priceRow.querySelectorAll("span").forEach(s => {
+            s.dataset.couponHidden = "1";
+            s.style.display = "none";
+        });
+
+        // Struck-through original
+        const strikeEl = document.createElement("span");
+        strikeEl.className = "price-coupon-original coupon-injected";
+        strikeEl.textContent = "₹" + trueOriginal;
+
+        // New green price (wrapped to match .currency + .price layout)
+        const newWrap = document.createElement("span");
+        newWrap.className = "coupon-injected";
+        newWrap.style.display = "flex";
+        newWrap.style.alignItems = "flex-start";
+        newWrap.style.gap = "0";
+        newWrap.innerHTML = '<span class="price-coupon-new">₹' + discounted + '</span>';
+
+        priceRow.appendChild(strikeEl);
+        priceRow.appendChild(newWrap);
+
+        if (saving > 0) {
+            const tag = document.createElement("div");
+            tag.className = "coupon-saving-tag coupon-injected";
+            tag.textContent = "Save ₹" + saving;
+            priceRow.after(tag);
+        }
+    });
+}
+
+function resetCouponPrices() {
+    document.querySelectorAll(".coupon-injected").forEach(e => e.remove());
+    document.querySelectorAll(".price-row span[data-coupon-hidden]").forEach(s => {
+        s.style.display = "";
+        delete s.dataset.couponHidden;
+    });
+}
+
+function showCouponResult(msg, type) {
+    couponResult.textContent = msg;
+    couponResult.className = "coupon-result " + type;
+}
+
+couponApplyBtn.addEventListener("click", () => applyCoupon());
+
+couponInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") { applyCoupon(); return; }
+    // If user edits after applying, reset the coupon state
+    if (appliedCoupon) {
+        appliedCoupon = null;
+        couponApplyBtn.textContent = "Apply";
+        couponApplyBtn.classList.remove("applied");
+        couponResult.className = "coupon-result";
+        couponResult.textContent = "";
+        resetCouponPrices();
+    }
+});
+
+/* ──────────────────────────────────────────────────────────────
+   RECHARGE BUTTONS
+────────────────────────────────────────────────────────────── */
+const buttons = document.querySelectorAll(".recharge-btn");
+
+buttons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+        const originalText = btn.innerText;
+
+        try {
+            btn.disabled = true;
+            btn.innerText = "Please wait...";
+
+            const plan       = btn.dataset.plan;
+            const baseAmount = parseInt(btn.dataset.base, 10) || 0;
+
+            // Re-validate coupon with the actual plan's base amount
+            if (appliedCoupon && appliedCoupon.code) {
+                const recheck = await fetch("/coupon/validate", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ code: appliedCoupon.code, context: "recharge", baseAmount })
                 });
-
-                const data = await response.json();
-
-                if (!data.success) {
-                    alert(data.message || "Could not start payment");
+                const recheckData = await recheck.json();
+                if (!recheckData.valid) {
+                    showCouponResult(recheckData.reason || "Coupon no longer valid.", "error");
+                    appliedCoupon = null;
+                    couponApplyBtn.textContent = "Apply";
                     btn.disabled = false;
                     btn.innerText = originalText;
                     return;
                 }
-
-                const options = {
-                    key: data.key,
-                    amount: data.amount,
-                    currency: data.currency,
-                    name: "DocUp",
-                    description: "DocScore Recharge",
-                    order_id: data.orderId,
-                    prefill: {
-                        email: data.userEmail
-                    },
-                    theme: {
-                        color: "#ff5e00"
-                    },
-                    handler: async function (paymentResponse) {
-                        try {
-                            const verifyRes = await fetch("/payment/verify", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify(paymentResponse)
-                            });
-
-                            const verifyData = await verifyRes.json();
-
-                            if (verifyData.success) {
-                                window.location.href = verifyData.redirectUrl;
-                            } else {
-                                btn.disabled = false;
-                                btn.innerText = originalText;
-                                alert(verifyData.message || "Payment verification failed");
-                            }
-                        } catch (err) {
-                            console.error(err);
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                            alert("Payment verification failed");
-                        }
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                        }
-                    }
-                };
-
-                const rzp = new Razorpay(options);
-
-                rzp.on("payment.failed", function () {
-                    btn.disabled = false;
-                    btn.innerText = originalText;
-                    alert("Payment failed. Please try again.");
-                });
-
-                rzp.open();
-
-            } catch (err) {
-                console.error(err);
-                alert("Something went wrong");
-                btn.disabled = false;
-                btn.innerText = originalText;
+                appliedCoupon = { ...appliedCoupon, ...recheckData };
             }
-        });
-    });
-</script>
 
-<script>
-    /* ===== CUSTOM RECHARGE OVERLAY ===== */
-    const RATE = 1;
-
-    const overlay   = document.getElementById("cr-overlay");
-    const backdrop  = document.getElementById("cr-backdrop");
-    const closeBtn  = document.getElementById("cr-close");
-    const openBtn   = document.getElementById("open-custom-modal");
-    const slider    = document.getElementById("cr-slider");
-    const amountNum = document.getElementById("cr-amount-num");
-    const scoreNum  = document.getElementById("cr-score-num");
-    const btnAmount = document.getElementById("cr-btn-amount");
-    const payBtn    = document.getElementById("cr-pay-btn");
-    const chips     = document.querySelectorAll(".cr-chip");
-
-    function syncSliderFill(val) {
-        const pct = ((val - 10) / (500 - 10)) * 100;
-        slider.style.background = `linear-gradient(to right,#ff5e00 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
-    }
-
-    function updateUI(val) {
-        val = Math.max(10, Math.min(500, Math.round(val / 2) * 2));
-        slider.value = val;
-        amountNum.textContent = val;
-        scoreNum.textContent  = Math.floor(val / RATE);
-        btnAmount.textContent = val;
-        syncSliderFill(val);
-    }
-
-    slider.addEventListener("input", () => updateUI(+slider.value));
-
-    chips.forEach(chip => {
-        chip.addEventListener("click", () => {
-            chips.forEach(c => c.classList.remove("active"));
-            chip.classList.add("active");
-            updateUI(+chip.dataset.val);
-        });
-    });
-
-    function openModal() {
-        overlay.classList.add("active");
-        document.body.style.overflow = "hidden";
-    }
-
-    function closeModal() {
-        overlay.classList.remove("active");
-        document.body.style.overflow = "";
-    }
-
-    openBtn.addEventListener("click", openModal);
-    closeBtn.addEventListener("click", closeModal);
-    backdrop.addEventListener("click", closeModal);
-
-    document.addEventListener("keydown", e => {
-        if (e.key === "Escape") closeModal();
-    });
-
-    updateUI(100);
-
-    payBtn.addEventListener("click", async () => {
-        const amount = Math.max(10, Math.min(500, Math.round(+slider.value / 2) * 2));
-        const orig   = payBtn.innerHTML;
-
-        payBtn.disabled = true;
-        payBtn.textContent = "Please wait…";
-
-        try {
-            const res  = await fetch("/buy-recharge", {
-                method: "POST",
+            const response = await fetch("/buy-recharge", {
+                method:  "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ plan: "custom", customAmount: amount })
+                body:    JSON.stringify({
+                    plan,
+                    couponCode: appliedCoupon ? appliedCoupon.code : null
+                })
             });
-            const data = await res.json();
+
+            const data = await response.json();
 
             if (!data.success) {
                 alert(data.message || "Could not start payment");
-                payBtn.disabled = false;
-                payBtn.innerHTML = orig;
+                btn.disabled = false;
+                btn.innerText = originalText;
                 return;
             }
 
+            // Show bonus DocScore hint if a docscore coupon is applied
+            const description = data.bonusDocscore
+                ? `DocScore Recharge + ${data.bonusDocscore} Bonus DocScore`
+                : "DocScore Recharge";
+
             const options = {
-                key: data.key,
-                amount: data.amount,
-                currency: data.currency,
-                name: "DocUp",
-                description: `Custom DocScore — ${data.docscoreToAdd} pts`,
-                order_id: data.orderId,
-                prefill: { email: data.userEmail },
-                theme: { color: "#ff5e00" },
-                handler: async function(pr) {
+                key:         data.key,
+                amount:      data.amount,
+                currency:    data.currency,
+                name:        "DocUp",
+                description,
+                order_id:    data.orderId,
+                prefill:     { email: data.userEmail },
+                theme:       { color: "#ff5e00" },
+                handler: async function (paymentResponse) {
                     try {
-                        const vr   = await fetch("/payment/verify", {
-                            method: "POST",
+                        const verifyRes = await fetch("/payment/verify", {
+                            method:  "POST",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(pr)
+                            body:    JSON.stringify(paymentResponse)
                         });
-                        const vd   = await vr.json();
-                        if (vd.success) { window.location.href = vd.redirectUrl; }
-                        else {
-                            payBtn.disabled = false;
-                            payBtn.innerHTML = orig;
-                            alert(vd.message || "Verification failed");
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            window.location.href = verifyData.redirectUrl;
+                        } else {
+                            btn.disabled = false;
+                            btn.innerText = originalText;
+                            alert(verifyData.message || "Payment verification failed");
                         }
-                    } catch(err) {
-                        payBtn.disabled = false;
-                        payBtn.innerHTML = orig;
+                    } catch (err) {
+                        console.error(err);
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                        alert("Payment verification failed");
                     }
                 },
-                modal: { ondismiss: () => { payBtn.disabled = false; payBtn.innerHTML = orig; } }
+                modal: {
+                    ondismiss: function () {
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                    }
+                }
             };
 
             const rzp = new Razorpay(options);
-            rzp.on("payment.failed", () => { payBtn.disabled = false; payBtn.innerHTML = orig; });
+            rzp.on("payment.failed", function () {
+                btn.disabled = false;
+                btn.innerText = originalText;
+                alert("Payment failed. Please try again.");
+            });
             rzp.open();
-        } catch(err) {
+
+        } catch (err) {
+            console.error(err);
             alert("Something went wrong");
-            payBtn.disabled = false;
-            payBtn.innerHTML = orig;
+            btn.disabled = false;
+            btn.innerText = originalText;
         }
     });
+});
+
+/* ──────────────────────────────────────────────────────────────
+   CUSTOM RECHARGE OVERLAY
+────────────────────────────────────────────────────────────── */
+const RATE = 1;
+
+const overlay   = document.getElementById("cr-overlay");
+const backdrop  = document.getElementById("cr-backdrop");
+const closeBtn  = document.getElementById("cr-close");
+const openBtn   = document.getElementById("open-custom-modal");
+const slider    = document.getElementById("cr-slider");
+const amountNum = document.getElementById("cr-amount-num");
+const scoreNum  = document.getElementById("cr-score-num");
+const btnAmount = document.getElementById("cr-btn-amount");
+const payBtn    = document.getElementById("cr-pay-btn");
+const chips     = document.querySelectorAll(".cr-chip");
+
+function syncSliderFill(val) {
+    const pct = ((val - 10) / (500 - 10)) * 100;
+    slider.style.background = `linear-gradient(to right,#ff5e00 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
+}
+
+function updateUI(val) {
+    val = Math.max(10, Math.min(500, Math.round(val / 2) * 2));
+    slider.value = val;
+    amountNum.textContent = val;
+    scoreNum.textContent  = Math.floor(val / RATE);
+    btnAmount.textContent = val;
+    syncSliderFill(val);
+}
+
+slider.addEventListener("input", () => updateUI(+slider.value));
+chips.forEach(chip => {
+    chip.addEventListener("click", () => {
+        chips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        updateUI(+chip.dataset.val);
+    });
+});
+
+function openModal()  { overlay.classList.add("active");    document.body.style.overflow = "hidden"; }
+function closeModal() { overlay.classList.remove("active"); document.body.style.overflow = "";       }
+
+openBtn.addEventListener("click", openModal);
+closeBtn.addEventListener("click", closeModal);
+backdrop.addEventListener("click", closeModal);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+updateUI(100);
+
+payBtn.addEventListener("click", async () => {
+    const amount = Math.max(10, Math.min(500, Math.round(+slider.value / 2) * 2));
+    const orig   = payBtn.innerHTML;
+
+    payBtn.disabled = true;
+    payBtn.textContent = "Please wait…";
+
+    try {
+        const res  = await fetch("/buy-recharge", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            // Custom recharge does not support coupons (amount is freeform)
+            body:    JSON.stringify({ plan: "custom", customAmount: amount })
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+            alert(data.message || "Could not start payment");
+            payBtn.disabled = false;
+            payBtn.innerHTML = orig;
+            return;
+        }
+
+        const options = {
+            key:         data.key,
+            amount:      data.amount,
+            currency:    data.currency,
+            name:        "DocUp",
+            description: `Custom DocScore — ${data.docscoreToAdd} pts`,
+            order_id:    data.orderId,
+            prefill:     { email: data.userEmail },
+            theme:       { color: "#ff5e00" },
+            handler: async function (pr) {
+                try {
+                    const vr = await fetch("/payment/verify", {
+                        method:  "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body:    JSON.stringify(pr)
+                    });
+                    const vd = await vr.json();
+                    if (vd.success) { window.location.href = vd.redirectUrl; }
+                    else {
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = orig;
+                        alert(vd.message || "Verification failed");
+                    }
+                } catch (err) {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = orig;
+                }
+            },
+            modal: { ondismiss: () => { payBtn.disabled = false; payBtn.innerHTML = orig; } }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on("payment.failed", () => { payBtn.disabled = false; payBtn.innerHTML = orig; });
+        rzp.open();
+    } catch (err) {
+        alert("Something went wrong");
+        payBtn.disabled = false;
+        payBtn.innerHTML = orig;
+    }
+});
 </script>
+
 <%- include('partials/page-loader') %>
 </body>
 </html>
