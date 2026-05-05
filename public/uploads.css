@@ -1580,3 +1580,144 @@ input:checked + .slider:before {
     opacity: 0.6;
     margin-top: 4px;
 }
+
+/* ═══════════════════════════════════════════════════
+   Developer-Only Restriction Modal
+═══════════════════════════════════════════════════ */
+
+.dev-restrict-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 10, 16, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 1.5rem;
+}
+
+.dev-restrict-modal {
+    background: var(--surface-2);
+    border: 1px solid var(--border-warm-hi);
+    border-radius: var(--r-lg);
+    padding: 2.5rem 2.25rem 2rem;
+    max-width: 460px;
+    width: 100%;
+    text-align: center;
+    box-shadow: var(--shadow-lg), 0 0 60px rgba(255, 106, 0, 0.08);
+    animation: modalPop 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.92) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dev-restrict-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: rgba(255, 106, 0, 0.1);
+    border: 1.5px solid rgba(255, 106, 0, 0.25);
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+}
+
+.dev-restrict-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.85rem;
+    line-height: 1.25;
+}
+
+.dev-restrict-body {
+    font-size: 0.93rem;
+    color: var(--text-2);
+    line-height: 1.65;
+    margin-bottom: 0.6rem;
+}
+
+.dev-restrict-body strong {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.dev-restrict-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.6rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.dev-restrict-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: var(--r-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all var(--t);
+    white-space: nowrap;
+}
+
+.dev-restrict-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(255, 106, 0, 0.3);
+}
+
+.dev-restrict-btn.primary:hover {
+    background: var(--accent-2);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(255, 106, 0, 0.42);
+}
+
+.dev-restrict-btn.secondary {
+    background: var(--surface-3);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+}
+
+.dev-restrict-btn.secondary:hover {
+    color: var(--text);
+    border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-1px);
+}
+
+.dev-restrict-dismiss {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-3);
+    text-decoration: none;
+    transition: color var(--t);
+}
+
+.dev-restrict-dismiss:hover {
+    color: var(--text-2);
+}
+
+@media (max-width: 480px) {
+    .dev-restrict-modal {
+        padding: 2rem 1.5rem 1.5rem;
+    }
+
+    .dev-restrict-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dev-restrict-btn {
+        justify-content: center;
+    }
+}

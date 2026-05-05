@@ -234,69 +234,141 @@
                 </div>
 
                 <div class="doc-form" id="doc-form">
-                    <div class="form-field form-field-full college-autocomplete">
-                        <label for="college" class="required">College</label>
-                        <input
-                                type="text"
-                                id="college"
-                                placeholder="Type college name"
-                                autocomplete="off"
-                                required
-                        >
-                        <div id="college-suggestions" class="college-suggestions"></div>
+
+                    <!-- ── Doc Type Selector ── -->
+                    <div class="form-field form-field-full">
+                        <label for="doc-type-select" class="required">Document Type</label>
+                        <select id="doc-type-select">
+                            <option value="college_doc">College Document</option>
+                            <option value="ed_doc">Entrance Exam / Ed Doc</option>
+                        </select>
                     </div>
 
-                    <div class="form-grid">
-                        <div class="form-field">
-                            <label for="year" class="required">Year</label>
-                            <select id="year" required>
-                                <option value="">Select year</option>
-                                <option>year1</option>
-                                <option>year2</option>
-                                <option>year3</option>
-                                <option>year4</option>
-                            </select>
-                        </div>
-
-                        <div class="form-field">
-                            <label for="semester" class="required">Semester</label>
-                            <select id="semester" required>
-                                <option value="">Select semester</option>
-                                <option>Sem 1</option>
-                                <option>Sem 2</option>
-                                <option>Sem 3</option>
-                                <option>Sem 4</option>
-                                <option>Sem 5</option>
-                                <option>Sem 6</option>
-                                <option>Sem 7</option>
-                                <option>Sem 8</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-grid">
-                        <div class="form-field branch-autocomplete">
-                            <label for="branch" class="required">Branch</label>
+                    <!-- ══════════════════════════════════════
+                         COLLEGE DOC FIELDS
+                    ══════════════════════════════════════ -->
+                    <div id="college-fields">
+                        <div class="form-field form-field-full college-autocomplete">
+                            <label for="college" class="required">College</label>
                             <input
                                     type="text"
-                                    placeholder="e.g. Computer Science / Mechanical"
-                                    id="branch"
+                                    id="college"
+                                    placeholder="Type college name"
                                     autocomplete="off"
-                                    required
                             >
-                            <div id="branch-suggestions" class="college-suggestions"></div>
+                            <div id="college-suggestions" class="college-suggestions"></div>
                         </div>
 
-                        <div class="form-field">
-                            <label for="subject" class="required">Subject</label>
-                            <input type="text" placeholder="e.g. Data Structures" id="subject" required>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="year" class="required">Year</label>
+                                <select id="year">
+                                    <option value="">Select year</option>
+                                    <option>year1</option>
+                                    <option>year2</option>
+                                    <option>year3</option>
+                                    <option>year4</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="semester" class="required">Semester</label>
+                                <select id="semester">
+                                    <option value="">Select semester</option>
+                                    <option>Sem 1</option>
+                                    <option>Sem 2</option>
+                                    <option>Sem 3</option>
+                                    <option>Sem 4</option>
+                                    <option>Sem 5</option>
+                                    <option>Sem 6</option>
+                                    <option>Sem 7</option>
+                                    <option>Sem 8</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-field branch-autocomplete">
+                                <label for="branch" class="required">Branch</label>
+                                <input
+                                        type="text"
+                                        placeholder="e.g. Computer Science / Mechanical"
+                                        id="branch"
+                                        autocomplete="off"
+                                >
+                                <div id="branch-suggestions" class="college-suggestions"></div>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="subject" class="required">Subject</label>
+                                <input type="text" placeholder="e.g. Data Structures" id="subject">
+                            </div>
                         </div>
                     </div>
 
+                    <!-- ══════════════════════════════════════
+                         ED DOC FIELDS
+                    ══════════════════════════════════════ -->
+                    <div id="ed-fields" style="display:none;">
+                        <div class="form-field form-field-full">
+                            <label for="ed-exam-type" class="required">Examination Type</label>
+                            <select id="ed-exam-type">
+                                <option value="">Select exam</option>
+                                <option>JEE Main</option>
+                                <option>JEE Advanced</option>
+                                <option>NEET</option>
+                                <option>BITSAT</option>
+                                <option>VITEEE</option>
+                                <option>MHT CET</option>
+                                <option>CUET</option>
+                                <option>COMEDK</option>
+                                <option>WBJEE</option>
+                                <option>KCET</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="ed-class" class="required">Class</label>
+                                <select id="ed-class">
+                                    <option value="">Select class</option>
+                                    <option>10th</option>
+                                    <option>12th</option>
+                                    <option>Dropper</option>
+                                </select>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="ed-branch" class="required">Subject / Stream</label>
+                                <select id="ed-branch">
+                                    <option value="">Select subject</option>
+                                    <option>Mathematics</option>
+                                    <option>Physics</option>
+                                    <option>Chemistry</option>
+                                    <option>Biology</option>
+                                    <option>English</option>
+                                    <option>General Knowledge</option>
+                                    <option>Reasoning</option>
+                                    <option>Combined (PCM)</option>
+                                    <option>Combined (PCB)</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-field form-field-full">
+                            <label for="ed-doc-name" class="required">Document Name</label>
+                            <input type="text" id="ed-doc-name" placeholder="e.g. JEE Main 2024 Paper 1 Solutions">
+                        </div>
+                    </div>
+
+                    <!-- ── Shared: Chapter / Topic ── -->
                     <div class="form-field form-field-full">
                         <label for="chapter" class="required">Chapter / Topic</label>
-                        <input type="text" placeholder="e.g. Unit 3 Notes / Mid Sem / Trees" id="chapter" required>
+                        <input type="text" placeholder="e.g. Unit 3 Notes / Mid Sem / Trees" id="chapter">
                     </div>
+
                     <div class="form-field form-field-full">
                         <label>Document Access</label>
 
@@ -355,6 +427,7 @@
         <a href="/profile">Profile</a>
         <a href="/contact">ContactUs</a>
         <a href="/privacy_policy">Privacy Policy</a>
+        <a href="/about_us">About Us</a>
         <a href="/logout">Logout</a>
     </div>
 </footer>
@@ -519,6 +592,18 @@
     const uploadBtn = document.getElementById("upload-btn");
     const uploadLoader = document.getElementById("upload-loader");
     const homeBtn = document.querySelector(".logo-wordmark");
+
+    // ── Doc Type Toggle ──────────────────────────────────────
+    const docTypeSelect = document.getElementById("doc-type-select");
+    const collegeFieldsDiv = document.getElementById("college-fields");
+    const edFieldsDiv = document.getElementById("ed-fields");
+
+    docTypeSelect.addEventListener("change", () => {
+        const isEd = docTypeSelect.value === "ed_doc";
+        collegeFieldsDiv.style.display = isEd ? "none" : "";
+        edFieldsDiv.style.display = isEd ? "" : "none";
+    });
+    // ─────────────────────────────────────────────────────────
 
     const collegeInput = document.getElementById("college");
     const suggestionsBox = document.getElementById("college-suggestions");
@@ -998,33 +1083,60 @@
             return;
         }
 
-        const collegeRaw = collegeInput.value.trim();
-        const year = document.getElementById("year").value.trim();
-        const semester = document.getElementById("semester").value.trim();
-        const branch = document.getElementById("branch").value.trim();
-        const subject = document.getElementById("subject").value.trim();
+        const docType = docTypeSelect.value;
         const chapter = document.getElementById("chapter").value.trim();
 
-        if (!collegeRaw || !year || !semester || !branch || !subject || !chapter) {
-            showUploadPopup("error", "Missing Details", "Please fill all metadata fields before uploading.");
-            return;
-        }
+        // ── Variables that will be sent to server ──
+        let college, year, semester, branch, subject;
 
-        const canonicalCollege = getCanonicalCollege(collegeRaw);
-        const isKnownCollege = colleges.some(college => normalizeText(college) === normalizeText(canonicalCollege));
+        if (docType === "college_doc") {
+            // ── College Doc: existing flow ──
+            const collegeRaw = collegeInput.value.trim();
+            year      = document.getElementById("year").value.trim();
+            semester  = document.getElementById("semester").value.trim();
+            branch    = document.getElementById("branch").value.trim();
+            subject   = document.getElementById("subject").value.trim();
 
-        if (!isKnownCollege) {
-            collegeInput.classList.add("college-invalid");
-            showUploadPopup("error", "Invalid College", "Please select a valid college from the suggestions.");
-            return;
-        }
+            if (!collegeRaw || !year || !semester || !branch || !subject || !chapter) {
+                showUploadPopup("error", "Missing Details", "Please fill all metadata fields before uploading.");
+                return;
+            }
 
-        const isKnownBranch = branches.some(item => normalizeText(item) === normalizeText(branch));
+            const canonicalCollege = getCanonicalCollege(collegeRaw);
+            const isKnownCollege = colleges.some(c => normalizeText(c) === normalizeText(canonicalCollege));
+            if (!isKnownCollege) {
+                collegeInput.classList.add("college-invalid");
+                showUploadPopup("error", "Invalid College", "Please select a valid college from the suggestions.");
+                return;
+            }
 
-        if (!isKnownBranch) {
-            branchInput.classList.add("college-invalid");
-            showUploadPopup("error", "Invalid Branch", "Please select a valid branch from the suggestions.");
-            return;
+            const isKnownBranch = branches.some(item => normalizeText(item) === normalizeText(branch));
+            if (!isKnownBranch) {
+                branchInput.classList.add("college-invalid");
+                showUploadPopup("error", "Invalid Branch", "Please select a valid branch from the suggestions.");
+                return;
+            }
+
+            college  = canonicalCollege;
+
+        } else if (docType === "ed_doc") {
+            // ── Ed Doc: map fields onto schema ──
+            const examType = document.getElementById("ed-exam-type").value.trim();
+            const edClass  = document.getElementById("ed-class").value.trim();
+            const edBranch = document.getElementById("ed-branch").value.trim();
+            const docName  = document.getElementById("ed-doc-name").value.trim();
+
+            if (!examType || !edClass || !edBranch || !docName || !chapter) {
+                showUploadPopup("error", "Missing Details", "Please fill all Ed Doc fields before uploading.");
+                return;
+            }
+
+            // Map onto schema fields as requested
+            college  = examType;   // examination type → college
+            year     = edClass;    // class           → year
+            semester = edClass;    // class           → semester (same as year)
+            branch   = edBranch;   // subject/stream  → branch
+            subject  = docName;    // doc name        → subject
         }
 
         uploadBtn.disabled = true;
@@ -1037,10 +1149,10 @@
         const extension = selectedFile.name.split(".").pop();
         const timestamp = Date.now();
 
-        const safeBranch = branch.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+        const safeBranch  = branch.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
         const safeSubject = subject.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
         const safeChapter = chapter.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
-        const safeCollege = canonicalCollege.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+        const safeCollege = college.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
 
         const newFileName =
             `${safeCollege}_${safeBranch}_${safeSubject}_${safeChapter}_${semester}_${timestamp}.${extension}`;
@@ -1053,18 +1165,18 @@
 
         const formData = new FormData();
 
-// 🔥 GET TOGGLE VALUE
         const isProtected = document.getElementById("protected-toggle").checked;
 
         formData.append("file", renamedFile);
-        formData.append("college", canonicalCollege);
+        formData.append("college", college);
         formData.append("year", year);
         formData.append("semester", semester);
         formData.append("branch", branch);
         formData.append("subject", subject);
         formData.append("chapter", chapter);
+        formData.append("doc_type", docType);
 
-// 🔥 SEND TO BACKEND
+        // 🔥 SEND TO BACKEND
         formData.append("protected", isProtected);
 
         try {
@@ -1079,6 +1191,7 @@
             uploadBtn.disabled = false;
 
             if (res.ok && data.success) {
+                // Reset college doc fields
                 collegeInput.value = "";
                 collegeInput.dataset.selected = "false";
                 collegeInput.classList.remove("college-invalid");
@@ -1091,6 +1204,12 @@
 
                 branchInput.dataset.selected = "false";
                 branchInput.classList.remove("college-invalid");
+
+                // Reset ed_doc fields
+                document.getElementById("ed-exam-type").value = "";
+                document.getElementById("ed-class").value = "";
+                document.getElementById("ed-branch").value = "";
+                document.getElementById("ed-doc-name").value = "";
 
                 selectedFile = null;
                 fileInput.value = "";
@@ -1132,5 +1251,6 @@
 
     resetPreviewCard();
 </script>
+<%- include('partials/page-loader') %>
 </body>
 </html>

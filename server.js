@@ -2284,7 +2284,9 @@ app.get("/uploads", async (req, res) => {
 
             res.render("uploads", {
                 data: data,
-                colleges: uniqueColleges
+                colleges: uniqueColleges,
+                // Temporary restriction: only DocUp Developers can upload
+                canUpload: data?.user_type === "DocUp Developer"
             });
 
         });
@@ -2317,6 +2319,17 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "User not found"
+            });
+        }
+
+        // 🔒 TEMPORARY RESTRICTION — Developer uploads only
+        if (user.user_type !== "DocUp Developer") {
+            if (req.file?.path && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
+            return res.status(403).json({
+                success: false,
+                message: "uploads_restricted"
             });
         }
 
@@ -2984,7 +2997,7 @@ app.get("/update_dislikes/:id", async (req, res) => {
         const userEmail = req.session.email;
 
         if (!userEmail) {
-            return res.redirect("/login");
+            return res.redirect("/signin");
         }
 
         const doc = await Docs.findById(req.params.id);
@@ -4013,10 +4026,10 @@ app.post("/subscription/verify", async (req, res) => {
  * GET /pricing  (updated)
  */
 app.get("/pricing", async (req, res) => {
-    if (!req.user) return res.redirect("/login");
+    if (!req.session.email) return res.redirect("/signin");
 
     try {
-        const user       = await user_profile.findOne({ email: req.user.email }).lean();
+        const user       = await user_profile.findOne({ email: req.session.email }).lean();
         const activeSale = await SaleConfig.getActiveSale();
 
         // Only pass the sale to this page if it applies
@@ -4039,10 +4052,10 @@ app.get("/pricing", async (req, res) => {
  * GET /upgrade-plans  (updated)
  */
 app.get("/upgrade-plans", async (req, res) => {
-    if (!req.user) return res.redirect("/login");
+    if (!req.session.email) return res.redirect("/signin");
 
     try {
-        const user       = await user_profile.findOne({ email: req.user.email }).lean();
+        const user       = await user_profile.findOne({ email: req.session.email }).lean();
         const activeSale = await SaleConfig.getActiveSale();
 
         const saleForPage = activeSale && (
