@@ -275,6 +275,10 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+const isProduction = process.env.NODE_ENV === "production";
+app.set("trust proxy", 1); // Required for secure cookies behind Render/nginx proxy
+
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -286,7 +290,9 @@ const sessionMiddleware = session({
     }),
     cookie: {
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: isProduction,                      // true on prod (HTTPS), false on localhost
+        sameSite: isProduction ? "none" : "lax"    // "none" required for cross-site on prod
     }
 });
 
@@ -1682,20 +1688,29 @@ app.post('/signin', async (req, res) => {
     }
 
     if (password === user.password) {
-        req.session.email = normalizedEmail;
+        // Use req.login() so Passport serializes the user and populates
+        // req.user on all subsequent requests (fixes coupon/API auth checks)
+        return req.login(user, (err) => {
+            if (err) {
+                console.error("req.login error:", err);
+                return res.render('signin', { err: { message: "Login failed. Please try again." } });
+            }
 
-        let redirectTo = "/profile";
+            // Keep legacy session.email for any routes that still rely on it
+            req.session.email = normalizedEmail;
 
-        if (
-            next &&
-            typeof next === "string" &&
-            next.startsWith("/") &&
-            !next.startsWith("//")
-        ) {
-            redirectTo = next;
-        }
+            let redirectTo = "/profile";
+            if (
+                next &&
+                typeof next === "string" &&
+                next.startsWith("/") &&
+                !next.startsWith("//")
+            ) {
+                redirectTo = next;
+            }
 
-        return res.redirect(redirectTo);
+            return res.redirect(redirectTo);
+        });
     }
 
     return res.render('signin', {
