@@ -291,23 +291,24 @@
         }
     %>
 
-    <div class="pricing-card starter">
-        <p class="plan-tag">Basic</p>
-        <h2>Prep</h2>
+
+    <div class="pricing-card premium">
+        <p class="plan-tag">Pro</p>
+        <h2>Topper</h2>
         <div class="price-row">
             <% if (saleConfig) { %>
-            <span class="price-original">₹<%= RECHARGE_PLANS.starter.amount %></span>
+                <span class="price-original">₹<%= RECHARGE_PLANS.pro.amount %></span>
             <% } %>
             <span class="currency">₹</span>
-            <span class="price" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
+            <span class="price" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
         </div>
-        <p class="docscore-count">+20 DocScore</p>
+        <p class="docscore-count">+180 DocScore</p>
         <div class="features">
-            <div class="feature">Access more protected documents</div>
-            <div class="feature">Low-cost quick recharge</div>
-            <div class="feature">Perfect for casual users</div>
+            <div class="feature">Best value overall</div>
+            <div class="feature">Ideal for heavy users</div>
+            <div class="feature">Longer uninterrupted access</div>
         </div>
-        <button type="button" class="buy-btn recharge-btn" data-plan="starter" data-base="<%= RECHARGE_PLANS.starter.amount %>" data-original="<%= RECHARGE_PLANS.starter.amount %>">
+        <button type="button" class="buy-btn recharge-btn" data-plan="pro" data-base="<%= RECHARGE_PLANS.pro.amount %>" data-original="<%= RECHARGE_PLANS.pro.amount %>">
             Recharge Now
         </button>
     </div>
@@ -333,24 +334,23 @@
             Recharge Now
         </button>
     </div>
-
-    <div class="pricing-card premium">
-        <p class="plan-tag">Pro</p>
-        <h2>Topper</h2>
+    <div class="pricing-card starter">
+        <p class="plan-tag">Basic</p>
+        <h2>Prep</h2>
         <div class="price-row">
             <% if (saleConfig) { %>
-            <span class="price-original">₹<%= RECHARGE_PLANS.pro.amount %></span>
+                <span class="price-original">₹<%= RECHARGE_PLANS.starter.amount %></span>
             <% } %>
             <span class="currency">₹</span>
-            <span class="price" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
+            <span class="price" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
         </div>
-        <p class="docscore-count">+180 DocScore</p>
+        <p class="docscore-count">+20 DocScore</p>
         <div class="features">
-            <div class="feature">Best value overall</div>
-            <div class="feature">Ideal for heavy users</div>
-            <div class="feature">Longer uninterrupted access</div>
+            <div class="feature">Access more protected documents</div>
+            <div class="feature">Low-cost quick recharge</div>
+            <div class="feature">Perfect for casual users</div>
         </div>
-        <button type="button" class="buy-btn recharge-btn" data-plan="pro" data-base="<%= RECHARGE_PLANS.pro.amount %>" data-original="<%= RECHARGE_PLANS.pro.amount %>">
+        <button type="button" class="buy-btn recharge-btn" data-plan="starter" data-base="<%= RECHARGE_PLANS.starter.amount %>" data-original="<%= RECHARGE_PLANS.starter.amount %>">
             Recharge Now
         </button>
     </div>
