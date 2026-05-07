@@ -90,7 +90,7 @@ const user_profile = new mongoose.Schema({
     Doc_score: {
         type: Number,
         required: true,
-        default: 5
+        default: 2
     },
 
     uploads: [
