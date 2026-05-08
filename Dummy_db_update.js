@@ -6,27 +6,27 @@ dotenv.config();
 
 async function run() {
     try {
+        // Connect to DB
         await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected to DB ✅");
 
-        const result = await USER.updateMany(
-            {}, // all users (you can add filters if needed)
-            {
-                $push: {
-                    notifications: {
-                        email: "",
-                        content: "🎉 Use coupon code ENDSEM10 to get ₹10 off on your next purchase!",
-                        category: "payment",
-                        createdAt: new Date(),
-                        isRead: false
-                    }
-                }
-            }
-        );
+        // Fetch only emails where Doc_score = 0
+        const users = await USER.find({ Doc_score: 0 }).select("email -_id");
 
-        console.log(`Notification sent to ${result.modifiedCount} users 🚀`);
+        if (users.length === 0) {
+            console.log("No users found with Doc_score = 0");
+        } else {
+            console.log("Emails of users with Doc_score = 0:\n");
+
+            users.forEach(user => {
+                console.log(user.email);
+            });
+
+            console.log(`\nTotal users: ${users.length}`);
+        }
 
         process.exit(0);
+
     } catch (err) {
         console.error("Error ❌:", err.message);
         process.exit(1);

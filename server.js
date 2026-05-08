@@ -102,7 +102,7 @@ async function invalidatePattern(pattern) {
         console.error(`Redis invalidatePattern error [${pattern}]:`, err.message);
     }
 }
-const upload = multer({dest:"uploads/"});import { execFile } from "child_process";
+const upload = multer({ storage: multer.memoryStorage() });import { execFile } from "child_process";
 import os from "os";
 /******************************
  Middleware
@@ -2328,9 +2328,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
         const user = await user_profile.findOne({ email: req.session.email });
 
         if (!user) {
-            if (req.file?.path && fs.existsSync(req.file.path)) {
-                fs.unlinkSync(req.file.path);
-            }
             return res.status(401).json({
                 success: false,
                 message: "User not found"
@@ -2339,9 +2336,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         // 🔒 TEMPORARY RESTRICTION — Developer uploads only
         if (user.user_type !== "DocUp Developer") {
-            if (req.file?.path && fs.existsSync(req.file.path)) {
-                fs.unlinkSync(req.file.path);
-            }
             return res.status(403).json({
                 success: false,
                 message: "uploads_restricted"
@@ -2365,9 +2359,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         // ❌ VALIDATION
         if (!college || !year || !semester || !branch || !subject || !chapter) {
-            if (req.file?.path && fs.existsSync(req.file.path)) {
-                fs.unlinkSync(req.file.path);
-            }
             return res.status(400).json({
                 success: false,
                 message: "Please fill all metadata fields"
@@ -2392,7 +2383,7 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
         const fileName = `${safeBaseName || "doc"}_${timestamp}.${extension}`;
         const storagePath = `docs/${safeCollege}/${safeBranch}/${safeSubject}/${safeChapter}/${fileName}`;
 
-        const fileBuffer = fs.readFileSync(req.file.path);
+        const fileBuffer = req.file.buffer;
 
         // ☁️ UPLOAD TO SUPABASE
         const { error: uploadError } = await supabase.storage
@@ -2404,10 +2395,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         if (uploadError) {
             console.error("Supabase upload error:", uploadError);
-
-            if (req.file?.path && fs.existsSync(req.file.path)) {
-                fs.unlinkSync(req.file.path);
-            }
 
             return res.status(500).json({
                 success: false,
@@ -2454,11 +2441,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             }
         );
 
-        // 🧹 CLEAN TEMP FILE
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-        }
-
         // 🔄 INVALIDATE CACHES affected by new upload
         await Promise.all([
             invalidate(`college:docs:${(college || "").toLowerCase()}`),
@@ -2475,12 +2457,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
     } catch (err) {
         console.error("Upload failed:", err);
-
-        if (req.file?.path && fs.existsSync(req.file.path)) {
-            try {
-                fs.unlinkSync(req.file.path);
-            } catch {}
-        }
 
         return res.status(500).json({
             success: false,
