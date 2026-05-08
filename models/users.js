@@ -116,8 +116,9 @@ const user_profile = new mongoose.Schema({
         default: "Free Tier"
     },
 
-    // Razorpay subscription tracking — required for the PENDING-reuse fix
-    // so duplicate mandates are not created on repeated button clicks
+    // These three fields MUST be in the schema or Mongoose strict mode
+    // silently drops them — which caused subscription_id to never be saved,
+    // making the PENDING-reuse logic in /buy-subscription unable to work.
     subscription_id: {
         type: String,
         default: null

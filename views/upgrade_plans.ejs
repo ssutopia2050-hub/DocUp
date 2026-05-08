@@ -40,6 +40,110 @@
             letter-spacing: 0.06em;
         }
 
+        /* ── Under Revision Popup ── */
+        .revision-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: overlayFadeIn 0.3s ease;
+        }
+        @keyframes overlayFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .revision-modal {
+            background: #0f0f0f;
+            border: 1px solid rgba(255, 94, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px 36px 32px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 94, 0, 0.15), 0 24px 60px rgba(0,0,0,0.6);
+            animation: modalSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            font-family: 'DM Sans', sans-serif;
+        }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0)   scale(1); }
+        }
+        .revision-modal .modal-icon {
+            font-size: 2.6rem;
+            margin-bottom: 14px;
+            display: block;
+        }
+        .revision-modal .modal-badge {
+            display: inline-block;
+            background: rgba(255, 94, 0, 0.12);
+            border: 1px solid rgba(255, 94, 0, 0.35);
+            color: #ff6a1a;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 20px;
+            padding: 4px 14px;
+            margin-bottom: 18px;
+        }
+        .revision-modal h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 14px;
+            line-height: 1.3;
+        }
+        .revision-modal p {
+            font-size: 0.92rem;
+            color: rgba(255, 255, 255, 0.62);
+            line-height: 1.65;
+            margin: 0 0 10px;
+        }
+        .revision-modal .go-live-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-size: 0.87rem;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+            margin: 14px 0 24px;
+        }
+        .revision-modal .go-live-tag strong {
+            color: #fff;
+            font-weight: 700;
+        }
+        .revision-modal .modal-btn-primary {
+            display: block;
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #ff5e00, #ff8c00);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-bottom: 12px;
+            transition: opacity 0.2s, transform 0.15s;
+            letter-spacing: 0.01em;
+        }
+        .revision-modal .modal-btn-primary:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
         /* ── Strike-through original price when sale active ── */
         .price-original {
             font-size: 1rem;
@@ -51,6 +155,28 @@
     </style>
 </head>
 <body>
+
+<!-- ══════════════════════════════════════════════════════════
+     UNDER REVISION POPUP
+════════════════════════════════════════════════════════════ -->
+<div class="revision-overlay" id="revisionOverlay">
+    <div class="revision-modal">
+        <span class="modal-icon">🔧</span>
+        <span class="modal-badge">Under Revision</span>
+        <h2>Upgrade Plans Are Being Revised</h2>
+        <p>
+            We're reworking our subscription plans to optimise costs and deliver
+            the best academic material at the most affordable prices for you.
+        </p>
+        <div class="go-live-tag">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            Plans will go live on <strong>20th May 2025</strong>
+        </div>
+        <a href="/pricing" class="modal-btn-primary">
+            ⚡&nbsp; Recharge DocScore Now
+        </a>
+    </div>
+</div>
 
 <!-- ══════════════════════════════════════════════════════════
      SALE BANNER — only rendered when a sale is active
@@ -280,6 +406,11 @@
 
 <script>
 /* ──────────────────────────────────────────────────────────────
+   UNDER REVISION POPUP — permanent, cannot be dismissed
+────────────────────────────────────────────────────────────── */
+document.body.style.overflow = "hidden"; // lock scroll behind overlay
+
+/* ──────────────────────────────────────────────────────────────
    AVATAR DROPDOWN
 ────────────────────────────────────────────────────────────── */
 const avatarBtn      = document.getElementById("avatarBtn");
@@ -299,86 +430,119 @@ if (avatarBtn && avatarDropdown) {
 
 /* ──────────────────────────────────────────────────────────────
    SUBSCRIPTION BUTTONS
+   
+   KEY FIX: We cache the subscriptionId returned by the first
+   /buy-subscription call and reuse it if the user dismisses
+   the modal and clicks again. This prevents a new Razorpay
+   subscription (and UPI mandate) being created on every retry,
+   which was causing the "autopay already exists" error on GPay.
 ────────────────────────────────────────────────────────────── */
 const buttons = document.querySelectorAll(".subscription-btn");
 
-buttons.forEach((btn) => {
-    btn.addEventListener("click", async () => {
-        const originalText = btn.innerText;
+// Per-button cache: { subscriptionId, key, userEmail, planLabel }
+// Cleared only on successful payment or plan change
+const subCache = new Map();
 
-        try {
-            btn.disabled = true;
-            btn.innerText = "Please wait...";
+async function openRazorpayModal(btn, plan, originalText) {
+    btn.disabled  = true;
+    btn.innerText = "Please wait...";
 
-            const plan = btn.dataset.plan;
+    try {
+        let cached = subCache.get(plan);
 
+        // Only call /buy-subscription if we don't already have a sub for this plan
+        if (!cached) {
             const response = await fetch("/buy-subscription", {
                 method:  "POST",
                 headers: { "Content-Type": "application/json" },
                 body:    JSON.stringify({ plan })
             });
-
             const data = await response.json();
 
             if (!data.success) {
                 alert(data.message || "Could not start subscription");
-                btn.disabled = false;
+                btn.disabled  = false;
                 btn.innerText = originalText;
                 return;
             }
 
-            const options = {
-                key:             data.key,
-                subscription_id: data.subscriptionId,
-                name:            "DocUp",
-                description:     data.planLabel || "DocUp Monthly Subscription",
-                prefill:         { email: data.userEmail },
-                theme:           { color: "#ff5e00" },
-                handler: async function (paymentResponse) {
-                    try {
-                        const verifyRes = await fetch("/subscription/verify", {
-                            method:  "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body:    JSON.stringify({ ...paymentResponse, plan })
-                        });
-                        const verifyData = await verifyRes.json();
-
-                        if (verifyData.success) {
-                            window.location.href = verifyData.redirectUrl || "/profile";
-                        } else {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                            alert(verifyData.message || "Subscription verification failed");
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        btn.disabled = false;
-                        btn.innerText = originalText;
-                        alert("Subscription verification failed");
-                    }
-                },
-                modal: {
-                    ondismiss: function () {
-                        btn.disabled = false;
-                        btn.innerText = originalText;
-                    }
-                }
+            cached = {
+                subscriptionId: data.subscriptionId,
+                key:            data.key,
+                userEmail:      data.userEmail,
+                planLabel:      data.planLabel
             };
-
-            const rzp = new Razorpay(options);
-            rzp.on("payment.failed", function () {
-                btn.disabled = false;
-                btn.innerText = originalText;
-                alert("Payment failed. Please try again.");
-            });
-            rzp.open();
-
-        } catch (err) {
-            console.error(err);
-            alert("Something went wrong");
-            btn.disabled = false;
-            btn.innerText = originalText;
+            subCache.set(plan, cached);
+        } else {
+            // Reusing cached sub — re-enable button label immediately
+            btn.innerText = "Opening payment...";
         }
+
+        const options = {
+            key:             cached.key,
+            subscription_id: cached.subscriptionId,
+            name:            "DocUp",
+            description:     cached.planLabel || "DocUp Monthly Subscription",
+            prefill:         { email: cached.userEmail },
+            theme:           { color: "#ff5e00" },
+            handler: async function (paymentResponse) {
+                // Payment done — clear cache for this plan
+                subCache.delete(plan);
+                try {
+                    const verifyRes = await fetch("/subscription/verify", {
+                        method:  "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body:    JSON.stringify({ ...paymentResponse, plan })
+                    });
+                    const verifyData = await verifyRes.json();
+
+                    if (verifyData.success) {
+                        window.location.href = verifyData.redirectUrl || "/profile";
+                    } else {
+                        btn.disabled  = false;
+                        btn.innerText = originalText;
+                        alert(verifyData.message || "Subscription verification failed");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    btn.disabled  = false;
+                    btn.innerText = originalText;
+                    alert("Subscription verification failed");
+                }
+            },
+            modal: {
+                ondismiss: function () {
+                    // Do NOT clear subCache here — we want to reuse the same
+                    // subscription_id if the user clicks again for the same plan
+                    btn.disabled  = false;
+                    btn.innerText = originalText;
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.on("payment.failed", function () {
+            // On hard failure clear cache so a fresh sub is created next time
+            subCache.delete(plan);
+            btn.disabled  = false;
+            btn.innerText = originalText;
+            alert("Payment failed. Please try again.");
+        });
+        rzp.open();
+
+    } catch (err) {
+        console.error(err);
+        alert("Something went wrong");
+        btn.disabled  = false;
+        btn.innerText = originalText;
+    }
+}
+
+buttons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const plan         = btn.dataset.plan;
+        const originalText = btn.innerText;
+        openRazorpayModal(btn, plan, originalText);
     });
 });
 </script>
