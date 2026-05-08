@@ -116,6 +116,24 @@ const user_profile = new mongoose.Schema({
         default: "Free Tier"
     },
 
+    // Razorpay subscription tracking — required for the PENDING-reuse fix
+    // so duplicate mandates are not created on repeated button clicks
+    subscription_id: {
+        type: String,
+        default: null
+    },
+
+    subscription_status: {
+        type: String,
+        enum: ["PENDING", "ACTIVE", "PAST_DUE", "CANCELLED", null],
+        default: null
+    },
+
+    subscription_plan_key: {
+        type: String,
+        default: null
+    },
+
     user_type: {
         type: String,
         required: true,

@@ -3887,7 +3887,6 @@ app.post("/buy-subscription", async (req, res) => {
             key_secret: process.env.RAZORPAY_KEY_SECRET
         });
 
-        // ── Create the Razorpay subscription (unchanged plan_id logic)
         // ── Map plan key → Razorpay plan_id
         const RAZORPAY_PLAN_IDS = {
             essential_monthly: process.env.RAZORPAY_PLAN_ESSENTIAL_MONTHLY,
@@ -3900,25 +3899,73 @@ app.post("/buy-subscription", async (req, res) => {
             return res.status(400).json({ success: false, message: `Razorpay plan not configured for: ${plan}` });
         }
 
-        // ── Create the Razorpay subscription
-        const subscription = await razorpay.subscriptions.create({
-            plan_id:         razorpayPlanId,
-            customer_notify: 1,
-            quantity:        1,
-            total_count:     12
-        });
+        // ── ROOT CAUSE FIX: Guard against creating duplicate subscriptions.
+        //
+        // Previously every button click called razorpay.subscriptions.create()
+        // unconditionally. Razorpay/UPI then sees multiple autopay mandates for
+        // the same customer and blocks subsequent ones with "autopay already created".
+        //
+        // Fix logic:
+        //   ACTIVE  → reject, user is already subscribed
+        //   PENDING + same plan + sub still open on Razorpay → reuse it (user just
+        //             dismissed the modal last time, reopen with the same sub_id)
+        //   PENDING + different plan OR sub expired on Razorpay → cancel stale sub,
+        //             then fall through to create a fresh one
+        const existingUser      = await user_profile.findOne({ email: req.user.email }).lean();
+        const existingSubId     = existingUser?.subscription_id;
+        const existingSubStatus = existingUser?.subscription_status;
+        const existingPlanKey   = existingUser?.subscription_plan_key;
 
-        // ── Persist subscription metadata for the webhook
-        await user_profile.findOneAndUpdate(
-            { email: req.user.email },
-            {
-                $set: {
-                    subscription_id:       subscription.id,
-                    subscription_plan_key: plan,
-                    subscription_status:   "PENDING"
+        if (existingSubId && existingSubStatus === "ACTIVE") {
+            return res.status(400).json({
+                success: false,
+                message: "You already have an active subscription. Cancel it before switching plans."
+            });
+        }
+
+        let subscription = null;
+
+        if (existingSubId && existingSubStatus === "PENDING") {
+            try {
+                const existingSub = await razorpay.subscriptions.fetch(existingSubId);
+                // Razorpay statuses still usable: "created" or "authenticated"
+                const reusable = ["created", "authenticated"].includes(existingSub.status);
+                if (reusable && existingPlanKey === plan) {
+                    // Same plan, still open on Razorpay → reuse, skip creating a new one
+                    subscription = existingSub;
+                    console.log(`[buy-subscription] Reusing PENDING sub ${existingSubId} for ${req.user.email}`);
+                } else {
+                    // Wrong plan or already expired/halted on Razorpay → cancel & recreate
+                    if (reusable) {
+                        try { await razorpay.subscriptions.cancel(existingSubId); } catch (_) {}
+                    }
                 }
+            } catch (fetchErr) {
+                // Sub not found on Razorpay (deleted etc.) — just create a fresh one
+                console.warn(`[buy-subscription] Could not fetch sub ${existingSubId}:`, fetchErr.message);
             }
-        );
+        }
+
+        if (!subscription) {
+            subscription = await razorpay.subscriptions.create({
+                plan_id:         razorpayPlanId,
+                customer_notify: 1,
+                quantity:        1,
+                total_count:     12
+            });
+
+            // Persist the new sub so we can reuse it on the next attempt
+            await user_profile.findOneAndUpdate(
+                { email: req.user.email },
+                {
+                    $set: {
+                        subscription_id:       subscription.id,
+                        subscription_plan_key: plan,
+                        subscription_status:   "PENDING"
+                    }
+                }
+            );
+        }
 
         // ── Store coupon intent so /subscription/verify can mark it used
         if (coupon) {

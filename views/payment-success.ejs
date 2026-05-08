@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/page-loader.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <title>Recharge Successful | DocUp</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --orange: #ff5e00;
+            --orange-dim: rgba(255,94,0,0.15);
+            --green: #4ade80;
+            --green-dim: rgba(74,222,128,0.12);
+            --bg: #0d0d0f;
+            --surface: rgba(255,255,255,0.04);
+            --border: rgba(255,255,255,0.08);
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--bg);
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── Particle canvas ── */
+        #particle-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Center card ── */
+        .success-wrap {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .success-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 28px;
+            padding: 52px 48px 44px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(28px) scale(0.96);
+            animation: card-enter 0.55s cubic-bezier(0.34,1.38,0.64,1) 0.1s forwards;
+        }
+
+        .success-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%; transform: translateX(-50%);
+            width: 240px; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            border-radius: 1px;
+            opacity: 0;
+            animation: top-line 0.6s ease 0.6s forwards;
+        }
+
+        @keyframes card-enter {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes top-line {
+            to { opacity: 1; }
+        }
+
+        /* ── Icon ring ── */
+        .check-ring {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 28px;
+            border-radius: 50%;
+            background: var(--green-dim);
+            border: 1.5px solid rgba(74,222,128,0.28);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            opacity: 0;
+            animation: ring-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.55s forwards;
+        }
+        .check-ring::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 1px solid rgba(74,222,128,0.1);
+            animation: ring-pulse 2s ease-in-out 1.2s infinite;
+        }
+        @keyframes ring-pop {
+            0%   { opacity:0; transform: scale(0.5); }
+            100% { opacity:1; transform: scale(1); }
+        }
+        @keyframes ring-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50%       { opacity: 0;   transform: scale(1.35); }
+        }
+
+        .check-ring svg { color: var(--green); }
+
+        /* ── Heading ── */
+        .success-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--green);
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fade-up 0.4s ease 0.75s forwards;
+        }
+
+        .success-title {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 900;
+            font-size: 2.1rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: #fff;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fade-up 0.4s ease 0.85s forwards;
+        }
+
+        .success-sub {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.45);
+            line-height: 1.6;
+            margin-bottom: 32px;
+            opacity: 0;
+            animation: fade-up 0.4s ease 0.95s forwards;
+        }
+
+        @keyframes fade-up {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── DocScore burst ── */
+        .score-burst {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: var(--green-dim);
+            border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 20px;
+            padding: 20px 36px;
+            margin-bottom: 36px;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fade-up 0.45s cubic-bezier(0.34,1.4,0.64,1) 1.05s forwards;
+        }
+
+        .score-burst::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(74,222,128,0.08), transparent 70%);
+            pointer-events: none;
+        }
+
+        .score-added-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(74,222,128,0.6);
+        }
+
+        .score-added-num {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 900;
+            font-size: 3.4rem;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            color: var(--green);
+            /* counting animation driven by JS */
+        }
+
+        .score-added-unit {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: rgba(74,222,128,0.55);
+            letter-spacing: 0.05em;
+        }
+
+        /* bonus badge */
+        .bonus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,173,100,0.1);
+            border: 1px solid rgba(255,173,100,0.2);
+            color: #ffad64;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-top: 8px;
+        }
+
+        /* ── "Do not reload" warning ── */
+        .no-reload-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,200,0,0.05);
+            border: 1px solid rgba(255,200,0,0.18);
+            border-radius: 12px;
+            padding: 11px 16px;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fade-up 0.4s ease 1.1s forwards;
+        }
+
+        .no-reload-icon {
+            flex-shrink: 0;
+            color: #fbbf24;
+        }
+
+        .no-reload-text {
+            font-size: 0.78rem;
+            color: rgba(255,200,100,0.75);
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        /* ── Progress / redirect ── */
+        .redirect-row {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            animation: fade-up 0.4s ease 1.2s forwards;
+        }
+
+        .redirect-label {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange), #ffad64);
+            border-radius: 4px;
+            transition: width linear;
+        }
+
+        .redirect-btn {
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.55);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            border-radius: 30px;
+            padding: 9px 20px;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+            text-decoration: none;
+        }
+        .redirect-btn:hover {
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* ── Confetti particles (CSS only) ── */
+        .confetti-piece {
+            position: fixed;
+            top: -10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            opacity: 0;
+            animation: confetti-fall linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0%   { opacity: 1; transform: translateY(0)   rotate(0deg); }
+            100% { opacity: 0; transform: translateY(110vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<div class="success-wrap">
+    <div class="success-card">
+
+        <div class="check-ring">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+
+        <p class="success-label">Payment Confirmed</p>
+        <h1 class="success-title">DocScore Added!</h1>
+        <p class="success-sub">Your recharge was verified. Your new DocScore balance is ready to use.</p>
+
+        <div class="score-burst">
+            <span class="score-added-label">DocScore Added</span>
+            <span class="score-added-num" id="score-num">0</span>
+            <span class="score-added-unit">DocScore · = &nbsp;<%= docscore %> doc<%= docscore !== 1 ? 's' : '' %> you can access</span>
+            <% if (bonusDocscore && bonusDocscore > 0) { %>
+            <span class="bonus-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                </svg>
+                Includes <%= bonusDocscore %> bonus DocScore from coupon
+            </span>
+            <% } %>
+        </div>
+
+        <div class="no-reload-bar">
+            <span class="no-reload-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <p class="no-reload-text">Please <strong>don't reload</strong> this page — your DocScore is being confirmed. You'll be redirected automatically.</p>
+        </div>
+
+        <div class="redirect-row">
+            <p class="redirect-label" id="redirect-label">Redirecting to your profile in <span id="countdown">4</span>s…</p>
+            <div class="progress-track">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <a href="/profile" class="redirect-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Go to Profile now
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    /* ── DocScore passed from server ── */
+    const TOTAL_SCORE = <%= docscore %>;
+    const REDIRECT_DELAY = 4500; // ms
+
+    /* ── Count-up animation ── */
+    function countUp(el, target, duration) {
+        const start = performance.now();
+        function step(now) {
+            const t = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - t, 3);
+            el.textContent = Math.round(ease * target);
+            if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    /* Start count-up after card animates in */
+    setTimeout(() => {
+        countUp(document.getElementById('score-num'), TOTAL_SCORE, 1200);
+    }, 1150);
+
+    /* ── Progress bar + countdown + redirect ── */
+    const TICK = 50;
+    let elapsed = 0;
+    const progressBar = document.getElementById('progress-bar');
+    const countdownEl = document.getElementById('countdown');
+
+    const timer = setInterval(() => {
+        elapsed += TICK;
+        const pct = Math.min((elapsed / REDIRECT_DELAY) * 100, 100);
+        progressBar.style.width = pct + '%';
+        const remaining = Math.max(0, Math.ceil((REDIRECT_DELAY - elapsed) / 1000));
+        countdownEl.textContent = remaining;
+        if (elapsed >= REDIRECT_DELAY) {
+            clearInterval(timer);
+            window.location.href = '/profile';
+        }
+    }, TICK);
+
+    /* ── Confetti burst ── */
+    const COLORS = ['#4ade80', '#ff5e00', '#ffad64', '#60a5fa', '#fff'];
+    function spawnConfetti() {
+        for (let i = 0; i < 55; i++) {
+            const el = document.createElement('div');
+            el.className = 'confetti-piece';
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
+            el.style.width  = (6 + Math.random() * 8) + 'px';
+            el.style.height = (6 + Math.random() * 8) + 'px';
+            el.style.animationDuration = (2 + Math.random() * 2.5) + 's';
+            el.style.animationDelay    = (Math.random() * 0.6) + 's';
+            el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            document.body.appendChild(el);
+            el.addEventListener('animationend', () => el.remove());
+        }
+    }
+    setTimeout(spawnConfetti, 650);
+
+    /* ── Subtle particle canvas bg ── */
+    const canvas = document.getElementById('particle-canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < 40; i++) {
+        particles.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            r: 1 + Math.random() * 2,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: -0.2 - Math.random() * 0.3,
+            a: 0.1 + Math.random() * 0.3
+        });
+    }
+
+    function drawParticles() {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(74,222,128,${p.a})`;
+            ctx.fill();
+            p.x += p.vx; p.y += p.vy;
+            if (p.y < -10) { p.y = H + 10; p.x = Math.random() * W; }
+        });
+        requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+</script>
+
+<%- include('partials/page-loader') %>
+</body>
+</html>

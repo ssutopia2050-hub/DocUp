@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Coupon from "./models/Coupon.js";
+import USER from "./models/users.js";
 
 dotenv.config();
 
@@ -9,20 +9,22 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected to DB ✅");
 
-        const coupon = new Coupon({
-            code: "LAUNCH50",
-            type: "flat",           // "flat" or "docscore"
-            flat_discount: 50,      // ₹50 off
-            docscore_bonus: 0,      // only used if type = "docscore"
-            max_uses: 100,
-            applies_to: "both",     // "recharge" | "subscription" | "both"
-            description: "Test launch coupon",
-            active: true
-        });
+        const result = await USER.updateMany(
+            {}, // all users (you can add filters if needed)
+            {
+                $push: {
+                    notifications: {
+                        email: "",
+                        content: "🎉 Use coupon code ENDSEM10 to get ₹10 off on your next purchase!",
+                        category: "payment",
+                        createdAt: new Date(),
+                        isRead: false
+                    }
+                }
+            }
+        );
 
-        await coupon.save();
-
-        console.log("Coupon created 🚀:", coupon.code);
+        console.log(`Notification sent to ${result.modifiedCount} users 🚀`);
 
         process.exit(0);
     } catch (err) {
