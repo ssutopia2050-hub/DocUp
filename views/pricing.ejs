@@ -502,11 +502,11 @@
         </div>
 
         <div class="cr-slider-wrap">
-            <input type="range" id="cr-slider" class="cr-slider" min="10" max="500" step="2" value="100">
+            <input type="range" id="cr-slider" class="cr-slider" min="20" max="500" step="2" value="100">
         </div>
 
         <div class="cr-range-labels">
-            <span>₹10</span><span>₹500</span>
+            <span>₹20</span><span>₹500</span>
         </div>
 
         <div class="cr-divider"></div>
@@ -854,12 +854,12 @@ const payBtn    = document.getElementById("cr-pay-btn");
 const chips     = document.querySelectorAll(".cr-chip");
 
 function syncSliderFill(val) {
-    const pct = ((val - 10) / (500 - 10)) * 100;
+    const pct = ((val - 20) / (500 - 20)) * 100;
     slider.style.background = `linear-gradient(to right,#ff5e00 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
 }
 
 function updateUI(val) {
-    val = Math.max(10, Math.min(500, Math.round(val / 2) * 2));
+    val = Math.max(20, Math.min(500, Math.round(val / 2) * 2));
     slider.value = val;
     amountNum.textContent = val;
     scoreNum.textContent  = Math.floor(val / RATE);
@@ -887,7 +887,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal()
 updateUI(100);
 
 payBtn.addEventListener("click", async () => {
-    const amount = Math.max(10, Math.min(500, Math.round(+slider.value / 2) * 2));
+    const amount = Math.max(20, Math.min(500, Math.round(+slider.value / 2) * 2));
     const orig   = payBtn.innerHTML;
 
     payBtn.disabled = true;

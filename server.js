@@ -3691,7 +3691,7 @@ app.post("/buy-recharge", async (req, res) => {
         let baseAmount, docscoreToAdd, planLabel;
 
         if (plan === "custom") {
-            const amt = Math.max(10, Math.min(500, Math.round(Number(customAmount) / 2) * 2));
+            const amt = Math.max(20, Math.min(500, Math.round(Number(customAmount) / 2) * 2));
             baseAmount    = amt;
             docscoreToAdd = Math.floor(amt);   // 1:1 rate — adjust to your RATE constant
             planLabel     = `Custom ₹${amt}`;
