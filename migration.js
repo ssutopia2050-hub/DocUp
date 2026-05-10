@@ -1,87 +1,57 @@
 import mongoose from "mongoose";
-import fetch from "node-fetch";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
-import Docs from "./models/Docs.js";
+import USER from "./models/users.js";
 
 dotenv.config();
 
-// 🔗 Connect MongoDB
-await mongoose.connect(process.env.MONGO_URI);
-console.log("✅ MongoDB connected");
+async function run() {
+    try {
+        await mongoose.connect(process.env.MONGO_URI);
+        console.log("Connected to DB ✅");
 
-// ☁️ R2 client
-const s3 = new S3Client({
-    region: "auto",
-    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-    },
-});
+        const result = await USER.aggregate([
+            { $unwind: "$doc_view_history" },
 
-async function migrate() {
-    const docs = await Docs.find({
-        file_url: { $exists: true, $ne: "" }
-    });
+            {
+                $group: {
+                    _id: "$doc_view_history",
+                    views: { $sum: 1 }
+                }
+            },
 
-    console.log(`📦 Found ${docs.length} documents`);
+            { $sort: { views: -1 } },
+            { $limit: 10 },
 
-    let success = 0;
-    let failed = 0;
-    let skipped = 0;
+            // 🔥 Join with Docs collection
+            {
+                $lookup: {
+                    from: "docs", // collection name (IMPORTANT: lowercase plural)
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "doc_info"
+                }
+            },
 
-    for (const doc of docs) {
-        try {
-            // ⏭️ Skip already migrated files
-            if (doc.file_url.includes("cdn.docup.in")) {
-                console.log(`⏭️ Skipped: ${doc._id}`);
-                skipped++;
-                continue;
-            }
+            { $unwind: "$doc_info" }
+        ]);
 
-            console.log(`\n⬇️ Downloading: ${doc._id}`);
+        console.log("🔥 Top 10 Most Viewed Docs:\n");
 
-            // 1. Download from Supabase
-            const res = await fetch(doc.file_url);
-            if (!res.ok) throw new Error("Download failed");
+        result.forEach((doc, index) => {
+            console.log(
+                `${index + 1}.
+DocID: ${doc._id}
+Views: ${doc.views}
+File URL: ${doc.doc_info.file_url}\n`
+            );
+        });
 
-            const buffer = await res.buffer();
+        process.exit();
 
-            // 2. Upload to R2
-            const key = `docs/${doc._id}.pdf`;
-
-            console.log(`⬆️ Uploading to R2: ${key}`);
-
-            await s3.send(new PutObjectCommand({
-                Bucket: process.env.R2_BUCKET_NAME,
-                Key: key,
-                Body: buffer,
-                ContentType: "application/pdf",
-            }));
-
-            // 3. Update DB URL
-            const newUrl = `https://cdn.docup.in/${key}`;
-
-            doc.file_url = newUrl;
-            await doc.save();
-
-            console.log(`✅ Migrated: ${doc._id}`);
-
-            success++;
-
-        } catch (err) {
-            console.error(`❌ Failed: ${doc._id}`, err.message);
-            failed++;
-        }
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
     }
-
-    console.log("\n🎉 Migration complete!");
-    console.log(`✅ Success: ${success}`);
-    console.log(`⏭️ Skipped: ${skipped}`);
-    console.log(`❌ Failed: ${failed}`);
-
-    process.exit();
 }
 
-migrate();
+run();

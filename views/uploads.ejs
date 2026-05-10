@@ -1182,7 +1182,8 @@
         try {
             const res = await fetch("/upload_docs", {
                 method: "POST",
-                body: formData
+                body: formData,
+                credentials: "include"  // ✅ FIX: send session cookie on deployed (cross-origin) requests
             });
 
             const data = await res.json().catch(() => ({}));
@@ -1231,6 +1232,11 @@
                     "Your document has been uploaded successfully and is now under review."
                 );
             } else {
+                // ✅ FIX: reset step UI on failure so the user can retry cleanly
+                document.getElementById("step-3")?.classList.remove("active");
+                document.getElementById("step-2")?.classList.remove("done");
+                document.getElementById("step-2")?.classList.add("active");
+
                 showUploadPopup(
                     "error",
                     "Upload Failed",
@@ -1241,10 +1247,15 @@
             hideLoader();
             uploadBtn.disabled = false;
 
+            // ✅ FIX: reset step UI on network error too
+            document.getElementById("step-3")?.classList.remove("active");
+            document.getElementById("step-2")?.classList.remove("done");
+            document.getElementById("step-2")?.classList.add("active");
+
             showUploadPopup(
                 "error",
                 "Network Error",
-                "Could not connect to the server. Please try again."
+                "Could not connect to the server. Please check your connection and try again."
             );
         }
     });

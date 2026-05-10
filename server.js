@@ -102,7 +102,27 @@ async function invalidatePattern(pattern) {
         console.error(`Redis invalidatePattern error [${pattern}]:`, err.message);
     }
 }
-const upload = multer({ storage: multer.memoryStorage() });import { execFile } from "child_process";
+// ✅ FIX: enforce 50 MB limit and PDF/image-only uploads
+//    Without a limit, large files silently fail or get rejected by Render's reverse proxy.
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB hard cap
+    fileFilter: (_req, file, cb) => {
+        const allowed = [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ];
+        if (allowed.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only PDF, image, or Word documents are allowed"));
+        }
+    }
+});import { execFile } from "child_process";
 import os from "os";
 /******************************
  Middleware
@@ -643,9 +663,24 @@ fs.createReadStream("College_data.csv")
         collegesList = [...new Set(collegesList)].sort();
         console.log("Colleges Loaded :", collegesList.length);
     });
+// ✅ FIX: lock CORS to your actual origin in production.
+//    `origin: true` (mirror any origin) + credentials: true is a security hole on prod.
+const allowedOrigins = [
+    "http://localhost:5000",
+    "http://localhost:3000",
+    "https://www.docup.in",
+    "https://docup.in"
+];
 app.use(cors({
-    origin: true,
-    credentials: true
+    origin: (origin, callback) => {
+        // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error(`CORS: origin '${origin}' not allowed`));
+        }
+    },
+    credentials: true  // required for session cookies across origins
 }));
 const server = http.createServer(app);
 /*
@@ -2464,6 +2499,25 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
         });
     }
 });
+
+// ✅ FIX: catch multer errors (file too large, wrong type) and return clean JSON
+//    Without this, multer throws and Express sends an ugly HTML 500 to the client.
+app.use((err, req, res, next) => {
+    if (err && err.code === "LIMIT_FILE_SIZE") {
+        return res.status(413).json({
+            success: false,
+            message: "File is too large. Maximum allowed size is 50 MB."
+        });
+    }
+    if (err instanceof multer.MulterError || (err && err.message && err.message.startsWith("Only PDF"))) {
+        return res.status(400).json({
+            success: false,
+            message: err.message || "Invalid file type."
+        });
+    }
+    next(err);
+});
+
 /******************************
  Profile
  ******************************/
