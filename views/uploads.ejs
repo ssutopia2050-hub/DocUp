@@ -416,6 +416,65 @@
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════════════════════════
+     DOC SUMMARY POPUP — shown after successful upload
+     MUST live here, BEFORE the <script> block, so getElementById works
+══════════════════════════════════════════════════════════════ -->
+<div id="doc-summary-overlay" class="dsp-overlay">
+    <div class="dsp-card">
+        <canvas id="dsp-confetti" class="dsp-confetti-canvas" aria-hidden="true"></canvas>
+        <button id="dsp-close" class="dsp-close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+        </button>
+        <div class="dsp-header">
+            <div class="dsp-success-ring">
+                <div class="dsp-success-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="dsp-header-copy">
+                <h2 class="dsp-title">Upload Successful</h2>
+                <p class="dsp-subtitle">Your document is live and under review by DocUp team.</p>
+            </div>
+        </div>
+        <div class="dsp-divider"></div>
+        <div class="dsp-badges-row">
+            <div id="dsp-type-badge" class="dsp-type-badge"></div>
+            <div id="dsp-access-wrap"></div>
+        </div>
+        <div class="dsp-meta-section">
+            <div class="dsp-meta-heading">Document Details</div>
+            <div id="dsp-meta-grid" class="dsp-meta-grid"></div>
+        </div>
+        <div class="dsp-review-notice">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Under review — will be visible to others once approved by the DocUp team.</span>
+        </div>
+        <div class="dsp-actions">
+            <a id="dsp-view-btn" href="#" target="_blank" class="dsp-btn primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                View Document
+            </a>
+            <button id="dsp-copy-btn" class="dsp-btn secondary" data-url="">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.9"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                <span>Copy URL</span>
+            </button>
+            <button id="dsp-another-btn" class="dsp-btn ghost">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Upload Another
+            </button>
+        </div>
+        <div class="dsp-score-earned">
+            <img src="/fire.png" alt="" style="height:14px;width:auto;">
+            <span>+1 DocScore earned for this upload</span>
+        </div>
+    </div>
+</div>
+
 <footer class="footer">
     <div class="footer-left">
         DocUp
@@ -1226,11 +1285,18 @@
                 document.getElementById("step-2")?.classList.remove("active", "done");
                 document.getElementById("step-3")?.classList.remove("active", "done");
 
-                showUploadPopup(
-                    "success",
-                    "Upload Complete",
-                    "Your document has been uploaded successfully and is now under review."
-                );
+                showDocSummaryPopup({
+                    docId:     data.docId,
+                    fileUrl:   data.file_url,
+                    college,
+                    year,
+                    semester,
+                    branch,
+                    subject,
+                    chapter,
+                    docType,
+                    isProtected
+                });
             } else {
                 // ✅ FIX: reset step UI on failure so the user can retry cleanly
                 document.getElementById("step-3")?.classList.remove("active");
@@ -1261,8 +1327,232 @@
     });
 
     resetPreviewCard();
+
+    // ═══════════════════════════════════════════════════
+    //  DOC SUMMARY POPUP — premium success experience
+    // ═══════════════════════════════════════════════════
+    const docSummaryOverlay = document.getElementById("doc-summary-overlay");
+    const docSummaryClose   = document.getElementById("dsp-close");
+
+    function showDocSummaryPopup({ docId, fileUrl, college, year, semester, branch, subject, chapter, docType, isProtected }) {
+        // ── Labels ──
+        const docTypeLabel = {
+            college_doc:  "College Document",
+            ed_doc:       "Entrance / Ed Doc",
+            research_doc: "Research Document",
+            random_doc:   "General Document"
+        }[docType] || "Document";
+
+        const docTypeIcon = {
+            college_doc:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 22V12h6v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            ed_doc:       `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 5 5.5.8-4 3.9.9 5.5L12 14.8l-4.9 2.4.9-5.5L4 7.8l5.5-.8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+            research_doc: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+            random_doc:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" stroke-width="1.8"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`
+        }[docType] || "";
+
+        // ── Metadata rows ──
+        const meta = [
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`, label: "College / Org", value: college },
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.9"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>`, label: "Year", value: year },
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.9"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>`, label: "Semester", value: semester },
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`, label: "Branch", value: branch },
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>`, label: "Subject", value: subject },
+            { icon: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>`, label: "Chapter / Topic", value: chapter },
+        ].filter(r => r.value);
+
+        const metaHTML = meta.map(r => `
+            <div class="dsp-meta-row">
+                <span class="dsp-meta-icon">${r.icon}</span>
+                <span class="dsp-meta-label">${r.label}</span>
+                <span class="dsp-meta-value">${r.value}</span>
+            </div>`).join("");
+
+        const accessBadge = isProtected
+            ? `<span class="dsp-access-badge protected">🔒 Protected</span>`
+            : `<span class="dsp-access-badge public">🌐 Public</span>`;
+
+        // ── Inject ──
+        document.getElementById("dsp-type-badge").innerHTML = `${docTypeIcon}<span>${docTypeLabel}</span>`;
+        document.getElementById("dsp-meta-grid").innerHTML = metaHTML;
+        document.getElementById("dsp-access-wrap").innerHTML = accessBadge;
+        const viewPath  = docId ? `/view/${docId}` : null;
+        const shareUrl  = docId ? `https://www.docup.in/view/${docId}` : null;
+
+        document.getElementById("dsp-view-btn").href = viewPath || "#";
+        document.getElementById("dsp-view-btn").style.display = viewPath ? "inline-flex" : "none";
+
+        // copy URL
+        const copyBtn = document.getElementById("dsp-copy-btn");
+        copyBtn.dataset.url = shareUrl || "";
+
+        // ── Show overlay ──
+        docSummaryOverlay.classList.add("active");
+
+        // ── Fire confetti ──
+        fireConfetti();
+    }
+
+    function hideDocSummaryPopup() {
+        docSummaryOverlay.classList.remove("active");
+        stopConfetti();
+    }
+
+    docSummaryClose?.addEventListener("click", hideDocSummaryPopup);
+    docSummaryOverlay?.addEventListener("click", e => { if (e.target === docSummaryOverlay) hideDocSummaryPopup(); });
+
+    document.getElementById("dsp-another-btn")?.addEventListener("click", hideDocSummaryPopup);
+
+    document.getElementById("dsp-copy-btn")?.addEventListener("click", function() {
+        const url = this.dataset.url;
+        if (!url) return;
+        navigator.clipboard.writeText(url).then(() => {
+            const orig = this.innerHTML;
+            this.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Copied!</span>`;
+            this.classList.add("copied");
+            setTimeout(() => { this.innerHTML = orig; this.classList.remove("copied"); }, 2000);
+        });
+    });
+
+    // ── Confetti engine ──
+    let confettiRaf;
+    let confettiParticles = [];
+
+    function fireConfetti() {
+        const canvas = document.getElementById("dsp-confetti");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        canvas.width  = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        confettiParticles = [];
+
+        const colors = ["#ff6a00","#ff9a00","#22c55e","#38bdf8","#a78bfa","#f472b6","#facc15"];
+
+        for (let i = 0; i < 90; i++) {
+            confettiParticles.push({
+                x:     Math.random() * canvas.width,
+                y:     -10 - Math.random() * canvas.height * 0.5,
+                w:     5 + Math.random() * 7,
+                h:     3 + Math.random() * 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vx:    (Math.random() - 0.5) * 2.5,
+                vy:    2 + Math.random() * 3.5,
+                angle: Math.random() * Math.PI * 2,
+                spin:  (Math.random() - 0.5) * 0.2,
+                alpha: 1
+            });
+        }
+
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let alive = false;
+            for (const p of confettiParticles) {
+                p.x     += p.vx;
+                p.y     += p.vy;
+                p.angle += p.spin;
+                p.vy    += 0.05;
+                if (p.y > canvas.height * 0.75) p.alpha -= 0.025;
+                if (p.alpha > 0) {
+                    alive = true;
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, p.alpha);
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                }
+            }
+            if (alive) confettiRaf = requestAnimationFrame(tick);
+        }
+        confettiRaf = requestAnimationFrame(tick);
+    }
+
+    function stopConfetti() {
+        cancelAnimationFrame(confettiRaf);
+        const canvas = document.getElementById("dsp-confetti");
+        if (canvas) canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    }
 </script>
 <%- include('partials/page-loader') %>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DOC SUMMARY POPUP — shown after successful upload
+══════════════════════════════════════════════════════════════ -->
+<div id="doc-summary-overlay" class="dsp-overlay">
+    <div class="dsp-card">
+
+        <!-- Confetti canvas (clipped inside card) -->
+        <canvas id="dsp-confetti" class="dsp-confetti-canvas" aria-hidden="true"></canvas>
+
+        <!-- Close button -->
+        <button id="dsp-close" class="dsp-close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <!-- Header -->
+        <div class="dsp-header">
+            <div class="dsp-success-ring">
+                <div class="dsp-success-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="dsp-header-copy">
+                <h2 class="dsp-title">Upload Successful</h2>
+                <p class="dsp-subtitle">Your document is live and under review by DocUp team.</p>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="dsp-divider"></div>
+
+        <!-- Doc type + access badges -->
+        <div class="dsp-badges-row">
+            <div id="dsp-type-badge" class="dsp-type-badge"></div>
+            <div id="dsp-access-wrap"></div>
+        </div>
+
+        <!-- Metadata grid -->
+        <div class="dsp-meta-section">
+            <div class="dsp-meta-heading">Document Details</div>
+            <div id="dsp-meta-grid" class="dsp-meta-grid"></div>
+        </div>
+
+        <!-- Under review notice -->
+        <div class="dsp-review-notice">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Under review — will be visible to others once approved by the DocUp team.</span>
+        </div>
+
+        <!-- Actions -->
+        <div class="dsp-actions">
+            <a id="dsp-view-btn" href="#" target="_blank" class="dsp-btn primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                View Document
+            </a>
+
+            <button id="dsp-copy-btn" class="dsp-btn secondary" data-url="">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.9"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+                <span>Copy URL</span>
+            </button>
+
+            <button id="dsp-another-btn" class="dsp-btn ghost">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7-7 7 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Upload Another
+            </button>
+        </div>
+
+        <!-- Score earned pill -->
+        <div class="dsp-score-earned">
+            <img src="/fire.png" alt="" style="height:14px;width:auto;">
+            <span>+1 DocScore earned for this upload</span>
+        </div>
+
+    </div>
+</div>
 
 <!-- ======================================================
      DEVELOPER-ONLY RESTRICTION MODAL

@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Saira:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/pricing.css">
     <link rel="stylesheet" href="/page-loader.css">
     <meta charset="UTF-8">
@@ -15,179 +16,1170 @@
     <title>Recharge | DocUp</title>
 
     <style>
-        /* ── Sale Banner ── */
-        .sale-banner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: linear-gradient(90deg, #ff5e00, #ff8c00);
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.92rem;
-            font-weight: 600;
-            padding: 10px 20px;
-            text-align: center;
-            letter-spacing: 0.02em;
-        }
-        .sale-banner .sale-badge {
-            background: rgba(255,255,255,0.25);
-            border-radius: 20px;
-            padding: 2px 10px;
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
 
-        /* ── Coupon Bar ── */
-        .coupon-bar {
-            display: flex;
-            align-items: stretch;
-            justify-content: space-between;
-            gap: 0;
-            /*padding: 0 20px;*/
-            max-width: 480px;
-            margin: 0 auto 8px;
-            background: rgba(255,255,255,0.04);
-            border: 1.5px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            overflow: hidden;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .coupon-bar:focus-within {
-            border-color: rgba(255,94,0,0.5);
-            background: rgba(255,94,0,0.03);
-        }
-        .coupon-bar input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 500;
-            padding: 10px;
-            outline: none;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            min-width: 0;
-        }
-        .coupon-bar input::placeholder { color: rgba(255,255,255,0.28); text-transform: none; letter-spacing: 0; font-weight: 400; }
-        .coupon-apply-btn {
-            background: transparent;
-            color: #ff5e00;
-            border: none;
-            border-left: 1.5px solid rgba(255,255,255,0.08);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem;
-            font-weight: 700;
-            padding: 14px 20px;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-            white-space: nowrap;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
+    /* ══════════════════════════════════════════════════════════
+       PAGE REDESIGN — Trust-First Pricing
+    ══════════════════════════════════════════════════════════ */
 
-        }
-        .coupon-apply-btn:hover:not(:disabled) { background: rgba(255,94,0,0.1); color: #ff7a2e; }
-        .coupon-apply-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-        .coupon-apply-btn.applied { color: #4ade80; }
+    /* Sale Banner */
+    .sale-banner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: linear-gradient(90deg, #ff5e00, #ff8c00);
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        padding: 10px 20px;
+        text-align: center;
+        letter-spacing: 0.02em;
+    }
+    .sale-banner .sale-badge {
+        background: rgba(255,255,255,0.25);
+        border-radius: 20px;
+        padding: 2px 10px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
 
-        /* ── Coupon Result ── */
-        .coupon-result {
-            text-align: center;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem;
-            margin-bottom: 6px;
-            min-height: 20px;
-            letter-spacing: 0.01em;
-        }
-        .coupon-result.success { color: #4ade80; }
-        .coupon-result.error   { color: #ff6b6b; }
+    /* Coupon Bar */
+    .coupon-bar {
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        gap: 0;
+        max-width: 480px;
+        margin: 0 auto 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1.5px solid rgba(255,255,255,0.1);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: border-color 0.2s, background 0.2s;
+    }
+    .coupon-bar:focus-within {
+        border-color: rgba(255,94,0,0.5);
+        background: rgba(255,94,0,0.03);
+    }
+    .coupon-bar input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 500;
+        padding: 10px;
+        outline: none;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        min-width: 0;
+    }
+    .coupon-bar input::placeholder { color: rgba(255,255,255,0.28); text-transform: none; letter-spacing: 0; font-weight: 400; }
+    .coupon-apply-btn {
+        background: transparent;
+        color: #ff5e00;
+        border: none;
+        border-left: 1.5px solid rgba(255,255,255,0.08);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 14px 20px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        white-space: nowrap;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .coupon-apply-btn:hover:not(:disabled) { background: rgba(255,94,0,0.1); color: #ff7a2e; }
+    .coupon-apply-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .coupon-apply-btn.applied { color: #4ade80; }
+    .coupon-result {
+        text-align: center;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        margin-bottom: 6px;
+        min-height: 20px;
+        letter-spacing: 0.01em;
+    }
+    .coupon-result.success { color: #4ade80; }
+    .coupon-result.error   { color: #ff6b6b; }
+    .price-original {
+        font-size: 1rem;
+        color: rgba(255,255,255,0.38);
+        text-decoration: line-through;
+        margin-right: 6px;
+        font-family: 'DM Sans', sans-serif;
+    }
+    .price-row { position: relative; }
+    .price-coupon-original {
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.35);
+        font-family: 'DM Sans', sans-serif;
+        margin-right: 4px;
+        display: inline-block;
+        position: relative;
+    }
+    .price-coupon-original::after {
+        content: '';
+        position: absolute;
+        left: -2px; right: -2px; top: 50%;
+        height: 2px;
+        background: #ff5e00;
+        border-radius: 1px;
+        transform: rotate(-6deg) translateY(-50%);
+    }
+    .price-coupon-new {
+        color: #4ade80;
+        font-family: 'Raleway', sans-serif;
+        font-weight: 800;
+        font-size: 3.8rem;
+        line-height: 1;
+        animation: coupon-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes coupon-pop {
+        0%   { transform: scale(0.7) translateY(6px); opacity: 0; }
+        100% { transform: scale(1)   translateY(0);   opacity: 1; }
+    }
+    .coupon-saving-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(74,222,128,0.08);
+        border: 1px solid rgba(74,222,128,0.2);
+        color: #4ade80;
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 6px;
+        animation: coupon-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        animation-delay: 0.05s;
+        letter-spacing: 0.02em;
+    }
+    .coupon-saving-tag.bonus-tag {
+        background: rgba(255,173,100,0.08);
+        border-color: rgba(255,173,100,0.2);
+        color: #ffad64;
+    }
+    .ds-doc-hint {
+        font-size: 0.72rem;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        color: rgba(255,255,255,0.35);
+        letter-spacing: 0.02em;
+        margin-left: 4px;
+    }
 
-        /* ── Strike-through original price when sale active ── */
-        .price-original {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.38);
-            text-decoration: line-through;
-            margin-right: 6px;
-            font-family: 'DM Sans', sans-serif;
-        }
+    /* ══════════════════════════════════════════════════════════
+       TRUST TICKER — top scrolling bar
+    ══════════════════════════════════════════════════════════ */
+    .trust-ticker {
+        width: 100%;
+        overflow: hidden;
+        background: rgba(255,94,0,0.04);
+        border-bottom: 1px solid rgba(255,94,0,0.12);
+        padding: 9px 0;
+        position: relative;
+    }
+    .trust-ticker::before,
+    .trust-ticker::after {
+        content: '';
+        position: absolute;
+        top: 0; bottom: 0;
+        width: 60px;
+        z-index: 2;
+        pointer-events: none;
+    }
+    .trust-ticker::before { left: 0; background: linear-gradient(to right, #001219, transparent); }
+    .trust-ticker::after  { right: 0; background: linear-gradient(to left, #001219, transparent); }
+    .trust-ticker-track {
+        display: flex;
+        gap: 0;
+        animation: ticker-scroll 30s linear infinite;
+        width: max-content;
+    }
+    .trust-ticker-track:hover { animation-play-state: paused; }
+    @keyframes ticker-scroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .ticker-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0 28px;
+        border-right: 1px solid rgba(255,255,255,0.05);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.79rem;
+        color: rgba(255,255,255,0.45);
+        white-space: nowrap;
+        letter-spacing: 0.01em;
+    }
+    .ticker-item .tick-icon { color: #ff7a30; flex-shrink: 0; }
+    .ticker-item strong { color: rgba(255,255,255,0.78); font-weight: 600; }
 
-        /* ── Coupon discount price UI ── */
-        .price-row {
-            position: relative;
-        }
+    /* ══════════════════════════════════════════════════════════
+       HERO — SPLIT LAYOUT (bold left text + floating card right)
+    ══════════════════════════════════════════════════════════ */
+    .pricing-hero {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 72px 5% 56px;
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 64px;
+        align-items: center;
+    }
 
-        .price-coupon-original {
-            font-size: 1.1rem;
-            color: rgba(255,255,255,0.35);
-            font-family: 'DM Sans', sans-serif;
-            margin-right: 4px;
-            display: inline-block;
-            position: relative;
-        }
-        .price-coupon-original::after {
-            content: '';
-            position: absolute;
-            left: -2px;
-            right: -2px;
-            top: 50%;
-            height: 2px;
-            background: #ff5e00;
-            border-radius: 1px;
-            transform: rotate(-6deg) translateY(-50%);
-        }
-        .price-coupon-new {
-            color: #4ade80;
-            font-family: 'Raleway', sans-serif;
-            font-weight: 800;
-            font-size: 3.8rem;
-            line-height: 1;
-            animation: coupon-pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
-        }
-        @keyframes coupon-pop {
-            0%   { transform: scale(0.7) translateY(6px); opacity: 0; }
-            100% { transform: scale(1)   translateY(0);   opacity: 1; }
-        }
-        .coupon-saving-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(74,222,128,0.08);
-            border: 1px solid rgba(74,222,128,0.2);
-            color: #4ade80;
-            border-radius: 8px;
-            padding: 4px 10px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-top: 6px;
-            animation: coupon-pop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
-            animation-delay: 0.05s;
-            letter-spacing: 0.02em;
-        }
-        .coupon-saving-tag.bonus-tag {
-            background: rgba(255,173,100,0.08);
-            border-color: rgba(255,173,100,0.2);
-            color: #ffad64;
-        }
-        .ds-doc-hint {
-            font-size: 0.72rem;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 500;
-            color: rgba(255,255,255,0.35);
-            letter-spacing: 0.02em;
-            margin-left: 4px;
-        }
+    /* Left column */
+    .hero-left { display: flex; flex-direction: column; gap: 0; }
+    .hero-eyebrow-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255,94,0,0.08);
+        border: 1px solid rgba(255,94,0,0.22);
+        border-radius: 999px;
+        padding: 5px 14px 5px 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #ff9458;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin-bottom: 24px;
+        width: fit-content;
+    }
+    .eyebrow-pulse {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: #ff5e00;
+        box-shadow: 0 0 0 0 rgba(255,94,0,0.6);
+        animation: pulse-ring 2s ease infinite;
+    }
+    @keyframes pulse-ring {
+        0%   { box-shadow: 0 0 0 0 rgba(255,94,0,0.5); }
+        70%  { box-shadow: 0 0 0 7px rgba(255,94,0,0); }
+        100% { box-shadow: 0 0 0 0 rgba(255,94,0,0); }
+    }
+    .hero-heading {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: clamp(2.6rem, 4.2vw, 4rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        margin-bottom: 20px;
+        color: white;
+    }
+    .hero-heading .accent {
+        background: linear-gradient(135deg, #ff5e00 0%, #ffb347 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .hero-subline {
+        font-family: 'Saira', sans-serif;
+        font-size: 1.05rem;
+        line-height: 1.9;
+        color: rgba(255,255,255,0.55);
+        max-width: 480px;
+        margin-bottom: 32px;
+    }
+
+    /* Stat row */
+    .hero-stats {
+        display: flex;
+        gap: 0;
+        margin-bottom: 36px;
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        overflow: hidden;
+        width: fit-content;
+    }
+    .hero-stat {
+        padding: 16px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        border-right: 1px solid rgba(255,255,255,0.07);
+    }
+    .hero-stat:last-child { border-right: none; }
+    .stat-num {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 1.9rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.03em;
+        line-height: 1;
+    }
+    .stat-num span { color: #ff7a30; }
+    .stat-label {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.72rem;
+        color: rgba(255,255,255,0.38);
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    /* Trust badges row */
+    .hero-trust-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .htb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.09);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.77rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.5);
+        transition: 0.2s ease;
+    }
+    .htb:hover { border-color: rgba(255,94,0,0.3); color: rgba(255,255,255,0.75); }
+    .htb .htb-icon { color: #4ade80; }
+    .htb.warn .htb-icon { color: #ff9458; }
+
+    /* Right column — floating "exchange" card */
+    .hero-exchange-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 28px;
+        padding: 36px 30px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,94,0,0.06) inset;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-exchange-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,94,0,0.5), transparent);
+    }
+    .hero-exchange-card::after {
+        content: '';
+        position: absolute;
+        top: -60px; left: 50%;
+        transform: translateX(-50%);
+        width: 200px; height: 200px;
+        background: radial-gradient(ellipse, rgba(255,94,0,0.08), transparent 70%);
+        pointer-events: none;
+    }
+    .exchange-label {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.3);
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .exchange-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .exchange-pill {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255,94,0,0.08);
+        border: 1px solid rgba(255,94,0,0.25);
+        border-radius: 16px;
+        padding: 16px 22px;
+        min-width: 110px;
+    }
+    .exchange-pill.doc-pill {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.12);
+    }
+    .exchange-pill-icon { color: #ff7a30; }
+    .exchange-pill.doc-pill .exchange-pill-icon { color: rgba(255,255,255,0.5); }
+    .exchange-pill-num {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+    .exchange-pill-label {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.45);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+    .exchange-equals {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        color: rgba(255,255,255,0.2);
+    }
+    .exchange-equals-line { width: 1px; height: 14px; background: rgba(255,255,255,0.12); }
+    .exchange-equals-sym {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: rgba(255,255,255,0.35);
+    }
+    .exchange-subtext {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.3);
+        text-align: center;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+    /* mini coupon in card */
+    .card-coupon-section { width: 100%; }
+    .card-coupon-label {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.25);
+        margin-bottom: 8px;
+        text-align: center;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRICING SECTION HEADER
+    ══════════════════════════════════════════════════════════ */
+    .pricing-section-wrap {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 5% 16px;
+    }
+    .section-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .section-eyebrow-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .section-eyebrow-text {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.25);
+        white-space: nowrap;
+    }
+    .section-heading {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        color: white;
+        margin-bottom: 6px;
+    }
+    .section-subheading {
+        font-family: 'Saira', sans-serif;
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.4);
+        line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       PRICING GRID
+    ══════════════════════════════════════════════════════════ */
+    .pricing-grid-wrap {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 5% 12px;
+    }
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        align-items: start;
+    }
+
+    /* Card */
+    .pc {
+        position: relative;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 24px;
+        padding: 0;
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pc:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255,94,0,0.35);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+    }
+    .pc.pc-featured {
+        border-color: rgba(255,115,0,0.45);
+        box-shadow: 0 20px 55px rgba(255,94,0,0.12);
+        transform: translateY(-8px);
+    }
+    .pc.pc-featured:hover { transform: translateY(-13px); }
+
+    /* Card top color bar */
+    .pc-bar {
+        height: 3px;
+        background: rgba(255,255,255,0.06);
+    }
+    .pc-featured .pc-bar {
+        background: linear-gradient(90deg, #ff5e00, #ffb347);
+    }
+    .pc-premium .pc-bar {
+        background: linear-gradient(90deg, rgba(255,94,0,0.4), rgba(255,179,71,0.4));
+    }
+
+    .pc-inner { padding: 28px 26px 24px; display: flex; flex-direction: column; }
+
+    /* Badge */
+    .pc-badge {
+        position: absolute;
+        top: 18px; right: 18px;
+        background: linear-gradient(135deg, #ff5e00, #ff8c00);
+        color: white;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 999px;
+    }
+
+    .pc-plan-tag {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255,160,80,0.8);
+        margin-bottom: 5px;
+    }
+    .pc-name {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 1.65rem;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.02em;
+        margin-bottom: 20px;
+    }
+
+    /* Price display */
+    .pc-price-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 3px;
+        margin-bottom: 4px;
+    }
+    .pc-currency {
+        font-family: 'Saira', sans-serif;
+        font-size: 1.3rem;
+        color: #ff7a30;
+        margin-top: 9px;
+    }
+    .pc-amount {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 3.6rem;
+        font-weight: 800;
+        color: white;
+        line-height: 1;
+        letter-spacing: -0.04em;
+    }
+    .pc-score {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.9rem;
+        color: #ffb17a;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    .pc-per-doc {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 7px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-bottom: 20px;
+        background: rgba(255,94,0,0.07);
+        border: 1px solid rgba(255,94,0,0.16);
+        color: rgba(255,160,100,0.85);
+    }
+    .pc-per-doc.best {
+        background: rgba(74,222,128,0.06);
+        border-color: rgba(74,222,128,0.2);
+        color: #6ee7a3;
+    }
+
+    /* Feature list */
+    .pc-features {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        margin-bottom: 22px;
+        flex: 1;
+    }
+    .pc-feature {
+        display: flex;
+        align-items: flex-start;
+        gap: 9px;
+        font-family: 'Saira', sans-serif;
+        font-size: 0.88rem;
+        color: rgba(255,255,255,0.68);
+        line-height: 1.5;
+    }
+    .pc-check {
+        width: 15px; height: 15px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+        background: rgba(74,222,128,0.08);
+        border: 1px solid rgba(74,222,128,0.22);
+    }
+    .pc-check svg { color: #4ade80; }
+    .pc-featured .pc-check {
+        background: rgba(255,94,0,0.08);
+        border-color: rgba(255,94,0,0.25);
+    }
+    .pc-featured .pc-check svg { color: #ff7a30; }
+
+    .pc-divider { height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 18px; }
+
+    /* CTA */
+    .pc-cta {
+        width: 100%;
+        height: 50px;
+        border-radius: 14px;
+        border: 1px solid rgba(255,69,0,0.5);
+        background: transparent;
+        color: #ff7a30;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.93rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s ease;
+        letter-spacing: 0.02em;
+    }
+    .pc-cta:hover { background: rgba(255,94,0,0.08); color: #ff9458; }
+    .pc-cta.pc-cta-featured {
+        background: linear-gradient(135deg, #ff5e00, #ff8c00);
+        color: white;
+        border: none;
+        box-shadow: 0 8px 24px rgba(255,94,0,0.28);
+    }
+    .pc-cta.pc-cta-featured:hover { opacity: 0.9; transform: scale(1.01); }
+
+    /* Trust micro-note */
+    .pc-trust-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 10px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.69rem;
+        color: rgba(255,255,255,0.26);
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CUSTOM AMOUNT TRIGGER
+    ══════════════════════════════════════════════════════════ */
+    .custom-trigger-wrap {
+        width: 100%;
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 5% 48px;
+    }
+    .custom-trigger-btn {
+        width: 100%;
+        min-height: 62px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+        background: rgba(255,255,255,0.02);
+        border: 1.5px dashed rgba(255,106,0,0.25);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: 0.25s ease;
+        text-align: left;
+        color: rgba(255,255,255,0.55);
+        font-family: 'Saira', sans-serif;
+        font-size: 1rem;
+    }
+    .custom-trigger-btn:hover {
+        background: rgba(255,106,0,0.04);
+        border-color: rgba(255,106,0,0.45);
+        color: white;
+    }
+    .custom-trigger-icon {
+        width: 34px; height: 34px;
+        border-radius: 50%;
+        background: rgba(255,94,0,0.1);
+        border: 1px solid rgba(255,94,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff7a30;
+        flex-shrink: 0;
+    }
+    .custom-trigger-label { flex: 1; }
+    .custom-trigger-hint {
+        font-size: 0.83rem;
+        color: #ff7a2e;
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       TRUST PILLARS — 3 columns
+    ══════════════════════════════════════════════════════════ */
+    .trust-pillars-wrap {
+        width: 100%;
+        padding: 0 5% 48px;
+    }
+    .trust-pillars-inner {
+        max-width: 1240px;
+        margin: 0 auto;
+    }
+    .trust-pillars-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 32px;
+    }
+    .trust-pillar {
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 20px;
+        padding: 26px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: 0.25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    .trust-pillar::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at top left, rgba(255,94,0,0.04), transparent 60%);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .trust-pillar:hover { border-color: rgba(255,94,0,0.22); }
+    .trust-pillar:hover::before { opacity: 1; }
+
+    .tp-icon-wrap {
+        width: 46px; height: 46px;
+        border-radius: 14px;
+        background: rgba(255,94,0,0.08);
+        border: 1px solid rgba(255,94,0,0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff7a30;
+        flex-shrink: 0;
+    }
+    .tp-title {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: -0.01em;
+    }
+    .tp-body {
+        font-family: 'Saira', sans-serif;
+        font-size: 0.87rem;
+        color: rgba(255,255,255,0.5);
+        line-height: 1.75;
+        flex: 1;
+    }
+    .tp-checklist {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    .tp-check {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.58);
+    }
+    .tp-check svg { color: #4ade80; flex-shrink: 0; }
+    .tp-payment-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-top: 4px;
+    }
+    .pp {
+        padding: 5px 11px;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.09);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.73rem;
+        font-weight: 700;
+        color: rgba(255,255,255,0.55);
+        letter-spacing: 0.03em;
+    }
+    .pp.razorpay {
+        background: rgba(32,125,232,0.07);
+        border-color: rgba(32,125,232,0.2);
+        color: #6eb2f5;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       VALUE COMPARISON SECTION
+    ══════════════════════════════════════════════════════════ */
+    .value-section-wrap {
+        width: 100%;
+        padding: 0 5% 48px;
+    }
+    .value-section-inner {
+        max-width: 1240px;
+        margin: 0 auto;
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 28px;
+        padding: 48px 44px;
+        position: relative;
+        overflow: hidden;
+    }
+    .value-section-inner::before {
+        content: '';
+        position: absolute;
+        top: -80px; right: -80px;
+        width: 280px; height: 280px;
+        background: radial-gradient(ellipse, rgba(255,94,0,0.06), transparent 70%);
+        pointer-events: none;
+    }
+    .value-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        align-items: center;
+    }
+    .value-left h2 {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: white;
+        margin-bottom: 14px;
+        line-height: 1.15;
+    }
+    .value-left h2 em {
+        font-style: normal;
+        background: linear-gradient(135deg, #ff5e00, #ffb347);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .value-left p {
+        font-family: 'Saira', sans-serif;
+        font-size: 0.94rem;
+        color: rgba(255,255,255,0.52);
+        line-height: 1.85;
+    }
+    .value-points {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .value-point {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px 18px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 14px;
+        transition: 0.2s ease;
+    }
+    .value-point:hover { border-color: rgba(255,94,0,0.22); background: rgba(255,94,0,0.03); }
+    .vp-icon {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: rgba(255,94,0,0.09);
+        border: 1px solid rgba(255,94,0,0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff7a30;
+        flex-shrink: 0;
+    }
+    .vp-text strong {
+        display: block;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.89rem;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 2px;
+    }
+    .vp-text span {
+        font-family: 'Saira', sans-serif;
+        font-size: 0.81rem;
+        color: rgba(255,255,255,0.45);
+        line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       FAQ
+    ══════════════════════════════════════════════════════════ */
+    .faq-wrap {
+        width: 100%;
+        padding: 0 5% 60px;
+    }
+    .faq-inner {
+        max-width: 1240px;
+        margin: 0 auto;
+    }
+    .faq-list-new {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 32px;
+    }
+    .faq-item {
+        background: rgba(255,255,255,0.025);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 16px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+    }
+    .faq-item:hover { border-color: rgba(255,94,0,0.2); }
+    .faq-item.open { border-color: rgba(255,94,0,0.28); }
+    .faq-q {
+        width: 100%;
+        padding: 18px 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        color: white;
+        font-family: 'Raleway', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .faq-chevron {
+        flex-shrink: 0;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.3s ease;
+        color: rgba(255,255,255,0.4);
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); color: #ff7a30; }
+    .faq-a {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), padding 0.2s ease;
+        font-family: 'Saira', sans-serif;
+        font-size: 0.92rem;
+        color: rgba(255,255,255,0.55);
+        line-height: 1.75;
+        padding: 0 22px;
+    }
+    .faq-item.open .faq-a { max-height: 200px; padding: 0 22px 18px; }
+
+    /* ══════════════════════════════════════════════════════════
+       BOTTOM TRUST ASSURANCE BAR
+    ══════════════════════════════════════════════════════════ */
+    .assurance-bar {
+        width: 100%;
+        padding: 0 5% 48px;
+    }
+    .assurance-inner {
+        max-width: 1240px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, rgba(255,94,0,0.06), rgba(255,140,0,0.03));
+        border: 1px solid rgba(255,94,0,0.15);
+        border-radius: 20px;
+        padding: 24px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .assurance-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .assurance-shield {
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: rgba(255,94,0,0.1);
+        border: 1px solid rgba(255,94,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ff7a30;
+        flex-shrink: 0;
+    }
+    .assurance-text-main {
+        font-family: 'Bricolage Grotesque', 'Raleway', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: white;
+    }
+    .assurance-text-sub {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.77rem;
+        color: rgba(255,255,255,0.4);
+        margin-top: 2px;
+    }
+    .assurance-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .assurance-pill {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.09);
+        font-family: 'DM Sans', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: rgba(255,255,255,0.5);
+    }
+    .assurance-pill svg { color: #4ade80; }
+
+    /* ══════════════════════════════════════════════════════════
+       OVERLAY (preserved exactly)
+    ══════════════════════════════════════════════════════════ */
+    .cr-overlay {
+        position: fixed; inset: 0; z-index: 9000;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.28s cubic-bezier(0.32,0,0.67,0);
+    }
+    .cr-overlay.active { opacity: 1; pointer-events: auto; transition: opacity 0.22s cubic-bezier(0.33,1,0.68,1); }
+    .cr-backdrop {
+        position: absolute; inset: 0;
+        background: rgba(0,6,10,0.72);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+    .cr-modal {
+        position: relative; z-index: 1;
+        width: min(420px, 92vw);
+        background: rgba(12,20,26,0.95);
+        border: 1px solid rgba(255,255,255,0.09);
+        border-radius: 28px;
+        padding: 38px 32px 32px;
+        display: flex; flex-direction: column; align-items: center; gap: 0;
+        box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset;
+        transform: translateY(16px) scale(0.97);
+        transition: transform 0.28s cubic-bezier(0.33,1,0.68,1);
+    }
+    .cr-overlay.active .cr-modal { transform: translateY(0) scale(1); }
+    .cr-close {
+        position: absolute; top: 18px; right: 18px;
+        width: 30px; height: 30px; border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
+        color: rgba(255,255,255,0.45);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: 0.7s ease;
+    }
+    .cr-close:hover { background: rgba(255,255,255,0.1); color: white; transform: rotateZ(180deg); }
+    .cr-eyebrow { font-family: 'Saira', sans-serif; font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,140,80,0.7); margin-bottom: 24px; }
+    .cr-amount-display { display: flex; align-items: flex-start; gap: 4px; line-height: 1; margin-bottom: 14px; }
+    .cr-rupee { font-family: 'Raleway', sans-serif; font-size: 2rem; font-weight: 700; color: rgba(255,255,255,0.5); margin-top: 10px; }
+    #cr-amount-num { font-family: 'Raleway', sans-serif; font-size: 5rem; font-weight: 800; color: white; transition: 0.12s ease; letter-spacing: -2px; }
+    .cr-score-pill { background: rgba(255,94,0,0.1); border: 1px solid rgba(255,94,0,0.22); border-radius: 999px; padding: 7px 18px; font-family: 'Saira', sans-serif; font-size: 0.9rem; color: #ff9d59; margin-bottom: 32px; transition: 0.12s ease; }
+    .cr-slider-wrap { width: 100%; margin-bottom: 10px; }
+    .cr-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 999px; outline: none; cursor: pointer; background: rgba(255,255,255,0.1); transition: background 0.1s; }
+    .cr-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 24px; height: 24px; border-radius: 50%; background: white; cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.5); transition: transform 0.15s ease; }
+    .cr-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .cr-slider::-moz-range-thumb { width: 24px; height: 24px; border-radius: 50%; background: white; border: none; cursor: pointer; }
+    .cr-range-labels { width: 100%; display: flex; justify-content: space-between; font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: rgba(255,255,255,0.25); margin-bottom: 24px; }
+    .cr-divider { width: 100%; height: 1px; background: rgba(255,255,255,0.06); margin-bottom: 20px; }
+    .cr-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+    .cr-chip { padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); font-family: 'Saira', sans-serif; font-size: 0.85rem; cursor: pointer; transition: 0.18s ease; }
+    .cr-chip:hover, .cr-chip.active { background: rgba(255,94,0,0.12); border-color: rgba(255,94,0,0.4); color: #ff9d59; }
+    .cr-rate-note { font-family: 'DM Sans', sans-serif; font-size: 0.75rem; color: rgba(255,255,255,0.22); margin-bottom: 24px; text-align: center; }
+    .cr-pay-btn { width: 100%; height: 56px; border-radius: 18px; border: none; background: linear-gradient(135deg, #ff5e00, #ff8c00); color: white; font-family: 'Saira', sans-serif; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.3px; cursor: pointer; transition: 0.22s ease; }
+    .cr-pay-btn:hover { opacity: 0.88; transform: scale(1.01); }
+    .cr-pay-btn:disabled { opacity: 0.55; transform: none; cursor: not-allowed; }
+
+    /* ══════════════════════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════════════════════ */
+    @media (max-width: 1100px) {
+        .pricing-hero { grid-template-columns: 1fr; gap: 40px; }
+        .hero-exchange-card { max-width: 480px; }
+        .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+        .pc.pc-featured { transform: none; }
+        .trust-pillars-grid { grid-template-columns: 1fr; }
+        .value-grid { grid-template-columns: 1fr; gap: 28px; }
+    }
+    @media (max-width: 700px) {
+        .pricing-hero { padding: 48px 5% 36px; }
+        .hero-heading { font-size: 2.1rem; }
+        .hero-stats { display: none; }
+        .value-section-inner { padding: 32px 22px; }
+        .assurance-inner { flex-direction: column; align-items: flex-start; }
+        .hero-exchange-card { display: none; }
+        .pricing-hero { grid-template-columns: 1fr; }
+    }
     </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     SALE BANNER — only rendered when a sale is active
-════════════════════════════════════════════════════════════ -->
+<!-- ══ SALE BANNER ══════════════════════════════════════════ -->
 <% if (saleConfig) { %>
 <div class="sale-banner">
     <span class="sale-badge">Sale</span>
@@ -196,22 +1188,19 @@
 </div>
 <% } %>
 
+<!-- ══ TOPBAR (unchanged) ══════════════════════════════════ -->
 <header class="topbar">
     <div class="topbar-left">
         <a href="/dashboard" class="logo-wordmark">DocUp</a>
     </div>
-
     <div class="topbar-right">
         <a href="/dashboard" class="topbar-pill">FindDocs</a>
-
         <div class="docscore-pill">
             <span class="docscore-label">DocScore</span>
             <span class="docscore-value"><%= data.Doc_score %></span>
             <img src="/fire.png" alt="">
         </div>
-
         <a href="/uploads" class="topbar-pill">Upload</a>
-
         <div class="avatar-btn">
             <% if (data.avatar_img_path) { %>
             <img src="<%= data.avatar_img_path %>" alt="">
@@ -251,237 +1240,481 @@
     </a>
 </div>
 
-<section class="hero-section">
-    <div class="hero-content">
-        <p class="hero-tag">DocScore Recharge</p>
-        <h1>Unlock More Document Access</h1>
-        <p class="hero-subtext">
-            Recharge your DocScore and continue exploring premium notes, study material, and useful academic resources on DocUp.
+<!-- ══ TRUST TICKER ════════════════════════════════════════ -->
+<div class="trust-ticker">
+    <div class="trust-ticker-track">
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Payments secured by <strong>Razorpay</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>Instant</strong> DocScore credit</span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Score <strong>never expires</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/></svg><span>UPI · Cards · Net Banking · Wallets</span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Verified in <strong>seconds</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Payments secured by <strong>Razorpay</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>Instant</strong> DocScore credit</span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Score <strong>never expires</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/></svg><span>UPI · Cards · Net Banking · Wallets</span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Verified in <strong>seconds</strong></span></div>
+    </div>
+</div>
+
+<!-- ══ HERO — SPLIT ═════════════════════════════════════════ -->
+<div class="pricing-hero">
+    <!-- Left -->
+    <div class="hero-left">
+        <div class="hero-eyebrow-pill">
+            <span class="eyebrow-pulse"></span>
+            DocScore Recharge
+        </div>
+        <h1 class="hero-heading">
+            Access every doc<br>you need.<br>
+            <span class="accent">Pay only for what<br>you open.</span>
+        </h1>
+        <p class="hero-subline">
+            No monthly subscriptions. No auto-charges. Just DocScore — spend it whenever you want, on whichever document you need.
         </p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="stat-num">1<span>:1</span></div>
+                <div class="stat-label">Score to Doc Ratio</div>
+            </div>
+            <div class="hero-stat">
+                <div class="stat-num">₹<span>0</span></div>
+                <div class="stat-label">Hidden charges</div>
+            </div>
+            <div class="hero-stat">
+                <div class="stat-num">∞</div>
+                <div class="stat-label">Score validity</div>
+            </div>
+        </div>
+        <div class="hero-trust-badges">
+            <div class="htb">
+                <svg class="htb-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                No subscription
+            </div>
+            <div class="htb">
+                <svg class="htb-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                No auto-renewal
+            </div>
+            <div class="htb">
+                <svg class="htb-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Score never expires
+            </div>
+            <div class="htb warn">
+                <svg class="htb-icon" width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Razorpay secured
+            </div>
+        </div>
     </div>
-</section>
 
-<!-- ══════════════════════════════════════════════════════════
-     DOCSCORE EXCHANGE RATE CALLOUT
-════════════════════════════════════════════════════════════ -->
-<div class="ds-exchange-strip">
-    <div class="ds-exchange-inner">
-        <div class="ds-exchange-pill">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="ds-pill-num">1</span>
-            <span class="ds-pill-label">DocScore</span>
+    <!-- Right — floating exchange card with coupon -->
+    <div class="hero-exchange-card">
+        <div class="exchange-label">How it works</div>
+        <div class="exchange-row">
+            <div class="exchange-pill">
+                <svg class="exchange-pill-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <div class="exchange-pill-num">1</div>
+                <div class="exchange-pill-label">DocScore</div>
+            </div>
+            <div class="exchange-equals">
+                <div class="exchange-equals-line"></div>
+                <div class="exchange-equals-sym">=</div>
+                <div class="exchange-equals-line"></div>
+            </div>
+            <div class="exchange-pill doc-pill">
+                <svg class="exchange-pill-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8"/>
+                    <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.8"/>
+                </svg>
+                <div class="exchange-pill-num">1</div>
+                <div class="exchange-pill-label">Doc Access</div>
+            </div>
         </div>
-        <div class="ds-exchange-eq">
-            <span class="ds-eq-line"></span>
-            <span class="ds-eq-symbol">=</span>
-            <span class="ds-eq-line"></span>
-        </div>
-        <div class="ds-exchange-pill ds-access-pill">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="ds-pill-num">1</span>
-            <span class="ds-pill-label">Doc Access</span>
+        <p class="exchange-subtext">
+            Every protected document costs 1 DocScore to open.<br>Simple, fair, no tricks.
+        </p>
+        <div class="card-coupon-section">
+            <p class="card-coupon-label">Have a coupon code?</p>
+            <div class="coupon-bar">
+                <input type="text" id="coupon-input" placeholder="Enter coupon code" maxlength="30" autocomplete="off" spellcheck="false" />
+                <button class="coupon-apply-btn" id="coupon-apply-btn">Apply</button>
+            </div>
+            <div class="coupon-result" id="coupon-result"></div>
         </div>
     </div>
-    <p class="ds-exchange-sub">Every protected document costs 1 DocScore to open — no subscriptions, no tricks.</p>
 </div>
 
-<style>
-.ds-exchange-strip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 22px 20px 18px;
-    margin: 0 auto 20px;
-    max-width: 500px;
-    background: linear-gradient(135deg, rgba(255,94,0,0.07) 0%, rgba(255,140,0,0.04) 100%);
-    border: 1px solid rgba(255,94,0,0.22);
-    border-radius: 18px;
-    position: relative;
-    overflow: hidden;
-}
-.ds-exchange-strip::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(255,94,0,0.09) 0%, transparent 70%);
-    pointer-events: none;
-}
-.ds-exchange-inner {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-.ds-exchange-pill {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    background: rgba(255,94,0,0.12);
-    border: 1px solid rgba(255,94,0,0.3);
-    border-radius: 40px;
-    padding: 8px 18px 8px 12px;
-    color: #ff7a2e;
-    font-family: 'DM Sans', sans-serif;
-}
-.ds-access-pill {
-    background: rgba(255,255,255,0.05);
-    border-color: rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.85);
-}
-.ds-pill-num {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 800;
-    font-size: 1.35rem;
-    line-height: 1;
-    letter-spacing: -0.02em;
-}
-.ds-pill-label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    white-space: nowrap;
-}
-.ds-exchange-eq {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: rgba(255,255,255,0.25);
-}
-.ds-eq-line {
-    width: 18px;
-    height: 1px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 1px;
-}
-.ds-eq-symbol {
-    font-family: 'Raleway', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: rgba(255,255,255,0.4);
-    line-height: 1;
-}
-.ds-exchange-sub {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    color: rgba(255,255,255,0.38);
-    text-align: center;
-    margin: 0;
-    letter-spacing: 0.01em;
-    line-height: 1.5;
-}
-</style>
-
-<!-- ══════════════════════════════════════════════════════════
-     COUPON BAR
-════════════════════════════════════════════════════════════ -->
-<div class="coupon-bar">
-    <input type="text" id="coupon-input" placeholder="Have a coupon code?" maxlength="30" autocomplete="off" spellcheck="false" />
-    <button class="coupon-apply-btn" id="coupon-apply-btn">Apply</button>
+<!-- ══ PRICING SECTION HEADER ══════════════════════════════ -->
+<%
+    const RECHARGE_PLANS = {
+        starter:  { amount: 29  },
+        standard: { amount: 79  },
+        pro:      { amount: 199 }
+    };
+    function salePrice(base) {
+        if (!saleConfig) return null;
+        return Math.max(1, Math.round(base * (1 - saleConfig.discount_percent / 100)));
+    }
+%>
+<div class="pricing-section-wrap">
+    <div class="section-eyebrow">
+        <div class="section-eyebrow-line"></div>
+        <div class="section-eyebrow-text">Choose your plan</div>
+        <div class="section-eyebrow-line"></div>
+    </div>
+    <div class="section-heading">Pick the pack that fits you</div>
+    <div class="section-subheading">More DocScore = better per-doc rate. All balances never expire.</div>
 </div>
-<div class="coupon-result" id="coupon-result"></div>
 
-<!-- ===== CUSTOM AMOUNT TRIGGER ===== -->
-<section class="custom-trigger-section">
+<!-- ══ PRICING CARDS ════════════════════════════════════════ -->
+<div class="pricing-grid-wrap">
+    <div class="pricing-grid">
+
+        <!-- STARTER — Lite -->
+        <div class="pc">
+            <div class="pc-bar"></div>
+            <div class="pc-inner">
+                <div class="pc-plan-tag">Starter</div>
+                <div class="pc-name">Lite</div>
+                <div class="pc-price-row">
+                    <% if (saleConfig) { %><span class="price-original">₹<%= RECHARGE_PLANS.starter.amount %></span><% } %>
+                    <span class="pc-currency">₹</span>
+                    <span class="pc-amount" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
+                </div>
+                <div class="pc-score">+20 DocScore <span class="ds-doc-hint">= 20 docs</span></div>
+                <div class="pc-per-doc">
+                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount) / 20 * 10) / 10 %> per doc
+                </div>
+                <div class="pc-features">
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Perfect for occasional access
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Great for trying DocUp out
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Score never expires
+                    </div>
+                </div>
+                <div class="pc-divider"></div>
+                <button type="button" class="pc-cta recharge-btn" data-plan="starter" data-base="<%= RECHARGE_PLANS.starter.amount %>" data-original="<%= RECHARGE_PLANS.starter.amount %>">
+                    Recharge Now
+                </button>
+                <div class="pc-trust-note">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/></svg>
+                    Secured via Razorpay
+                </div>
+            </div>
+        </div>
+
+        <!-- STANDARD — Most Popular -->
+        <div class="pc pc-featured">
+            <div class="pc-badge">Most Popular</div>
+            <div class="pc-bar"></div>
+            <div class="pc-inner">
+                <div class="pc-plan-tag">Value</div>
+                <div class="pc-name">Crack</div>
+                <div class="pc-price-row">
+                    <% if (saleConfig) { %><span class="price-original">₹<%= RECHARGE_PLANS.standard.amount %></span><% } %>
+                    <span class="pc-currency">₹</span>
+                    <span class="pc-amount" id="price-standard"><%= saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount %></span>
+                </div>
+                <div class="pc-score">+60 DocScore <span class="ds-doc-hint">= 60 docs</span></div>
+                <div class="pc-per-doc">
+                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount) / 60 * 10) / 10 %> per doc
+                </div>
+                <div class="pc-features">
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Better value than Lite
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Ideal for regular students
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Score never expires
+                    </div>
+                </div>
+                <div class="pc-divider"></div>
+                <button type="button" class="pc-cta pc-cta-featured recharge-btn" data-plan="standard" data-base="<%= RECHARGE_PLANS.standard.amount %>" data-original="<%= RECHARGE_PLANS.standard.amount %>">
+                    Recharge Now
+                </button>
+                <div class="pc-trust-note">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/></svg>
+                    Secured via Razorpay
+                </div>
+            </div>
+        </div>
+
+        <!-- PRO — Topper -->
+        <div class="pc pc-premium">
+            <div class="pc-bar"></div>
+            <div class="pc-inner">
+                <div class="pc-plan-tag">Pro</div>
+                <div class="pc-name">Topper</div>
+                <div class="pc-price-row">
+                    <% if (saleConfig) { %><span class="price-original">₹<%= RECHARGE_PLANS.pro.amount %></span><% } %>
+                    <span class="pc-currency">₹</span>
+                    <span class="pc-amount" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
+                </div>
+                <div class="pc-score">+180 DocScore <span class="ds-doc-hint">= 180 docs</span></div>
+                <div class="pc-per-doc best">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Best value — ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount) / 180 * 10) / 10 %> per doc
+                </div>
+                <div class="pc-features">
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Lowest per-doc cost
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Ideal for heavy users
+                    </div>
+                    <div class="pc-feature">
+                        <span class="pc-check"><svg width="7" height="7" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                        Longer uninterrupted access
+                    </div>
+                </div>
+                <div class="pc-divider"></div>
+                <button type="button" class="pc-cta recharge-btn" data-plan="pro" data-base="<%= RECHARGE_PLANS.pro.amount %>" data-original="<%= RECHARGE_PLANS.pro.amount %>">
+                    Recharge Now
+                </button>
+                <div class="pc-trust-note">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2"/></svg>
+                    Secured via Razorpay
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══ CUSTOM AMOUNT TRIGGER ════════════════════════════════ -->
+<div class="custom-trigger-wrap">
     <button type="button" class="custom-trigger-btn" id="open-custom-modal">
         <span class="custom-trigger-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
                 <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
         </span>
-        Custom Amount
-        <span class="custom-trigger-sub">Choose exactly how much to recharge for...</span>
+        <span class="custom-trigger-label">Want a custom amount?</span>
+        <span class="custom-trigger-hint">Choose exactly how much to recharge →</span>
     </button>
-</section>
+</div>
 
-<section class="pricing-section">
-
-    <%
-        // Server-side: compute sale prices for display
-        const RECHARGE_PLANS = {
-            starter:  { amount: 29  },
-            standard: { amount: 79  },
-            pro:      { amount: 199 }
-        };
-        function salePrice(base) {
-            if (!saleConfig) return null;
-            return Math.max(1, Math.round(base * (1 - saleConfig.discount_percent / 100)));
-        }
-    %>
-
-
-    <div class="pricing-card premium">
-        <p class="plan-tag">Pro</p>
-        <h2>Topper</h2>
-        <div class="price-row">
-            <% if (saleConfig) { %>
-                <span class="price-original">₹<%= RECHARGE_PLANS.pro.amount %></span>
-            <% } %>
-            <span class="currency">₹</span>
-            <span class="price" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
+<!-- ══ TRUST PILLARS ════════════════════════════════════════ -->
+<div class="trust-pillars-wrap">
+    <div class="trust-pillars-inner">
+        <div class="section-eyebrow">
+            <div class="section-eyebrow-line"></div>
+            <div class="section-eyebrow-text">Why trust DocUp</div>
+            <div class="section-eyebrow-line"></div>
         </div>
-        <p class="docscore-count">+180 DocScore <span class="ds-doc-hint">= 180 docs</span></p>
-        <div class="features">
-            <div class="feature">Best value overall</div>
-            <div class="feature">Ideal for heavy users</div>
-            <div class="feature">Longer uninterrupted access</div>
+        <div class="trust-pillars-grid">
+
+            <!-- Pillar 1: Secure Payments -->
+            <div class="trust-pillar">
+                <div class="tp-icon-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="tp-title">Bank-Grade Security</div>
+                <div class="tp-body">Every transaction is processed by Razorpay — India's most trusted payment infrastructure. Your card details never reach our servers.</div>
+                <div class="tp-payment-pills">
+                    <div class="pp razorpay">🔒 Razorpay</div>
+                    <div class="pp">UPI</div>
+                    <div class="pp">Cards</div>
+                    <div class="pp">Net Banking</div>
+                    <div class="pp">Wallets</div>
+                </div>
+            </div>
+
+            <!-- Pillar 2: Guarantees -->
+            <div class="trust-pillar">
+                <div class="tp-icon-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="tp-title">Our Commitments</div>
+                <div class="tp-checklist">
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        DocScore credited instantly after payment
+                    </div>
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Your score never expires — use at your pace
+                    </div>
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Zero auto-renewals or hidden charges
+                    </div>
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Support available via Contact Us
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pillar 3: Total Flexibility -->
+            <div class="trust-pillar">
+                <div class="tp-icon-wrap">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/>
+                    </svg>
+                </div>
+                <div class="tp-title">Total Flexibility</div>
+                <div class="tp-body">Pay for exactly what you need — from a quick ₹29 top-up to 180 documents. No subscription traps. Use your score on your timeline.</div>
+                <div class="tp-checklist">
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        3 fixed plans + fully custom amount
+                    </div>
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        No wasted credits — carry forward always
+                    </div>
+                </div>
+            </div>
+
         </div>
-        <button type="button" class="buy-btn recharge-btn" data-plan="pro" data-base="<%= RECHARGE_PLANS.pro.amount %>" data-original="<%= RECHARGE_PLANS.pro.amount %>">
-            Recharge Now
-        </button>
     </div>
+</div>
 
-    <div class="pricing-card popular">
-        <div class="popular-badge">Most Popular</div>
-        <p class="plan-tag">Value</p>
-        <h2>Crack</h2>
-        <div class="price-row">
-            <% if (saleConfig) { %>
-            <span class="price-original">₹<%= RECHARGE_PLANS.standard.amount %></span>
-            <% } %>
-            <span class="currency">₹</span>
-            <span class="price" id="price-standard"><%= saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount %></span>
+<!-- ══ VALUE SECTION ════════════════════════════════════════ -->
+<div class="value-section-wrap">
+    <div class="value-section-inner">
+        <div class="value-grid">
+            <div class="value-left">
+                <h2>Why recharge<br>instead of subscribing?</h2>
+                <p>DocScore is how DocUp makes premium content fair for students. You pay only for the documents you actually open — no flat fee that goes to waste when exams are over.</p>
+            </div>
+            <div class="value-points">
+                <div class="value-point">
+                    <div class="vp-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="vp-text">
+                        <strong>Instant access, no waiting</strong>
+                        <span>Score is credited the moment Razorpay verifies your payment. Visible in your topbar immediately.</span>
+                    </div>
+                </div>
+                <div class="value-point">
+                    <div class="vp-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="vp-text">
+                        <strong>Secure payment flow</strong>
+                        <span>Industry-standard encryption. Your financial details are handled entirely by Razorpay — never stored by DocUp.</span>
+                    </div>
+                </div>
+                <div class="value-point">
+                    <div class="vp-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/><rect x="14" y="3" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/><rect x="3" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/><rect x="14" y="14" width="7" height="7" stroke="currentColor" stroke-width="1.8" rx="1"/></svg>
+                    </div>
+                    <div class="vp-text">
+                        <strong>Flexible plans for every student</strong>
+                        <span>From a quick ₹29 top-up to a 180-document power pack — or any custom amount you decide.</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p class="docscore-count">+60 DocScore <span class="ds-doc-hint">= 60 docs</span></p>
-        <div class="features">
-            <div class="feature">Better value than single recharge</div>
-            <div class="feature">Great for regular usage</div>
-            <div class="feature">Balanced price and access</div>
-        </div>
-        <button type="button" class="buy-btn featured-btn recharge-btn" data-plan="standard" data-base="<%= RECHARGE_PLANS.standard.amount %>" data-original="<%= RECHARGE_PLANS.standard.amount %>">
-            Recharge Now
-        </button>
     </div>
-    <div class="pricing-card starter">
-        <p class="plan-tag">Basic</p>
-        <h2>Prep</h2>
-        <div class="price-row">
-            <% if (saleConfig) { %>
-                <span class="price-original">₹<%= RECHARGE_PLANS.starter.amount %></span>
-            <% } %>
-            <span class="currency">₹</span>
-            <span class="price" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
+</div>
+
+<!-- ══ FAQ ═══════════════════════════════════════════════════ -->
+<div class="faq-wrap">
+    <div class="faq-inner">
+        <div class="section-heading">Frequently Asked Questions</div>
+        <div class="section-subheading" style="margin-top:6px">Everything you need to know about DocScore and recharging.</div>
+        <div class="faq-list-new">
+            <div class="faq-item open">
+                <button class="faq-q">
+                    What is DocScore?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">DocScore is the access credit used when opening protected documents on DocUp. Every protected document costs 1 DocScore to unlock — think of it like a token system rather than a subscription.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">
+                    Does my recharged DocScore expire?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">No. Your DocScore never expires unless you use it. Recharge once and use it over weeks or months at your own pace — no pressure.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">
+                    When is the score added to my account?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">Instantly — as soon as Razorpay verifies your payment, your DocScore is credited to your account automatically. You'll see it update in the topbar right away.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">
+                    Is my payment information safe?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">Yes. All payments are processed by Razorpay, India's most trusted payment infrastructure. Your card or UPI details never touch DocUp's servers — Razorpay handles everything end-to-end with bank-grade encryption.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">
+                    What payment methods are accepted?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">All major methods are supported — UPI (PhonePe, GPay, Paytm), debit & credit cards (Visa, Mastercard, RuPay), net banking, and popular wallets.</div>
+            </div>
         </div>
-        <p class="docscore-count">+20 DocScore <span class="ds-doc-hint">= 20 docs</span></p>
-        <div class="features">
-            <div class="feature">Access more protected documents</div>
-            <div class="feature">Low-cost quick recharge</div>
-            <div class="feature">Perfect for casual users</div>
-        </div>
-        <button type="button" class="buy-btn recharge-btn" data-plan="starter" data-base="<%= RECHARGE_PLANS.starter.amount %>" data-original="<%= RECHARGE_PLANS.starter.amount %>">
-            Recharge Now
-        </button>
     </div>
+</div>
 
+<!-- ══ BOTTOM ASSURANCE BAR ══════════════════════════════════ -->
+<div class="assurance-bar">
+    <div class="assurance-inner">
+        <div class="assurance-left">
+            <div class="assurance-shield">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div>
+                <div class="assurance-text-main">Your payment is 100% protected</div>
+                <div class="assurance-text-sub">DocUp uses Razorpay — trusted by millions across India</div>
+            </div>
+        </div>
+        <div class="assurance-pills">
+            <div class="assurance-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                No hidden fees
+            </div>
+            <div class="assurance-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Score never expires
+            </div>
+            <div class="assurance-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Instant credit
+            </div>
+            <div class="assurance-pill">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Cancel anytime
+            </div>
+        </div>
+    </div>
+</div>
 
-</section>
-
-<!-- ===== CUSTOM RECHARGE OVERLAY ===== -->
+<!-- ══ CUSTOM RECHARGE OVERLAY (unchanged) ═════════════════ -->
 <div class="cr-overlay" id="cr-overlay">
     <div class="cr-backdrop" id="cr-backdrop"></div>
     <div class="cr-modal" id="cr-modal">
@@ -490,74 +1723,34 @@
                 <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
             </svg>
         </button>
-
         <div class="cr-eyebrow">Custom Recharge</div>
-
         <div class="cr-amount-display">
             <span style="color:orangered" class="cr-rupee">₹</span><span id="cr-amount-num">100</span>
         </div>
-
         <div class="cr-score-pill">
             <span id="cr-score-num">50</span>&nbsp;DocScore
         </div>
-
         <div class="cr-slider-wrap">
             <input type="range" id="cr-slider" class="cr-slider" min="20" max="500" step="2" value="100">
         </div>
-
         <div class="cr-range-labels">
             <span>₹20</span><span>₹500</span>
         </div>
-
         <div class="cr-divider"></div>
-
         <div class="cr-chips">
             <button class="cr-chip" data-val="50">₹50</button>
             <button class="cr-chip" data-val="100">₹100</button>
             <button class="cr-chip" data-val="200">₹200</button>
             <button class="cr-chip" data-val="500">₹500</button>
         </div>
-
         <div class="cr-rate-note"> No refund · No expiry </div>
-
         <button type="button" class="cr-pay-btn" id="cr-pay-btn">
             Pay ₹<span id="cr-btn-amount">100</span>
         </button>
     </div>
 </div>
 
-<section class="comparison-section">
-    <div class="comparison-card">
-        <h2>Why Recharge DocScore?</h2>
-        <p>
-            Every time you open a protected document on DocUp, DocScore is used. Recharging lets you keep discovering notes without interruption.
-        </p>
-        <div class="comparison-points">
-            <div class="comparison-point">Fast access to more study resources</div>
-            <div class="comparison-point">Flexible plans for every kind of student</div>
-            <div class="comparison-point">Secure payment flow</div>
-        </div>
-    </div>
-</section>
-
-<section class="faq-section">
-    <h2>Frequently Asked Questions</h2>
-    <div class="faq-grid">
-        <div class="faq-card">
-            <h3>What is DocScore?</h3>
-            <p>DocScore is the access credit used when opening protected documents on DocUp.</p>
-        </div>
-        <div class="faq-card">
-            <h3>Does recharge expire?</h3>
-            <p>No, they don't expire unless you use all recharged DocScores.</p>
-        </div>
-        <div class="faq-card">
-            <h3>When is score added?</h3>
-            <p>Instantly after payment is verified successfully.</p>
-        </div>
-    </div>
-</section>
-
+<!-- ══ FOOTER (unchanged) ══════════════════════════════════ -->
 <div class="footer">
     <div style="display:flex;flex-direction:row;justify-content:flex-end;align-items:flex-end;font-family:'Archivo Black',sans-serif" class="footer-left">
         DocUp
@@ -579,9 +1772,17 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-/* ──────────────────────────────────────────────────────────────
-   COUPON LOGIC
-────────────────────────────────────────────────────────────── */
+/* ── FAQ ACCORDION ─────────────────────────────────────────── */
+document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
+    });
+});
+
+/* ── COUPON LOGIC ──────────────────────────────────────────── */
 let appliedCoupon = null;
 
 const couponInput    = document.getElementById("coupon-input");
@@ -590,24 +1791,14 @@ const couponResult   = document.getElementById("coupon-result");
 
 async function applyCoupon() {
     const code = couponInput.value.trim().toUpperCase();
-    if (!code) {
-        showCouponResult("Please enter a coupon code.", "error");
-        return;
-    }
-
+    if (!code) { showCouponResult("Please enter a coupon code.", "error"); return; }
     couponApplyBtn.disabled = true;
     couponApplyBtn.textContent = "Checking…";
     couponResult.className = "coupon-result";
     couponResult.textContent = "";
-
     try {
-        const res  = await fetch("/coupon/validate", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            body:    JSON.stringify({ code, context: "recharge" })
-        });
+        const res  = await fetch("/coupon/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, context: "recharge" }) });
         const data = await res.json();
-
         if (data.valid) {
             appliedCoupon = { code, ...data };
             showCouponResult("✓ " + data.message, "success");
@@ -627,64 +1818,42 @@ async function applyCoupon() {
         resetCouponPrices();
         couponApplyBtn.textContent = "Apply";
         couponApplyBtn.classList.remove("applied");
-    } finally {
-        couponApplyBtn.disabled = false;
-    }
+    } finally { couponApplyBtn.disabled = false; }
 }
 
 function updateCouponPrices(coupon) {
     resetCouponPrices();
-
     if (coupon.type !== "flat" || !coupon.flat_discount) {
-        // docscore coupon: price unchanged, show bonus tag
         document.querySelectorAll(".recharge-btn").forEach(btn => {
             const priceEl = document.getElementById("price-" + btn.dataset.plan);
             if (!priceEl) return;
             const tag = document.createElement("div");
             tag.className = "coupon-saving-tag bonus-tag coupon-injected";
             tag.textContent = "＋" + coupon.docscore_bonus + " Bonus DocScore on purchase";
-            priceEl.closest(".price-row").after(tag);
+            priceEl.closest(".pc-price-row").after(tag);
         });
         return;
     }
-
     document.querySelectorAll(".recharge-btn").forEach(btn => {
         const plan = btn.dataset.plan;
         const priceEl = document.getElementById("price-" + plan);
         if (!priceEl) return;
-
-        const priceRow = priceEl.closest(".price-row");
+        const priceRow = priceEl.closest(".pc-price-row");
         if (!priceRow) return;
-
-        // Read original from server-rendered data attribute — never from DOM text
         const trueOriginal = parseInt(btn.dataset.original, 10);
         if (!trueOriginal) return;
-
         const discounted = Math.max(1, trueOriginal - coupon.flat_discount);
         const saving     = trueOriginal - discounted;
-
-        // Hide all existing price spans
-        priceRow.querySelectorAll("span").forEach(s => {
-            s.dataset.couponHidden = "1";
-            s.style.display = "none";
-        });
-
-        // Struck-through original
+        priceRow.querySelectorAll("span").forEach(s => { s.dataset.couponHidden = "1"; s.style.display = "none"; });
         const strikeEl = document.createElement("span");
         strikeEl.className = "price-coupon-original coupon-injected";
         strikeEl.textContent = "₹" + trueOriginal;
-
-        // New green price (wrapped to match .currency + .price layout)
         const newWrap = document.createElement("span");
         newWrap.className = "coupon-injected";
-        newWrap.style.display = "flex";
-        newWrap.style.alignItems = "flex-start";
-        newWrap.style.gap = "0";
+        newWrap.style.cssText = "display:flex;align-items:flex-start;gap:0";
         newWrap.innerHTML = '<span class="price-coupon-new">₹' + discounted + '</span>';
-
         priceRow.appendChild(strikeEl);
         priceRow.appendChild(newWrap);
-
         if (saving > 0) {
             const tag = document.createElement("div");
             tag.className = "coupon-saving-tag coupon-injected";
@@ -696,22 +1865,12 @@ function updateCouponPrices(coupon) {
 
 function resetCouponPrices() {
     document.querySelectorAll(".coupon-injected").forEach(e => e.remove());
-    document.querySelectorAll(".price-row span[data-coupon-hidden]").forEach(s => {
-        s.style.display = "";
-        delete s.dataset.couponHidden;
-    });
+    document.querySelectorAll(".pc-price-row span[data-coupon-hidden]").forEach(s => { s.style.display = ""; delete s.dataset.couponHidden; });
 }
-
-function showCouponResult(msg, type) {
-    couponResult.textContent = msg;
-    couponResult.className = "coupon-result " + type;
-}
-
+function showCouponResult(msg, type) { couponResult.textContent = msg; couponResult.className = "coupon-result " + type; }
 couponApplyBtn.addEventListener("click", () => applyCoupon());
-
 couponInput.addEventListener("keydown", e => {
     if (e.key === "Enter") { applyCoupon(); return; }
-    // If user edits after applying, reset the coupon state
     if (appliedCoupon) {
         appliedCoupon = null;
         couponApplyBtn.textContent = "Apply";
@@ -722,29 +1881,18 @@ couponInput.addEventListener("keydown", e => {
     }
 });
 
-/* ──────────────────────────────────────────────────────────────
-   RECHARGE BUTTONS
-────────────────────────────────────────────────────────────── */
+/* ── RECHARGE BUTTONS ──────────────────────────────────────── */
 const buttons = document.querySelectorAll(".recharge-btn");
-
 buttons.forEach((btn) => {
     btn.addEventListener("click", async () => {
         const originalText = btn.innerText;
-
         try {
             btn.disabled = true;
             btn.innerText = "Please wait...";
-
             const plan       = btn.dataset.plan;
             const baseAmount = parseInt(btn.dataset.base, 10) || 0;
-
-            // Re-validate coupon with the actual plan's base amount
             if (appliedCoupon && appliedCoupon.code) {
-                const recheck = await fetch("/coupon/validate", {
-                    method:  "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body:    JSON.stringify({ code: appliedCoupon.code, context: "recharge", baseAmount })
-                });
+                const recheck = await fetch("/coupon/validate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: appliedCoupon.code, context: "recharge", baseAmount }) });
                 const recheckData = await recheck.json();
                 if (!recheckData.valid) {
                     showCouponResult(recheckData.reason || "Coupon no longer valid.", "error");
@@ -756,92 +1904,33 @@ buttons.forEach((btn) => {
                 }
                 appliedCoupon = { ...appliedCoupon, ...recheckData };
             }
-
-            const response = await fetch("/buy-recharge", {
-                method:  "POST",
-                headers: { "Content-Type": "application/json" },
-                body:    JSON.stringify({
-                    plan,
-                    couponCode: appliedCoupon ? appliedCoupon.code : null
-                })
-            });
-
+            const response = await fetch("/buy-recharge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan, couponCode: appliedCoupon ? appliedCoupon.code : null }) });
             const data = await response.json();
-
-            if (!data.success) {
-                alert(data.message || "Could not start payment");
-                btn.disabled = false;
-                btn.innerText = originalText;
-                return;
-            }
-
-            // Show bonus DocScore hint if a docscore coupon is applied
-            const description = data.bonusDocscore
-                ? `DocScore Recharge + ${data.bonusDocscore} Bonus DocScore`
-                : "DocScore Recharge";
-
+            if (!data.success) { alert(data.message || "Could not start payment"); btn.disabled = false; btn.innerText = originalText; return; }
+            const description = data.bonusDocscore ? `DocScore Recharge + ${data.bonusDocscore} Bonus DocScore` : "DocScore Recharge";
             const options = {
-                key:         data.key,
-                amount:      data.amount,
-                currency:    data.currency,
-                name:        "DocUp",
-                description,
-                order_id:    data.orderId,
-                prefill:     { email: data.userEmail },
-                theme:       { color: "#ff5e00" },
+                key: data.key, amount: data.amount, currency: data.currency,
+                name: "DocUp", description, order_id: data.orderId,
+                prefill: { email: data.userEmail }, theme: { color: "#ff5e00" },
                 handler: async function (paymentResponse) {
                     try {
-                        const verifyRes = await fetch("/payment/verify", {
-                            method:  "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body:    JSON.stringify(paymentResponse)
-                        });
+                        const verifyRes = await fetch("/payment/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(paymentResponse) });
                         const verifyData = await verifyRes.json();
-
-                        if (verifyData.success) {
-                            window.location.href = verifyData.redirectUrl;
-                        } else {
-                            btn.disabled = false;
-                            btn.innerText = originalText;
-                            alert(verifyData.message || "Payment verification failed");
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        btn.disabled = false;
-                        btn.innerText = originalText;
-                        alert("Payment verification failed");
-                    }
+                        if (verifyData.success) { window.location.href = verifyData.redirectUrl; }
+                        else { btn.disabled = false; btn.innerText = originalText; alert(verifyData.message || "Payment verification failed"); }
+                    } catch (err) { console.error(err); btn.disabled = false; btn.innerText = originalText; alert("Payment verification failed"); }
                 },
-                modal: {
-                    ondismiss: function () {
-                        btn.disabled = false;
-                        btn.innerText = originalText;
-                    }
-                }
+                modal: { ondismiss: function () { btn.disabled = false; btn.innerText = originalText; } }
             };
-
             const rzp = new Razorpay(options);
-            rzp.on("payment.failed", function () {
-                btn.disabled = false;
-                btn.innerText = originalText;
-                alert("Payment failed. Please try again.");
-            });
+            rzp.on("payment.failed", function () { btn.disabled = false; btn.innerText = originalText; alert("Payment failed. Please try again."); });
             rzp.open();
-
-        } catch (err) {
-            console.error(err);
-            alert("Something went wrong");
-            btn.disabled = false;
-            btn.innerText = originalText;
-        }
+        } catch (err) { console.error(err); alert("Something went wrong"); btn.disabled = false; btn.innerText = originalText; }
     });
 });
 
-/* ──────────────────────────────────────────────────────────────
-   CUSTOM RECHARGE OVERLAY
-────────────────────────────────────────────────────────────── */
+/* ── CUSTOM RECHARGE OVERLAY ───────────────────────────────── */
 const RATE = 1;
-
 const overlay   = document.getElementById("cr-overlay");
 const backdrop  = document.getElementById("cr-backdrop");
 const closeBtn  = document.getElementById("cr-close");
@@ -857,7 +1946,6 @@ function syncSliderFill(val) {
     const pct = ((val - 20) / (500 - 20)) * 100;
     slider.style.background = `linear-gradient(to right,#ff5e00 ${pct}%,rgba(255,255,255,0.1) ${pct}%)`;
 }
-
 function updateUI(val) {
     val = Math.max(20, Math.min(500, Math.round(val / 2) * 2));
     slider.value = val;
@@ -866,7 +1954,6 @@ function updateUI(val) {
     btnAmount.textContent = val;
     syncSliderFill(val);
 }
-
 slider.addEventListener("input", () => updateUI(+slider.value));
 chips.forEach(chip => {
     chip.addEventListener("click", () => {
@@ -875,79 +1962,41 @@ chips.forEach(chip => {
         updateUI(+chip.dataset.val);
     });
 });
-
 function openModal()  { overlay.classList.add("active");    document.body.style.overflow = "hidden"; }
 function closeModal() { overlay.classList.remove("active"); document.body.style.overflow = "";       }
-
 openBtn.addEventListener("click", openModal);
 closeBtn.addEventListener("click", closeModal);
 backdrop.addEventListener("click", closeModal);
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
-
 updateUI(100);
 
 payBtn.addEventListener("click", async () => {
     const amount = Math.max(20, Math.min(500, Math.round(+slider.value / 2) * 2));
-    const orig   = payBtn.innerHTML;
-
+    const orig = payBtn.innerHTML;
     payBtn.disabled = true;
     payBtn.textContent = "Please wait…";
-
     try {
-        const res  = await fetch("/buy-recharge", {
-            method:  "POST",
-            headers: { "Content-Type": "application/json" },
-            // Custom recharge does not support coupons (amount is freeform)
-            body:    JSON.stringify({ plan: "custom", customAmount: amount })
-        });
+        const res  = await fetch("/buy-recharge", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ plan: "custom", customAmount: amount }) });
         const data = await res.json();
-
-        if (!data.success) {
-            alert(data.message || "Could not start payment");
-            payBtn.disabled = false;
-            payBtn.innerHTML = orig;
-            return;
-        }
-
+        if (!data.success) { alert(data.message || "Could not start payment"); payBtn.disabled = false; payBtn.innerHTML = orig; return; }
         const options = {
-            key:         data.key,
-            amount:      data.amount,
-            currency:    data.currency,
-            name:        "DocUp",
-            description: `Custom DocScore — ${data.docscoreToAdd} pts`,
-            order_id:    data.orderId,
-            prefill:     { email: data.userEmail },
-            theme:       { color: "#ff5e00" },
+            key: data.key, amount: data.amount, currency: data.currency,
+            name: "DocUp", description: `Custom DocScore — ${data.docscoreToAdd} pts`,
+            order_id: data.orderId, prefill: { email: data.userEmail }, theme: { color: "#ff5e00" },
             handler: async function (pr) {
                 try {
-                    const vr = await fetch("/payment/verify", {
-                        method:  "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body:    JSON.stringify(pr)
-                    });
+                    const vr = await fetch("/payment/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pr) });
                     const vd = await vr.json();
                     if (vd.success) { window.location.href = vd.redirectUrl; }
-                    else {
-                        payBtn.disabled = false;
-                        payBtn.innerHTML = orig;
-                        alert(vd.message || "Verification failed");
-                    }
-                } catch (err) {
-                    payBtn.disabled = false;
-                    payBtn.innerHTML = orig;
-                }
+                    else { payBtn.disabled = false; payBtn.innerHTML = orig; alert(vd.message || "Verification failed"); }
+                } catch (err) { payBtn.disabled = false; payBtn.innerHTML = orig; }
             },
             modal: { ondismiss: () => { payBtn.disabled = false; payBtn.innerHTML = orig; } }
         };
-
         const rzp = new Razorpay(options);
         rzp.on("payment.failed", () => { payBtn.disabled = false; payBtn.innerHTML = orig; });
         rzp.open();
-    } catch (err) {
-        alert("Something went wrong");
-        payBtn.disabled = false;
-        payBtn.innerHTML = orig;
-    }
+    } catch (err) { alert("Something went wrong"); payBtn.disabled = false; payBtn.innerHTML = orig; }
 });
 </script>
 

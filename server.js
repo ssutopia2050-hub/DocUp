@@ -3822,7 +3822,7 @@ app.post("/payment/verify", async (req, res) => {
         if (!order) return res.status(404).json({ success: false, message: "Order not found." });
 
         if (order.status === "SUCCESS") {
-            return res.json({ success: true, redirectUrl: "/pricing?payment=success" });
+            return res.json({ success: true, redirectUrl: "/payment-success" });
         }
 
         const totalDocscore = (order.docscore || 0) + (order.bonus_docscore || 0);
@@ -3866,7 +3866,7 @@ app.post("/payment/verify", async (req, res) => {
         // ── Bust docscore cache
         await invalidate(`docscore:${order.email}`);
 
-        return res.json({ success: true, redirectUrl: "/pricing?payment=success" });
+        return res.json({ success: true, redirectUrl: "/payment-success" });
 
     } catch (err) {
         console.error("payment/verify error:", err);
@@ -4099,7 +4099,7 @@ app.post("/subscription/verify", async (req, res) => {
 
         await invalidate(`docscore:${req.user.email}`);
 
-        return res.json({ success: true, redirectUrl: "/profile" });
+        return res.json({ success: true, redirectUrl: "/payment-success" });
 
     } catch (err) {
         console.error("subscription/verify error:", err);
@@ -4135,6 +4135,33 @@ app.get("/pricing", async (req, res) => {
         });
     } catch (err) {
         console.error("GET /pricing error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+
+/**
+ * GET /payment-success
+ * Reads the most recent payment_history entry to recover docscore + bonusDocscore.
+ * bonusDocscore = anything above the base plan docscore (coupon bonus etc.).
+ * We store the full totalDocscore in docscore_added, so we just pass that through.
+ */
+app.get("/payment-success", async (req, res) => {
+    if (!req.session.email) return res.redirect("/signin");
+    try {
+        const user = await user_profile.findOne({ email: req.session.email }).lean();
+
+        // Pick the most recent payment entry
+        const lastPayment = Array.isArray(user.payment_history) && user.payment_history.length
+            ? [...user.payment_history].sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+            : null;
+
+        const docscore     = lastPayment?.docscore_added ?? 0;
+        const bonusDocscore = 0; // bonus is already rolled into docscore_added; pass 0 unless you track it separately
+
+        return res.render("payment-success", { data: user, docscore, bonusDocscore });
+    } catch (err) {
+        console.error("GET /payment-success error:", err);
         return res.status(500).send("Server error");
     }
 });
