@@ -217,8 +217,9 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
                                 date: new Date()
                             },
                             notifications: {
-                                email: user.email,
-                                content: `Subscription renewed 🎉 +${selectedPlan.docscore} DocScore added for ${selectedPlan.label}`
+                                email:    user.email,
+                                content:  `Subscription renewed 🎉 +${selectedPlan.docscore} DocScore added for ${selectedPlan.label}`,
+                                category: "payment"   // BUG FIX: was missing, defaulted to "system"
                             }
                         }
                     }
@@ -3817,21 +3818,33 @@ app.post("/payment/verify", async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid payment signature." });
         }
 
-        // ── Fetch the stored order
-        const order = await paymentOrder.findOne({ order_id: razorpay_order_id });
-        if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+        // ── Atomically claim the order (PENDING → SUCCESS) to prevent double-credit
+        //    on duplicate verify requests or network retries.
+        const order = await paymentOrder.findOneAndUpdate(
+            { order_id: razorpay_order_id, status: "PENDING" },
+            { $set: { status: "SUCCESS", payment_id: razorpay_payment_id } },
+            { new: true }
+        );
 
-        if (order.status === "SUCCESS") {
-            return res.json({ success: true, redirectUrl: "/payment-success" });
+        if (!order) {
+            // Order wasn't PENDING — check if it was already processed (idempotent OK)
+            const existing = await paymentOrder.findOne({ order_id: razorpay_order_id });
+            if (existing?.status === "SUCCESS") {
+                return res.json({ success: true, redirectUrl: "/payment-success" });
+            }
+            return res.status(404).json({ success: false, message: "Order not found." });
         }
 
         const totalDocscore = (order.docscore || 0) + (order.bonus_docscore || 0);
 
-        // ── Credit DocScore + update subscription + push payment history
-        await user_profile.findOneAndUpdate(
+        // ── Credit DocScore + upgrade subscription + push payment history
+        //    BUG FIX: added $set { subscription: "Paid Tier" } — was missing, so the user's
+        //    subscription never changed from "Free Tier" after a successful recharge.
+        const updatedUser = await user_profile.findOneAndUpdate(
             { email: order.email },
             {
                 $inc: { Doc_score: totalDocscore },
+                $set: { subscription: "Paid Tier" },
                 $push: {
                     payment_history: {
                         order_id:       razorpay_order_id,
@@ -3848,13 +3861,8 @@ app.post("/payment/verify", async (req, res) => {
                         category: "payment"
                     }
                 }
-            }
-        );
-
-        // ── Mark order as successful
-        await paymentOrder.findOneAndUpdate(
-            { order_id: razorpay_order_id },
-            { $set: { status: "SUCCESS", payment_id: razorpay_payment_id } }
+            },
+            { new: true }
         );
 
         // ── Mark coupon as used (if one was applied)
@@ -3865,6 +3873,19 @@ app.post("/payment/verify", async (req, res) => {
 
         // ── Bust docscore cache
         await invalidate(`docscore:${order.email}`);
+
+        // ── Send recharge confirmation email
+        //    BUG FIX: sendRechargeSuccessEmail was defined but never called here.
+        if (updatedUser) {
+            sendRechargeSuccessEmail(order.email, updatedUser.name, {
+                planLabel:     order.plan,
+                amount:        order.amount,
+                docscoreAdded: totalDocscore,
+                orderId:       razorpay_order_id,
+                paymentId:     razorpay_payment_id,
+                date:          new Date()
+            }).catch(err => console.error("Recharge email send failed:", err.message));
+        }
 
         return res.json({ success: true, redirectUrl: "/payment-success" });
 

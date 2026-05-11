@@ -10,8 +10,8 @@ async function run() {
         console.log("Connected to DB ✅");
 
         const result = await DOCS.updateMany(
-            { protected: true },
-            { $set: { protected: false } }
+            { protected: false },
+            { $set: { protected: true } }
         );
 
         console.log(`Documents updated: ${result.modifiedCount}`);
