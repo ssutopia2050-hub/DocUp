@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import DOCS from "./models/Docs.js"; // adjust path if needed
+import PaymentOrder from "./models/paymentOrder.js";
 
 dotenv.config();
 
@@ -9,18 +9,20 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("Connected to DB ✅");
 
-        const result = await DOCS.updateMany(
-            { protected: false },
-            { $set: { protected: true } }
-        );
+        const result = await PaymentOrder.deleteMany({
+            status: "PENDING",
+            $or: [
+                { email: "vinayaklamba46@gmail.com" },
+                { user_email: "vinayaklamba46@gmail.com" } // typo field
+            ]
+        });
 
-        console.log(`Documents updated: ${result.modifiedCount}`);
+        console.log(`Deleted ${result.deletedCount} documents ✅`);
 
-        await mongoose.disconnect();
-        console.log("Disconnected ❌");
-
+        process.exit(0);
     } catch (err) {
-        console.error("Error ❌:", err);
+        console.error(err);
+        process.exit(1);
     }
 }
 

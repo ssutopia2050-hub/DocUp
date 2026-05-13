@@ -18,6 +18,7 @@ import fs from "fs";
 import csv from "csv-parser";
 import MongoStore from "connect-mongo";
 import { createClient } from "@supabase/supabase-js";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import path from "path";
 const app = express();
 const port = process.env.PORT || 5000;
@@ -358,6 +359,16 @@ const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+// ── Cloudflare R2 (S3-compatible) ────────────────────────────────────────────
+const r2 = new S3Client({
+    region: "auto",
+    endpoint: process.env.R2_ENDPOINT,
+    credentials: {
+        accessKeyId:     process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+});
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -2416,37 +2427,35 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
         const safeChapter = sanitizeFilePart(chapter);
         const timestamp = Date.now();
 
-        const fileName = `${safeBaseName || "doc"}_${timestamp}.${extension}`;
-        const storagePath = `docs/${safeCollege}/${safeBranch}/${safeSubject}/${safeChapter}/${fileName}`;
-
         const fileBuffer = req.file.buffer;
 
-        // ☁️ UPLOAD TO SUPABASE
-        const { error: uploadError } = await supabase.storage
-            .from(process.env.SUPABASE_BUCKET)
-            .upload(storagePath, fileBuffer, {
-                contentType: req.file.mimetype,
-                upsert: false
-            });
+        // ☁️ UPLOAD TO CLOUDFLARE R2
+        // Pre-create a doc _id so the R2 key and DB id match (mirrors cdn.docup.in/docs/<id>.pdf pattern)
+        const { default: mongoose } = await import("mongoose");
+        const docId = new mongoose.Types.ObjectId();
+        const r2Key = `docs/${docId}.${extension}`;
 
-        if (uploadError) {
-            console.error("Supabase upload error:", uploadError);
-
+        try {
+            await r2.send(new PutObjectCommand({
+                Bucket:      process.env.R2_BUCKET_NAME,
+                Key:         r2Key,
+                Body:        fileBuffer,
+                ContentType: req.file.mimetype,
+            }));
+        } catch (r2Err) {
+            console.error("R2 upload error:", r2Err.message, r2Err);
             return res.status(500).json({
                 success: false,
-                message: "Upload failed"
+                message: r2Err.message || "Upload to R2 failed"
             });
         }
 
-        // 🌍 GET PUBLIC URL
-        const { data: publicUrlData } = supabase.storage
-            .from(process.env.SUPABASE_BUCKET)
-            .getPublicUrl(storagePath);
-
-        const fileUrl = publicUrlData?.publicUrl;
+        // 🌍 PUBLIC URL via CDN
+        const fileUrl = `${process.env.R2_CDN_URL}/${r2Key}`;
 
         // 🧠 SAVE TO DB (WITH PROTECTED FIELD)
         const doc = await Docs.create({
+            _id: docId,                // ✅ matches R2 key
             college,
             year,
             semester,
@@ -2456,8 +2465,8 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
             file_url: fileUrl,
             uploaded_by: user.email,
             reviewed: false,
-            protected: protectedValue, // ✅ FIXED
-            doc_type: docType          // ✅ NEW
+            protected: protectedValue,
+            doc_type: docType
         });
 
         // 🔥 UPDATE USER
