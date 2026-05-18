@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Exam Tracker — <%= collegeName %></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@400;700&family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/dev_tracker.css">
+    <link rel="stylesheet" href="/page-loader.css">
+</head>
+<body>
+<div class="tracker-shell">
+
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="tracker-sidebar">
+        <div class="tracker-brand-wrap">
+            <h1>DocUp</h1>
+            <h3>Dev</h3>
+        </div>
+
+        <nav class="tracker-nav">
+            <a href="/dev/dashboard">Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity">Activity</a>
+            <a href="/dev/coupons">Coupon Manager</a>
+            <a href="/dev/exam-tracker" class="active">Exam Tracker</a>
+        </nav>
+    </aside>
+
+    <!-- ═══════════════════ MAIN ═══════════════════ -->
+    <main class="tracker-main">
+
+        <!-- topbar -->
+        <header class="tracker-topbar">
+            <div class="topbar-left">
+                <h2>Exam Tracker</h2>
+                <p class="subtitle"><%= collegeName %></p>
+            </div>
+
+            <div class="topbar-right">
+                <a href="/dev/exam-tracker" class="btn btn-ghost btn-sm">
+                    ← All Colleges
+                </a>
+            </div>
+        </header>
+
+        <!-- content -->
+        <section class="tracker-content">
+
+            <!-- back link (mobile-friendly duplicate) -->
+            <a href="/dev/exam-tracker" class="back-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back to all colleges
+            </a>
+
+            <!-- ── COLLEGE HERO ── -->
+            <div class="college-hero">
+                <img src="<%= collegeImage %>" alt="<%= collegeName %>">
+
+                <div class="college-hero-info">
+                    <h2><%= collegeName %></h2>
+                    <p>Manage exam schedule, resources and metadata</p>
+
+                    <div class="hero-pills">
+                        <span class="hero-pill blue">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                            <%= (exams || []).length %> Total
+                        </span>
+
+                        <span class="hero-pill green">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2v10l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+                            </svg>
+                            <%= (exams || []).filter(e => new Date(e.date) >= new Date()).length %> Upcoming
+                        </span>
+
+                        <span class="hero-pill orange">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <%= (exams || []).filter(e => new Date(e.date) < new Date()).length %> Completed
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════════════
+                 ADD EXAM FORM
+            ══════════════════════════════════════ -->
+            <div class="add-exam-panel" id="addPanel">
+                <div class="panel-head">
+                    <div>
+                        <h3>Add New Exam</h3>
+                        <span>Fill in the details below and save</span>
+                    </div>
+
+                    <button class="btn btn-ghost btn-sm" onclick="toggleAddPanel()" id="toggleAddBtn">
+                        Collapse ▲
+                    </button>
+                </div>
+
+                <form action="/dev/exam-tracker/<%= encodeURIComponent(collegeName) %>/add" method="POST" id="addForm">
+
+                    <!-- hidden fields to carry link JSON -->
+                    <input type="hidden" name="notesLinks" id="addNotesLinksInput">
+                    <input type="hidden" name="pyqLinks"   id="addPyqLinksInput">
+
+                    <div class="form-grid">
+
+                        <!-- Subject -->
+                        <div class="form-group span-2">
+                            <label class="form-label">Subject *</label>
+                            <input type="text" name="subject" class="form-input" placeholder="e.g. Engineering Mathematics III" required>
+                        </div>
+
+                        <!-- Exam Type -->
+                        <div class="form-group">
+                            <label class="form-label">Type *</label>
+                            <select name="type" class="form-select" required>
+                                <option value="midterm">Midterm</option>
+                                <option value="endterm" selected>Endterm</option>
+                                <option value="practical">Practical</option>
+                                <option value="quiz">Quiz</option>
+                                <option value="internal">Internal</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            <input type="date" name="date" class="form-input" required>
+                        </div>
+
+                        <!-- Time -->
+                        <div class="form-group">
+                            <label class="form-label">Time</label>
+                            <input type="text" name="time" class="form-input" placeholder="e.g. 10:00 AM">
+                        </div>
+
+                        <!-- Venue -->
+                        <div class="form-group span-2">
+                            <label class="form-label">Venue</label>
+                            <input type="text" name="venue" class="form-input" placeholder="e.g. Block-A, Room 204">
+                        </div>
+
+                        <!-- Branch -->
+                        <div class="form-group">
+                            <label class="form-label">Branch</label>
+                            <input type="text" name="branch" class="form-input" placeholder="e.g. CSE, ECE, All">
+                        </div>
+
+                        <!-- Year -->
+                        <div class="form-group">
+                            <label class="form-label">Year</label>
+                            <input type="text" name="year" class="form-input" placeholder="e.g. 2">
+                        </div>
+
+                        <!-- Semester -->
+                        <div class="form-group">
+                            <label class="form-label">Semester</label>
+                            <input type="text" name="semester" class="form-input" placeholder="e.g. 3">
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group span-3">
+                            <label class="form-label">Description / Extra Notes</label>
+                            <textarea name="description" class="form-textarea" placeholder="Syllabus coverage, important topics, etc."></textarea>
+                        </div>
+
+                        <!-- Notes Links -->
+                        <div class="form-group span-3">
+                            <label class="form-label">Notes Links</label>
+                            <div class="link-builder" id="addNotesList"></div>
+                            <button type="button" class="link-add" onclick="addLinkRow('addNotesList')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                Add Notes Link
+                            </button>
+                        </div>
+
+                        <!-- PYQ Links -->
+                        <div class="form-group span-3">
+                            <label class="form-label">PYQ Links</label>
+                            <div class="link-builder" id="addPyqList"></div>
+                            <button type="button" class="link-add" onclick="addLinkRow('addPyqList')">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                Add PYQ Link
+                            </button>
+                        </div>
+
+                    </div><!-- /form-grid -->
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-ghost" onclick="resetAddForm()">Clear</button>
+                        <button type="submit" class="btn btn-good" onclick="packLinks('addNotesList','addNotesLinksInput','addPyqList','addPyqLinksInput')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            Save Exam
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- ══════════════════════════════════════
+                 EXISTING EXAMS LIST
+            ══════════════════════════════════════ -->
+            <div class="section-head">
+                <div>
+                    <h3>Exam Entries</h3>
+                    <span><%= (exams || []).length %> record<%= (exams||[]).length !== 1 ? 's' : '' %> found</span>
+                </div>
+
+                <!-- filter chips -->
+                <div class="filter-group">
+                    <button class="filter-btn active" onclick="filterExams('all',this)">All</button>
+                    <button class="filter-btn" onclick="filterExams('upcoming',this)">Upcoming</button>
+                    <button class="filter-btn" onclick="filterExams('done',this)">Completed</button>
+                    <button class="filter-btn" onclick="filterExams('midterm',this)">Midterm</button>
+                    <button class="filter-btn" onclick="filterExams('endterm',this)">Endterm</button>
+                    <button class="filter-btn" onclick="filterExams('practical',this)">Practical</button>
+                </div>
+            </div>
+
+            <% if (exams && exams.length > 0) { %>
+            <div class="exams-list" id="examsList">
+                <% exams.forEach(exam => {
+                    const isUpcoming = new Date(exam.date) >= new Date();
+                    const examDate   = new Date(exam.date);
+                    const dateStr    = examDate.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+                    const dateISO    = examDate.toISOString().split('T')[0];
+                    const typeClass  = (exam.type || 'other').toLowerCase();
+                %>
+                <div class="exam-card <%= isUpcoming ? 'upcoming' : 'done' %>"
+                     data-type="<%= typeClass %>"
+                     data-status="<%= isUpcoming ? 'upcoming' : 'done' %>">
+
+                    <div class="exam-card-head">
+                        <div class="exam-card-left">
+                            <h4><%= exam.subject %></h4>
+                            <div class="exam-meta">
+                                <span><%= dateStr %></span>
+                                <% if (exam.time) { %><span>•</span><span><%= exam.time %></span><% } %>
+                                <% if (exam.venue) { %><span>•</span><span><%= exam.venue %></span><% } %>
+                                <% if (exam.branch) { %><span>•</span><span><%= exam.branch %></span><% } %>
+                                <% if (exam.year) { %><span>•</span><span>Year <%= exam.year %></span><% } %>
+                                <% if (exam.semester) { %><span>•</span><span>Sem <%= exam.semester %></span><% } %>
+                            </div>
+                        </div>
+
+                        <div class="exam-card-right">
+                            <span class="type-badge <%= typeClass %>"><%= exam.type || 'other' %></span>
+                            <span class="status-badge <%= isUpcoming ? 'upcoming' : 'done' %>">
+                                <%= isUpcoming ? '⏳ Upcoming' : '✓ Done' %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- detail grid -->
+                    <div class="exam-details">
+                        <div class="detail-box">
+                            <span class="detail-label">Date</span>
+                            <strong><%= dateStr %></strong>
+                        </div>
+                        <div class="detail-box">
+                            <span class="detail-label">Time</span>
+                            <strong><%= exam.time || '—' %></strong>
+                        </div>
+                        <div class="detail-box">
+                            <span class="detail-label">Venue</span>
+                            <strong><%= exam.venue || '—' %></strong>
+                        </div>
+                        <div class="detail-box">
+                            <span class="detail-label">Added By</span>
+                            <strong><%= exam.addedBy || '—' %></strong>
+                        </div>
+                    </div>
+
+                    <% if (exam.description) { %>
+                    <p style="color:var(--muted);font-size:.9rem;margin-bottom:12px;line-height:1.5;"><%= exam.description %></p>
+                    <% } %>
+
+                    <!-- resource links -->
+                    <% if ((exam.notesLinks && exam.notesLinks.length) || (exam.pyqLinks && exam.pyqLinks.length)) { %>
+                    <div class="exam-links">
+                        <% (exam.notesLinks || []).forEach(link => { %>
+                        <a href="<%= link.url %>" target="_blank" class="resource-btn notes">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="1.8"/><polyline points="14 2 14 8 20 8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                            <%= link.label || 'Notes' %>
+                        </a>
+                        <% }) %>
+
+                        <% (exam.pyqLinks || []).forEach(link => { %>
+                        <a href="<%= link.url %>" target="_blank" class="resource-btn pyq">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="1.8"/></svg>
+                            <%= link.label || 'PYQ' %>
+                        </a>
+                        <% }) %>
+                    </div>
+                    <% } %>
+
+                    <!-- actions -->
+                    <div class="exam-actions">
+                        <button class="btn btn-secondary btn-sm"
+                                onclick='openEditModal(<%- JSON.stringify({
+                                    id: exam._id,
+                                    subject: exam.subject,
+                                    type: exam.type,
+                                    dateISO: dateISO,
+                                    time: exam.time || "",
+                                    venue: exam.venue || "",
+                                    description: exam.description || "",
+                                    branch: exam.branch || "",
+                                    year: exam.year || "",
+                                    semester: exam.semester || "",
+                                    notesLinks: exam.notesLinks || [],
+                                    pyqLinks: exam.pyqLinks || []
+                                }) %>)'>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Edit
+                        </button>
+
+                        <form action="/dev/exam-tracker/<%= encodeURIComponent(collegeName) %>/<%= exam._id %>/delete"
+                              method="POST"
+                              onsubmit="return confirm('Delete this exam entry permanently?')">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                                    <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M19 6l-1 14H6L5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                    <path d="M9 6V4h6v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Delete
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+            <% } else { %>
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h3>No Exams Yet</h3>
+                <p>Use the form above to add the first exam entry for this college.</p>
+            </div>
+            <% } %>
+
+        </section>
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     EDIT MODAL
+════════════════════════════════════════ -->
+<div class="modal-overlay" id="editModalOverlay" onclick="closeEditModalOnOverlay(event)">
+    <div class="modal">
+        <div class="modal-head">
+            <h3>Edit Exam</h3>
+            <button class="modal-close" onclick="closeEditModal()">✕</button>
+        </div>
+
+        <form id="editForm" method="POST">
+            <!-- hidden link inputs -->
+            <input type="hidden" name="notesLinks" id="editNotesLinksInput">
+            <input type="hidden" name="pyqLinks"   id="editPyqLinksInput">
+
+            <div class="form-grid">
+
+                <div class="form-group span-2">
+                    <label class="form-label">Subject *</label>
+                    <input type="text" name="subject" id="editSubject" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Type *</label>
+                    <select name="type" id="editType" class="form-select" required>
+                        <option value="midterm">Midterm</option>
+                        <option value="endterm">Endterm</option>
+                        <option value="practical">Practical</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="internal">Internal</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="date" id="editDate" class="form-input" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Time</label>
+                    <input type="text" name="time" id="editTime" class="form-input" placeholder="e.g. 10:00 AM">
+                </div>
+
+                <div class="form-group span-2">
+                    <label class="form-label">Venue</label>
+                    <input type="text" name="venue" id="editVenue" class="form-input" placeholder="e.g. Block-A, Room 204">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    <input type="text" name="branch" id="editBranch" class="form-input" placeholder="e.g. CSE, All">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Year</label>
+                    <input type="text" name="year" id="editYear" class="form-input" placeholder="e.g. 2">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Semester</label>
+                    <input type="text" name="semester" id="editSemester" class="form-input" placeholder="e.g. 3">
+                </div>
+
+                <div class="form-group span-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="editDescription" class="form-textarea" placeholder="Extra notes…"></textarea>
+                </div>
+
+                <div class="form-group span-3">
+                    <label class="form-label">Notes Links</label>
+                    <div class="link-builder" id="editNotesList"></div>
+                    <button type="button" class="link-add" onclick="addLinkRow('editNotesList')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Add Notes Link
+                    </button>
+                </div>
+
+                <div class="form-group span-3">
+                    <label class="form-label">PYQ Links</label>
+                    <div class="link-builder" id="editPyqList"></div>
+                    <button type="button" class="link-add" onclick="addLinkRow('editPyqList')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        Add PYQ Link
+                    </button>
+                </div>
+
+            </div><!-- /form-grid -->
+
+            <div class="form-actions">
+                <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" onclick="packLinks('editNotesList','editNotesLinksInput','editPyqList','editPyqLinksInput')">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor" stroke-width="1.8"/><polyline points="17 21 17 13 7 13 7 21" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><polyline points="7 3 7 8 15 8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+                    Update Exam
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+/* ══════════════ ADD PANEL TOGGLE ══════════════ */
+let addPanelOpen = true;
+function toggleAddPanel() {
+    const form = document.getElementById("addForm");
+    const btn  = document.getElementById("toggleAddBtn");
+    addPanelOpen = !addPanelOpen;
+    form.style.display = addPanelOpen ? "" : "none";
+    btn.textContent = addPanelOpen ? "Collapse ▲" : "Expand ▼";
+}
+
+function resetAddForm() {
+    document.getElementById("addForm").reset();
+    document.getElementById("addNotesList").innerHTML = "";
+    document.getElementById("addPyqList").innerHTML   = "";
+}
+
+/* ══════════════ LINK ROW BUILDER ══════════════ */
+function addLinkRow(containerId, label = "", url = "") {
+    const container = document.getElementById(containerId);
+    const row = document.createElement("div");
+    row.className = "link-row";
+    row.innerHTML = `
+        <input type="text" class="form-input link-label" placeholder="Label (e.g. Unit-3 Notes)" value="${escapeAttr(label)}">
+        <input type="url"  class="form-input link-url"   placeholder="https://…" value="${escapeAttr(url)}">
+        <button type="button" class="link-remove" onclick="this.parentElement.remove()" title="Remove">✕</button>
+    `;
+    container.appendChild(row);
+}
+
+function escapeAttr(str) {
+    return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+/* ══════════════ PACK LINKS INTO HIDDEN INPUTS ══════════════ */
+function packLinks(notesId, notesInputId, pyqId, pyqInputId) {
+    function collect(containerId) {
+        const rows = document.querySelectorAll(`#${containerId} .link-row`);
+        return Array.from(rows).map(row => ({
+            label: row.querySelector(".link-label").value.trim(),
+            url:   row.querySelector(".link-url").value.trim()
+        })).filter(l => l.url);
+    }
+    document.getElementById(notesInputId).value = JSON.stringify(collect(notesId));
+    document.getElementById(pyqInputId).value   = JSON.stringify(collect(pyqId));
+}
+
+/* ══════════════ EXAM FILTER ══════════════ */
+function filterExams(filter, btn) {
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    document.querySelectorAll(".exam-card").forEach(card => {
+        const type   = card.dataset.type;
+        const status = card.dataset.status;
+        let show = true;
+        if (filter === "upcoming")  show = status === "upcoming";
+        else if (filter === "done") show = status === "done";
+        else if (["midterm","endterm","practical","quiz","internal"].includes(filter)) show = type === filter;
+        card.style.display = show ? "" : "none";
+    });
+}
+
+/* ══════════════ EDIT MODAL ══════════════ */
+function openEditModal(exam) {
+    // Set form action
+    const collegeName = "<%= encodeURIComponent(collegeName) %>";
+    document.getElementById("editForm").action = `/dev/exam-tracker/${collegeName}/${exam.id}/edit`;
+
+    // Populate fields
+    document.getElementById("editSubject").value     = exam.subject     || "";
+    document.getElementById("editType").value        = exam.type        || "other";
+    document.getElementById("editDate").value        = exam.dateISO     || "";
+    document.getElementById("editTime").value        = exam.time        || "";
+    document.getElementById("editVenue").value       = exam.venue       || "";
+    document.getElementById("editDescription").value = exam.description || "";
+    document.getElementById("editBranch").value      = exam.branch      || "";
+    document.getElementById("editYear").value        = exam.year        || "";
+    document.getElementById("editSemester").value    = exam.semester    || "";
+
+    // Populate link rows
+    const notesList = document.getElementById("editNotesList");
+    const pyqList   = document.getElementById("editPyqList");
+    notesList.innerHTML = "";
+    pyqList.innerHTML   = "";
+
+    (exam.notesLinks || []).forEach(l => addLinkRow("editNotesList", l.label, l.url));
+    (exam.pyqLinks   || []).forEach(l => addLinkRow("editPyqList",   l.label, l.url));
+
+    document.getElementById("editModalOverlay").classList.add("open");
+    document.body.style.overflow = "hidden";
+}
+
+function closeEditModal() {
+    document.getElementById("editModalOverlay").classList.remove("open");
+    document.body.style.overflow = "";
+}
+
+function closeEditModalOnOverlay(e) {
+    if (e.target === document.getElementById("editModalOverlay")) closeEditModal();
+}
+
+// Close on Escape
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape") closeEditModal();
+});
+</script>
+
+<%- include('partials/page-loader') %>
+</body>
+</html>

@@ -10,8 +10,9 @@ import DocAI from "./models/DocAI.js";
 import DocChunk from "./models/DocChunk.js";
 import reports from "./models/Reports.js"
 import Contact from "./models/contacts.js";
-import Coupon     from "./models/Coupon.js";
-import SaleConfig from "./models/SaleConfig.js";
+import Coupon      from "./models/Coupon.js";
+import SaleConfig  from "./models/SaleConfig.js";
+import CollegeExam from "./models/CollegeExam.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -5053,6 +5054,9 @@ app.get("/dev/dashboard", async (req, res) => {
         // ===== CHAT MESSAGES =====
         const totalMessages = await ChatMessage.countDocuments();
 
+        // ===== EXAM TRACKER =====
+        const totalExams = await CollegeExam.countDocuments();
+
         // ===== RECENT ACTIVITY (simple version) =====
         const recentDocs = await Docs.find()
             .sort({ _id: -1 })
@@ -5072,6 +5076,8 @@ app.get("/dev/dashboard", async (req, res) => {
             totalReports,
             totalComments,
             totalMessages,
+
+            totalExams,
 
             recentDocs
         });
@@ -5929,5 +5935,295 @@ app.post("/admin/cache/clear", async (req, res) => {
     } catch (err) {
         console.error("Cache clear error:", err);
         return res.status(500).json({ success: false, message: "Failed to clear cache" });
+    }
+});
+
+/* =======================================================================
+ *  EXAM TRACKER ROUTES
+ * ======================================================================= */
+
+/* -------------------------------------------------------------------
+ *  STUDENT-FACING
+ *  GET /exam-tracker/:collegeName  →  college_exam_tracker.ejs
+ * ------------------------------------------------------------------- */
+app.get("/exam-tracker/:collegeName", async (req, res) => {
+    if (!req.session.email) {
+        const next = req.originalUrl; // preserves ?highlight=examId if present
+        return res.redirect(`/signin?next=${encodeURIComponent(next)}`);
+    }
+
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+
+        const user = await user_profile.findOne({ email: req.session.email }).lean();
+        if (!user) return res.redirect("/signin");
+
+        const collegeData = await college
+            .findOne({ name: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
+            .lean();
+
+        const examData = await CollegeExam
+            .find({ college: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
+            .sort({ date: 1 })
+            .lean();
+        const college_data = await college.find({college_name: req.params.collegeName});
+        return res.render("college_exam_tracker", {
+            user,
+            collegeInfo: {
+                name:  collegeName,
+                image: collegeData?.image || "/images/default.png"
+            },
+            examData,
+            collegeNotices: [],   // reserved for future notice system
+            quickResources: [] ,
+            clg_data: college_data// reserved for future resource system
+        });
+
+    } catch (err) {
+        console.error("Exam tracker render error:", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — OVERVIEW
+ *  GET /dev/exam-tracker  →  dev_exam_tracker.ejs
+ *  Lists every college with exam count + upcoming count
+ * ------------------------------------------------------------------- */
+// In server.js — replace the GET /dev/exam-tracker route handler (around line 5988–6027)
+
+app.get("/dev/exam-tracker", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        // ── 1. Get distinct college names directly from Docs ──
+        const collegeNamesWithDocs = await Docs.distinct("college");
+
+        // ── 2. For each name, try to find a matching college record (for image) ──
+        //       Use case-insensitive regex so casing differences don't break the lookup
+        const allColleges = await Promise.all(
+            collegeNamesWithDocs
+                .filter(name => name && name.trim())
+                .map(async (name) => {
+                    const rec = await college.findOne(
+                        { name: { $regex: new RegExp("^" + name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$", "i") } },
+                        "name image"
+                    ).lean();
+                    return {
+                        name:  rec?.name || name,   // prefer DB name, fallback to Docs string
+                        image: rec?.image || null
+                    };
+                })
+        );
+
+        // Sort alphabetically
+        allColleges.sort((a, b) => a.name.localeCompare(b.name));
+
+        // ── 3. Exam stats (unchanged) ──
+        const examAgg = await CollegeExam.aggregate([
+            {
+                $group: {
+                    _id: "$college",
+                    examCount: { $sum: 1 },
+                    upcomingCount: {
+                        $sum: { $cond: [{ $gte: ["$date", new Date()] }, 1, 0] }
+                    }
+                }
+            }
+        ]);
+
+        const examMap = {};
+        examAgg.forEach(e => {
+            if (e._id) examMap[e._id.trim().toLowerCase()] = e;
+        });
+
+        const collegesWithStats = allColleges.map(c => ({
+            ...c,
+            examCount:     examMap[c.name?.trim().toLowerCase()]?.examCount     || 0,
+            upcomingCount: examMap[c.name?.trim().toLowerCase()]?.upcomingCount || 0
+        }));
+
+        return res.render("dev_exam_tracker", { colleges: collegesWithStats   });
+
+    } catch (err) {
+        console.error("Dev exam tracker list error:", err);
+        return res.status(500).send("Error loading exam tracker manager");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — PER-COLLEGE MANAGEMENT
+ *  GET /dev/exam-tracker/:collegeName  →  dev_exam_tracker_college.ejs
+ * ------------------------------------------------------------------- */
+app.get("/dev/exam-tracker/:collegeName", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+
+        const collegeData = await college
+            .findOne({ name: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
+            .lean();
+
+        const exams = await CollegeExam
+            .find({ college: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
+            .sort({ date: 1 })
+            .lean();
+
+        return res.render("dev_exam_tracker_college", {
+            collegeName,
+            collegeImage: collegeData?.image || "/images/default.png",
+            exams
+        });
+
+    } catch (err) {
+        console.error("Dev exam tracker college page error:", err);
+        return res.status(500).send("Error loading college exam manager");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — ADD EXAM
+ *  POST /dev/exam-tracker/:collegeName/add
+ *
+ *  Body (all strings from the HTML form):
+ *    subject, type, date (YYYY-MM-DD), time, venue, description,
+ *    branch, year, semester,
+ *    notesLinks  →  JSON string  e.g. '[{"label":"Unit 3","url":"https://…"}]'
+ *    pyqLinks    →  JSON string  e.g. '[{"label":"2023 PYQ","url":"https://…"}]'
+ * ------------------------------------------------------------------- */
+app.post("/dev/exam-tracker/:collegeName/add", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+        const {
+            subject, type, date, time, venue,
+            description, branch, year, semester,
+            notesLinks, pyqLinks
+        } = req.body;
+
+        let parsedNotesLinks = [];
+        let parsedPyqLinks   = [];
+        try { parsedNotesLinks = JSON.parse(notesLinks  || "[]"); } catch (_) {}
+        try { parsedPyqLinks   = JSON.parse(pyqLinks    || "[]"); } catch (_) {}
+
+        await CollegeExam.create({
+            college:     collegeName,
+            subject:     (subject     || "").trim(),
+            type:        type         || "other",
+            date:        new Date(date),
+            time:        (time        || "").trim(),
+            venue:       (venue       || "").trim(),
+            description: (description || "").trim(),
+            branch:      (branch      || "").trim(),
+            year:        (year        || "").trim(),
+            semester:    (semester    || "").trim(),
+            notesLinks:  parsedNotesLinks,
+            pyqLinks:    parsedPyqLinks,
+            addedBy:     req.session.dev_email
+        });
+
+        return res.redirect(`/dev/exam-tracker/${encodeURIComponent(collegeName)}`);
+
+    } catch (err) {
+        console.error("Add exam error:", err);
+        return res.status(500).send("Error adding exam");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — EDIT EXAM
+ *  POST /dev/exam-tracker/:collegeName/:examId/edit
+ *  Same body shape as /add
+ * ------------------------------------------------------------------- */
+app.post("/dev/exam-tracker/:collegeName/:examId/edit", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+        const {
+            subject, type, date, time, venue,
+            description, branch, year, semester,
+            notesLinks, pyqLinks
+        } = req.body;
+
+        let parsedNotesLinks = [];
+        let parsedPyqLinks   = [];
+        try { parsedNotesLinks = JSON.parse(notesLinks  || "[]"); } catch (_) {}
+        try { parsedPyqLinks   = JSON.parse(pyqLinks    || "[]"); } catch (_) {}
+
+        await CollegeExam.findByIdAndUpdate(
+            req.params.examId,
+            {
+                subject:     (subject     || "").trim(),
+                type:        type         || "other",
+                date:        new Date(date),
+                time:        (time        || "").trim(),
+                venue:       (venue       || "").trim(),
+                description: (description || "").trim(),
+                branch:      (branch      || "").trim(),
+                year:        (year        || "").trim(),
+                semester:    (semester    || "").trim(),
+                notesLinks:  parsedNotesLinks,
+                pyqLinks:    parsedPyqLinks,
+                updatedAt:   new Date()
+            },
+            { new: true }
+        );
+
+        return res.redirect(`/dev/exam-tracker/${encodeURIComponent(collegeName)}`);
+
+    } catch (err) {
+        console.error("Edit exam error:", err);
+        return res.status(500).send("Error editing exam");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — DELETE EXAM
+ *  POST /dev/exam-tracker/:collegeName/:examId/delete
+ * ------------------------------------------------------------------- */
+app.post("/dev/exam-tracker/:collegeName/:examId/delete", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+        await CollegeExam.findByIdAndDelete(req.params.examId);
+        return res.redirect(`/dev/exam-tracker/${encodeURIComponent(collegeName)}`);
+
+    } catch (err) {
+        console.error("Delete exam error:", err);
+        return res.status(500).send("Error deleting exam");
+    }
+});
+
+/* -------------------------------------------------------------------
+ *  DEV — JSON API  (for optional AJAX inline editing on the dev page)
+ *  GET /api/dev/exam-tracker/:collegeName        → array of exams
+ *  GET /api/dev/exam-tracker/:collegeName/:id    → single exam
+ * ------------------------------------------------------------------- */
+app.get("/api/dev/exam-tracker/:collegeName", async (req, res) => {
+    if (!req.session.dev_email) return res.status(401).json({ success: false });
+    try {
+        const collegeName = decodeURIComponent(req.params.collegeName);
+        const exams = await CollegeExam
+            .find({ college: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
+            .sort({ date: 1 })
+            .lean();
+        return res.json({ success: true, exams });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get("/api/dev/exam-tracker/:collegeName/:examId", async (req, res) => {
+    if (!req.session.dev_email) return res.status(401).json({ success: false });
+    try {
+        const exam = await CollegeExam.findById(req.params.examId).lean();
+        if (!exam) return res.status(404).json({ success: false });
+        return res.json({ success: true, exam });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
     }
 });

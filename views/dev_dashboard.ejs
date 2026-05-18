@@ -38,6 +38,7 @@
             <a href="/dev/reports">Reports</a>
             <a href="/dev/activity">Activity</a>
             <a href="/dev/coupons">Coupon Manager</a>
+            <a href="/dev/exam-tracker">Exam Tracker</a>
         </nav>
     </aside>
 
@@ -144,26 +145,26 @@
 
                     <div class="recent-list">
                         <% if (recentDocs && recentDocs.length > 0) { %>
-                        <% recentDocs.forEach(doc => { %>
-                        <div class="recent-item">
-                            <div class="recent-main">
-                                <h4><%= doc.subject || "Untitled Subject" %></h4>
-                                <p>Uploaded by <%= doc.uploaded_by || "Unknown" %></p>
-                            </div>
+                            <% recentDocs.forEach(doc => { %>
+                                <div class="recent-item">
+                                    <div class="recent-main">
+                                        <h4><%= doc.subject || "Untitled Subject" %></h4>
+                                        <p>Uploaded by <%= doc.uploaded_by || "Unknown" %></p>
+                                    </div>
 
-                            <div class="recent-side">
-                                <% if (doc.reviewed) { %>
-                                <span class="badge good">Reviewed</span>
-                                <% } else { %>
-                                <span class="badge warn">Unreviewed</span>
-                                <% } %>
-                            </div>
-                        </div>
-                        <% }) %>
+                                    <div class="recent-side">
+                                        <% if (doc.reviewed) { %>
+                                            <span class="badge good">Reviewed</span>
+                                        <% } else { %>
+                                            <span class="badge warn">Unreviewed</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }) %>
                         <% } else { %>
-                        <div class="empty-state">
-                            <p>No recent docs found.</p>
-                        </div>
+                            <div class="empty-state">
+                                <p>No recent docs found.</p>
+                            </div>
                         <% } %>
                     </div>
                 </div>

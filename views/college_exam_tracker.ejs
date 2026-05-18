@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= collegeInfo.college_name %> — Exam Tracker | DocUp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/college_exam_tracker.css">
+    <link rel="stylesheet" href="/page-loader.css">
+</head>
+<body>
+
+<%
+function catMeta(cat) {
+    const map = {
+        document: { label:'Document', clr:'#4b9eff', bg:'rgba(75,158,255,0.10)', border:'rgba(75,158,255,0.22)', glow:'rgba(75,158,255,0.5)' },
+        docscore: { label:'DocScore', clr:'#ffb700', bg:'rgba(255,183,0,0.10)',  border:'rgba(255,183,0,0.22)',  glow:'rgba(255,183,0,0.5)' },
+        system:   { label:'System',   clr:'#a78bfa', bg:'rgba(167,139,250,0.10)',border:'rgba(167,139,250,0.22)',glow:'rgba(167,139,250,0.5)' },
+        profile:  { label:'Profile',  clr:'#34d399', bg:'rgba(52,211,153,0.10)', border:'rgba(52,211,153,0.22)', glow:'rgba(52,211,153,0.5)' },
+        payment:  { label:'Payment',  clr:'#4ade80', bg:'rgba(74,222,128,0.10)', border:'rgba(74,222,128,0.22)', glow:'rgba(74,222,128,0.5)' }
+    };
+    return map[cat] || { label:'General', clr:'#ff6a00', bg:'rgba(255,106,0,0.10)', border:'rgba(255,106,0,0.22)', glow:'rgba(255,106,0,0.5)' };
+}
+function relativeTime(date) {
+    if (!date) return 'Just now';
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+function fullTime(date) {
+    if (!date) return '';
+    return new Date(date).toLocaleString('en-IN', { dateStyle:'medium', timeStyle:'short' });
+}
+%>
+
+<!-- ═══════════════════ TOPBAR (matches dashboard.ejs exactly) ═══════════════════ -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark"><span>Doc</span>Up</a>
+    </div>
+    <div class="topbar-right">
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>FindDocs</span>
+        </a>
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= user.Doc_score %></span>
+            <img src="/fire.png" alt="">
+        </div>
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span>Upload</span>
+        </a>
+        <div class="notification-wrap">
+            <button type="button" class="icon-btn notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                <% } %>
+            </button>
+            <div class="notification-dropdown">
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <a href="/notifications" class="nd-view-all">View all</a>
+                    <% } %>
+                </div>
+                <div class="nd-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                    <% user.notifications.slice().reverse().slice(0,8).forEach((item) => { const m = catMeta(item.category); %>
+                    <div class="nd-item <%= item.isRead ? '' : 'unread' %>" data-cat="<%= item.category || '' %>">
+                        <div class="nd-item-row">
+                            <div class="nd-item-left">
+                                <span class="nd-dot" style="--dot-clr:<%=m.clr%>;--dot-glow:<%=m.glow%>"></span>
+                                <span class="nd-cat-pill" style="--pill-clr:<%=m.clr%>;--pill-bg:<%=m.bg%>;--pill-border:<%=m.border%>"><%=m.label%></span>
+                            </div>
+                            <span class="nd-when" title="<%= fullTime(item.createdAt) %>"><%= relativeTime(item.createdAt) %></span>
+                        </div>
+                        <p class="nd-text"><%= item.content %></p>
+                    </div>
+                    <% }) %>
+                    <% } else { %>
+                    <div class="nd-empty">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" style="margin-bottom:6px;opacity:0.3">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        No notifications yet.
+                    </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <div class="avatar-btn">
+            <% if (user.avatar_img_path) { %>
+            <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+            <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<!-- Avatar Dropdown (matches dashboard.ejs) -->
+<div class="avatar-dropdown">
+    <a href="/profile">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>Profile
+    </a>
+    <a href="/pricing">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Recharge DocScore
+    </a>
+    <a href="/upgrade-plans">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/>
+        </svg>Upgrade Plans
+    </a>
+    <a href="/contact">
+        <svg fill="none" height="15" viewBox="0 0 24 24" width="15">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.89.32 1.76.6 2.6a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.48-1.17a2 2 0 0 1 2.11-.45c.84.28 1.71.48 2.6.6a2 2 0 0 1 1.72 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>Contact Us / Feedback
+    </a>
+</div>
+
+<!-- ═══════════════════ PAGE SHELL ═══════════════════ -->
+<div class="et-shell">
+
+    <!-- ── COMPACT HEADER BAR ── -->
+    <div class="et-header-bar">
+        <div class="et-header-left">
+            <a href="/college/<%= encodeURIComponent(clg_data?.[0]?.college_name )%>" class="et-back-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back
+            </a>
+            <div class="et-college-identity">
+                <div class="et-college-logo-sm">
+                    <% console.log(clg_data) %>
+                    <img src="<%= clg_data?.[0]?.image %>" alt="">
+
+                </div>
+                <%= clg_data?.[0]?.college_name %>
+                <div>
+                    <h1 class="et-college-name"><%= collegeInfo.college_name %></h1>
+                    <span class="et-page-label">Exam Tracker</span>
+                </div>
+            </div>
+        </div>
+        <div class="et-header-stats">
+            <%
+                const upcoming = (examData || []).filter(e => new Date(e.date) >= new Date()).length;
+                const completed = (examData || []).filter(e => new Date(e.date) < new Date()).length;
+                const total = (examData || []).length;
+            %>
+            <div class="et-stat-pill et-stat-blue">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <strong><%= upcoming %></strong> Upcoming
+            </div>
+            <div class="et-stat-pill et-stat-green">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <strong><%= completed %></strong> Done
+            </div>
+            <div class="et-stat-pill et-stat-muted">
+                <strong><%= total %></strong> Total
+            </div>
+        </div>
+    </div>
+
+    <!-- ── MAIN CONTENT: two-column split ── -->
+    <div class="et-layout">
+
+        <!-- LEFT: Filter + Timeline -->
+        <div class="et-left">
+
+            <!-- Controls row -->
+            <div class="et-controls">
+                <div class="et-view-tabs" id="viewToggle">
+                    <button class="et-tab active" data-view="timeline" onclick="switchView('timeline',this)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M3 12h18M3 6h18M3 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        Timeline
+                    </button>
+                    <button class="et-tab" data-view="calendar" onclick="switchView('calendar',this)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                        Calendar
+                    </button>
+                </div>
+                <div class="et-filter-chips">
+                    <button class="et-chip active" onclick="filterExams('all',this)">All</button>
+                    <button class="et-chip" onclick="filterExams('upcoming',this)">Upcoming</button>
+                    <button class="et-chip" onclick="filterExams('done',this)">Done</button>
+                    <button class="et-chip" onclick="filterExams('midterm',this)">Midterm</button>
+                    <button class="et-chip" onclick="filterExams('endterm',this)">End Term</button>
+                    <button class="et-chip" onclick="filterExams('practical',this)">Practical</button>
+                </div>
+            </div>
+
+            <!-- ── TIMELINE VIEW ── -->
+            <div id="view-timeline" class="et-view et-view--active">
+                <% if (examData && examData.length > 0) { %>
+                <%
+                    const sorted = [...examData].sort((a,b) => new Date(a.date) - new Date(b.date));
+                    const nowTs = new Date();
+                    let lastMonth = null;
+                %>
+                <% sorted.forEach(exam => {
+                    const d = new Date(exam.date);
+                    const isPast = d < nowTs;
+                    const monthLabel = d.toLocaleString('en-IN', { month:'long', year:'numeric' });
+                    const daysLeft = Math.ceil((d - nowTs) / (1000*60*60*24));
+                %>
+                    <% if (monthLabel !== lastMonth) { lastMonth = monthLabel; %>
+                    <div class="et-month-marker"><span><%= monthLabel %></span></div>
+                    <% } %>
+
+                    <div class="et-tl-item <%= isPast ? 'is-past' : 'is-upcoming' %>" id="exam-<%= exam._id %>"
+                         data-exam-type="<%= (exam.type||'other').toLowerCase() %>"
+                         data-status="<%= isPast ? 'done' : 'upcoming' %>">
+
+                        <div class="et-tl-date">
+                            <span class="et-tl-day"><%= d.getDate() %></span>
+                            <span class="et-tl-dow"><%= d.toLocaleString('en-IN',{weekday:'short'}) %></span>
+                        </div>
+
+                        <div class="et-tl-connector">
+                            <div class="et-tl-dot <%= isPast ? 'dot-done' : 'dot-upcoming' %>"></div>
+                            <div class="et-tl-line"></div>
+                        </div>
+
+                        <div class="et-tl-card">
+                            <div class="et-tl-top">
+                                <span class="et-type-badge et-type-<%= (exam.type||'other').toLowerCase() %>"><%= exam.type || 'Exam' %></span>
+                                <% if (!isPast && daysLeft >= 0) { %>
+                                <span class="et-countdown <%= daysLeft <= 3 ? 'urgent' : daysLeft <= 7 ? 'soon' : '' %>">
+                                    <% if (daysLeft === 0) { %>Today<% } else if (daysLeft === 1) { %>Tomorrow<% } else { %><%= daysLeft %>d left<% } %>
+                                </span>
+                                <% } else if (isPast) { %>
+                                <span class="et-done-tag">✓ Done</span>
+                                <% } %>
+                                <button class="et-share-btn" onclick="shareExam('<%= exam._id %>')" title="Copy share link">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                    </svg>
+                                    Share
+                                </button>
+                            </div>
+
+                            <h3 class="et-tl-subject"><%= exam.subject %></h3>
+
+                            <div class="et-tl-chips">
+                                <% if (exam.time) { %><span class="et-info-chip">🕐 <%= exam.time %></span><% } %>
+                                <% if (exam.venue) { %><span class="et-info-chip">📍 <%= exam.venue %></span><% } %>
+                                <% if (exam.semester) { %><span class="et-info-chip">Sem <%= exam.semester %></span><% } %>
+                                <% if (exam.branch) { %><span class="et-info-chip"><%= exam.branch %></span><% } %>
+                            </div>
+
+                            <% if ((exam.notesLinks && exam.notesLinks.length) || (exam.pyqLinks && exam.pyqLinks.length)) { %>
+                            <div class="et-tl-resources">
+                                <% (exam.notesLinks||[]).forEach((l,i) => { %>
+                                <a href="<%= l.url %>" target="_blank" class="et-res-btn et-res-notes"><%= l.label || `Notes ${i+1}` %></a>
+                                <% }) %>
+                                <% (exam.pyqLinks||[]).forEach((l,i) => { %>
+                                <a href="<%= l.url %>" target="_blank" class="et-res-btn et-res-pyq"><%= l.label || `PYQ ${i+1}` %></a>
+                                <% }) %>
+                            </div>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+                <% } else { %>
+                <div class="et-empty">
+                    <span>📅</span>
+                    <p>No exams scheduled yet. Check back soon!</p>
+                </div>
+                <% } %>
+            </div>
+
+            <!-- ── CALENDAR VIEW ── -->
+            <div id="view-calendar" class="et-view">
+                <div class="et-cal-wrap">
+                    <div class="et-cal-nav">
+                        <button id="calPrev">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                        <span id="calTitle" class="et-cal-title"></span>
+                        <button id="calNext">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+                    <div class="et-cal-grid">
+                        <div class="et-cal-dow">S</div><div class="et-cal-dow">M</div>
+                        <div class="et-cal-dow">T</div><div class="et-cal-dow">W</div>
+                        <div class="et-cal-dow">T</div><div class="et-cal-dow">F</div>
+                        <div class="et-cal-dow">S</div>
+                        <div id="calCells" style="display:contents"></div>
+                    </div>
+                </div>
+                <p class="et-cal-hint">Click a highlighted date to see exams →</p>
+            </div>
+
+        </div><!-- /et-left -->
+
+        <!-- RIGHT: Day detail + notices + resources -->
+        <div class="et-right">
+
+            <!-- Day detail panel — shown when a calendar date is clicked -->
+            <div id="calDayPanel" class="et-day-panel" style="display:none">
+                <div class="et-day-panel-head">
+                    <div class="et-day-panel-date-block">
+                        <span id="calDayNum" class="et-day-num"></span>
+                        <div>
+                            <span id="calDayName" class="et-day-name"></span>
+                            <span id="calDayMonth" class="et-day-month"></span>
+                        </div>
+                    </div>
+<!--                    <button class="et-day-panel-close" onclick="closeDayPanel()">-->
+<!--                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>-->
+<!--                    </button>-->
+                </div>
+                <div id="calDayExams" class="et-day-exams"></div>
+            </div>
+
+            <!-- Notices (only if data exists) -->
+            <% if (collegeNotices && collegeNotices.length > 0) { %>
+            <div class="et-side-card">
+                <div class="et-side-card-head">
+                    <span>📢</span> Notices
+                </div>
+                <div class="et-notices-list">
+                    <% collegeNotices.forEach(notice => { %>
+                    <div class="et-notice et-notice-<%= notice.priority || 'normal' %>">
+                        <div class="et-notice-body">
+                            <h4><%= notice.title %></h4>
+                            <p><%= notice.content %></p>
+                            <span class="et-notice-date"><%= new Date(notice.createdAt).toLocaleDateString('en-IN',{dateStyle:'medium'}) %></span>
+                        </div>
+                        <% if (notice.link) { %><a href="<%= notice.link %>" target="_blank" class="et-notice-link">→</a><% } %>
+                    </div>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Quick Resources (only if data exists) -->
+            <% if (quickResources && quickResources.length > 0) { %>
+            <div class="et-side-card">
+                <div class="et-side-card-head">
+                    <span>⚡</span> Quick Resources
+                </div>
+                <div class="et-qr-list">
+                    <% quickResources.forEach(res => { %>
+                    <a href="<%= res.url %>" target="_blank" class="et-qr-item">
+                        <span class="et-qr-icon">
+                            <% if (res.type==='notes') { %>📄<% } else if (res.type==='pyq') { %>📝<% } else if (res.type==='syllabus') { %>📋<% } else if (res.type==='timetable') { %>🗓️<% } else { %>🔗<% } %>
+                        </span>
+                        <div class="et-qr-text">
+                            <strong><%= res.label %></strong>
+                            <span><%= res.type || 'Resource' %></span>
+                        </div>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </a>
+                    <% }) %>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Always-visible: back to college docs -->
+            <a href="/college/<%= encodeURIComponent(collegeInfo.college_name) %>" class="et-back-college-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Back to <%= collegeInfo.college_name %> Docs
+            </a>
+
+        </div><!-- /et-right -->
+
+    </div><!-- /et-layout -->
+</div><!-- /et-shell -->
+
+<script>
+const EXAM_DATA = <%- JSON.stringify(examData || []) %>;
+
+/* ── View switcher ── */
+function switchView(view, btn) {
+    document.querySelectorAll('.et-view').forEach(v => v.classList.remove('et-view--active'));
+    document.querySelectorAll('.et-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('view-' + view).classList.add('et-view--active');
+    btn.classList.add('active');
+    if (view === 'calendar') renderCalendar();
+    else closeDayPanel();
+}
+
+/* ── Filter ── */
+function filterExams(filter, btn) {
+    document.querySelectorAll('.et-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.et-tl-item').forEach(item => {
+        const type = item.dataset.examType;
+        const status = item.dataset.status;
+        let show = true;
+        if (filter === 'upcoming') show = status === 'upcoming';
+        else if (filter === 'done') show = status === 'done';
+        else if (['midterm','endterm','practical'].includes(filter)) show = type === filter;
+        item.style.display = show ? '' : 'none';
+    });
+    document.querySelectorAll('.et-month-marker').forEach(marker => {
+        let next = marker.nextElementSibling;
+        let hasVisible = false;
+        while (next && !next.classList.contains('et-month-marker')) {
+            if (next.classList.contains('et-tl-item') && next.style.display !== 'none') hasVisible = true;
+            next = next.nextElementSibling;
+        }
+        marker.style.display = hasVisible ? '' : 'none';
+    });
+}
+
+/* ── Calendar ── */
+let calYear, calMonth;
+const _now = new Date();
+calYear = _now.getFullYear();
+calMonth = _now.getMonth();
+
+function renderCalendar() {
+    const title = document.getElementById('calTitle');
+    const cells = document.getElementById('calCells');
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    title.textContent = monthNames[calMonth] + ' ' + calYear;
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const examMap = {};
+    EXAM_DATA.forEach(exam => {
+        const d = new Date(exam.date);
+        if (d.getFullYear() === calYear && d.getMonth() === calMonth) {
+            const key = d.getDate();
+            if (!examMap[key]) examMap[key] = [];
+            examMap[key].push(exam);
+        }
+    });
+    let html = '';
+    for (let i = 0; i < firstDay; i++) html += '<div class="et-cal-cell et-cal-cell--empty"></div>';
+    for (let day = 1; day <= daysInMonth; day++) {
+        const isToday = (day === _now.getDate() && calMonth === _now.getMonth() && calYear === _now.getFullYear());
+        const exams = examMap[day] || [];
+        const hasUpcoming = exams.some(e => new Date(e.date) >= _now);
+        const hasPast = exams.some(e => new Date(e.date) < _now);
+        let dots = '';
+        if (hasUpcoming) dots += '<span class="et-cal-dot dot-upcoming"></span>';
+        if (hasPast) dots += '<span class="et-cal-dot dot-done"></span>';
+        html += `<div class="et-cal-cell ${isToday ? 'et-cal-cell--today' : ''} ${exams.length ? 'et-cal-cell--has-exam' : ''}"
+                      onclick="showDayDetail(${day}, ${JSON.stringify(exams).replace(/"/g,'&quot;')}, this)">
+                    <span class="et-cal-num">${day}</span>
+                    ${dots ? `<div class="et-cal-dots">${dots}</div>` : ''}
+                 </div>`;
+    }
+    cells.innerHTML = html;
+}
+
+function closeDayPanel() {
+    document.getElementById('calDayPanel').style.display = 'none';
+    // deselect active cell
+    document.querySelectorAll('.et-cal-cell--selected').forEach(c => c.classList.remove('et-cal-cell--selected'));
+}
+
+function showDayDetail(day, exams, cellEl) {
+    // highlight selected cell
+    document.querySelectorAll('.et-cal-cell--selected').forEach(c => c.classList.remove('et-cal-cell--selected'));
+    if (cellEl) cellEl.classList.add('et-cal-cell--selected');
+
+    const panel   = document.getElementById('calDayPanel');
+    const dayNum  = document.getElementById('calDayNum');
+    const dayName = document.getElementById('calDayName');
+    const dayMonth= document.getElementById('calDayMonth');
+    const listEl  = document.getElementById('calDayExams');
+
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const dayNames   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const dow = new Date(calYear, calMonth, day).getDay();
+
+    dayNum.textContent   = day;
+    dayName.textContent  = dayNames[dow];
+    dayMonth.textContent = monthNames[calMonth] + ' ' + calYear;
+
+    if (!exams.length) {
+        listEl.innerHTML = `<div class="et-day-empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <p>No exams on this day</p>
+        </div>`;
+    } else {
+        listEl.innerHTML = exams.map(exam => {
+            const isPast = new Date(exam.date) < new Date();
+            const daysLeft = Math.ceil((new Date(exam.date) - new Date()) / (1000*60*60*24));
+
+            const metaChips = [
+                exam.time   ? `<span class="et-info-chip">🕐 ${exam.time}</span>` : '',
+                exam.venue  ? `<span class="et-info-chip">📍 ${exam.venue}</span>` : '',
+                exam.semester ? `<span class="et-info-chip">Sem ${exam.semester}</span>` : '',
+                exam.branch ? `<span class="et-info-chip">${exam.branch}</span>` : '',
+            ].filter(Boolean).join('');
+
+            const notesHtml = (exam.notesLinks||[]).map(l =>
+                `<a href="${l.url}" target="_blank" class="et-res-btn et-res-notes">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.8"/></svg>
+                    ${l.label||'Notes'}
+                </a>`
+            ).join('');
+
+            const pyqHtml = (exam.pyqLinks||[]).map(l =>
+                `<a href="${l.url}" target="_blank" class="et-res-btn et-res-pyq">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    ${l.label||'PYQ'}
+                </a>`
+            ).join('');
+
+            const countdownHtml = !isPast && daysLeft >= 0
+                ? `<span class="et-countdown ${daysLeft<=3?'urgent':daysLeft<=7?'soon':''}">${daysLeft===0?'Today':daysLeft===1?'Tomorrow':daysLeft+'d left'}</span>`
+                : isPast ? `<span class="et-done-tag">✓ Done</span>` : '';
+
+            const descHtml = exam.description
+                ? `<p class="et-day-exam-desc">${exam.description}</p>` : '';
+
+            const resourcesHtml = (notesHtml || pyqHtml)
+                ? `<div class="et-day-exam-resources">
+                    ${notesHtml ? `<div class="et-day-res-group"><span class="et-res-label">Notes</span><div class="et-res-row">${notesHtml}</div></div>` : ''}
+                    ${pyqHtml  ? `<div class="et-day-res-group"><span class="et-res-label">PYQs</span><div class="et-res-row">${pyqHtml}</div></div>` : ''}
+                   </div>` : '';
+
+            return `<div class="et-day-exam-card ${isPast?'is-past':'is-upcoming'}">
+                <div class="et-day-exam-top">
+                    <span class="et-type-badge et-type-${(exam.type||'other').toLowerCase()}">${exam.type||'Exam'}</span>
+                    ${countdownHtml}
+                </div>
+                <h4 class="et-day-exam-subject">${exam.subject}</h4>
+                ${descHtml}
+                ${metaChips ? `<div class="et-day-exam-chips">${metaChips}</div>` : ''}
+                ${resourcesHtml}
+            </div>`;
+        }).join('');
+    }
+
+    panel.style.display = 'block';
+    // scroll right panel to top so detail is visible
+    panel.closest('.et-right').scrollTop = 0;
+}
+
+document.getElementById('calPrev').addEventListener('click', () => {
+    calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; }
+    renderCalendar();
+});
+document.getElementById('calNext').addEventListener('click', () => {
+    calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+});
+
+// ── Share exam link ──────────────────────────────────────────────
+function shareExam(examId) {
+    const url = window.location.origin + window.location.pathname + '?highlight=' + examId;
+    navigator.clipboard.writeText(url).then(() => {
+        showShareToast();
+    }).catch(() => {
+        // fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy'); showShareToast(); } catch(e) {}
+        document.body.removeChild(ta);
+    });
+}
+
+function showShareToast() {
+    const toast = document.getElementById('et-share-toast');
+    if (!toast) return;
+    toast.classList.add('visible');
+    setTimeout(() => toast.classList.remove('visible'), 2500);
+}
+
+// ── Highlight exam from ?highlight= query param ───────────────────
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const examId = params.get('highlight');
+    if (!examId) return;
+
+    // Switch to timeline tab (it's the default, but ensure it)
+    switchView('timeline', document.querySelector('[data-view="timeline"]'));
+
+    const target = document.getElementById('exam-' + examId);
+    if (!target) return;
+
+    // Small delay so layout is fully painted
+    setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.add('et-tl-highlighted');
+        setTimeout(() => target.classList.remove('et-tl-highlighted'), 3000);
+    }, 300);
+})();
+</script>
+<script src="/dashboard.js"></script>
+<script src="/dashboard2.js"></script>
+<script src="/dashboard3.js"></script>
+<%- include('partials/page-loader') %>
+
+<!-- Share toast -->
+<div id="et-share-toast" class="et-share-toast">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    Link copied to clipboard!
+</div>
+
+</body>
+</html>

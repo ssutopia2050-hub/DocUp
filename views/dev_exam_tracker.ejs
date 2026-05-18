@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp Dev | Exam Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Saira:wght@400;700&family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/dev_tracker.css">
+    <link rel="stylesheet" href="/page-loader.css">
+</head>
+<body>
+<div class="tracker-shell">
+
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="tracker-sidebar">
+        <div class="tracker-brand-wrap">
+            <h1>DocUp</h1>
+            <h3>Dev</h3>
+        </div>
+
+        <nav class="tracker-nav">
+            <a href="/dev/dashboard">Dashboard</a>
+            <a href="/dev/users">Users</a>
+            <a href="/dev/docs">Docs</a>
+            <a href="/dev/reports">Reports</a>
+            <a href="/dev/activity">Activity</a>
+            <a href="/dev/coupons">Coupon Manager</a>
+            <a href="/dev/exam-tracker" class="active">Exam Tracker</a>
+        </nav>
+    </aside>
+
+    <!-- ═══════════════════ MAIN ═══════════════════ -->
+    <main class="tracker-main">
+
+        <!-- topbar -->
+        <header class="tracker-topbar">
+            <div class="topbar-left">
+                <h2>Exam Tracker</h2>
+                <p class="subtitle">Manage exam entries across all colleges</p>
+            </div>
+
+            <div class="topbar-right">
+                <!-- total pill -->
+                <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(57,217,138,0.08);border:1px solid rgba(57,217,138,0.22);color:var(--good);font-size:.92rem;font-weight:700;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                    <%=
+                        (colleges || []).reduce((sum, c) => sum + (c.examCount || 0), 0)
+                    %> Total Exams
+                </div>
+            </div>
+        </header>
+
+        <!-- content -->
+        <section class="tracker-content">
+
+            <!-- ── stats strip ── -->
+            <div class="stats-strip">
+                <div class="stat-card">
+                    <span class="label">Total Colleges</span>
+                    <h3><%= (colleges || []).length %></h3>
+                </div>
+
+                <div class="stat-card">
+                    <span class="label">Total Exam Entries</span>
+                    <h3 class="green"><%= (colleges || []).reduce((s,c)=>s+(c.examCount||0),0) %></h3>
+                </div>
+
+                <div class="stat-card">
+                    <span class="label">Upcoming Exams</span>
+                    <h3 class="orange"><%= (colleges || []).reduce((s,c)=>s+(c.upcomingCount||0),0) %></h3>
+                </div>
+
+                <div class="stat-card">
+                    <span class="label">Colleges with Exams</span>
+                    <h3><%= (colleges || []).filter(c=>c.examCount>0).length %></h3>
+                </div>
+            </div>
+
+            <!-- ── control bar ── -->
+            <div class="control-bar">
+                <input type="text" id="collegeSearch" placeholder="Search colleges…" class="search-input">
+
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="has-exams">Has Exams</button>
+                    <button class="filter-btn" data-filter="no-exams">No Exams</button>
+                    <button class="filter-btn" data-filter="upcoming">Has Upcoming</button>
+                </div>
+            </div>
+
+            <!-- ── college grid ── -->
+            <% if (colleges && colleges.length > 0) { %>
+            <div class="college-grid" id="collegeGrid">
+                <% colleges.forEach(college => {
+                    const hasExams    = college.examCount > 0;
+                    const hasUpcoming = college.upcomingCount > 0;
+                    const displayName = college.name || college.college_name || "Unknown College";
+                    const initial     = displayName.charAt(0).toUpperCase();
+                %>
+                <div class="college-card"
+                     data-name="<%= displayName.toLowerCase() %>"
+                     data-has-exams="<%= hasExams %>"
+                     data-has-upcoming="<%= hasUpcoming %>">
+
+                    <div class="college-card-head">
+                        <% if (college.image) { %>
+                        <img src="<%= college.image %>" alt="<%= displayName %>" class="college-logo">
+                        <% } else { %>
+                        <div class="college-logo-fallback"><%= initial %></div>
+                        <% } %>
+
+                        <div class="college-title">
+                            <h3><%= displayName %></h3>
+                            <p><%= college.branch || college.state || "—" %></p>
+                        </div>
+                    </div>
+
+                    <div class="college-meta">
+                        <div class="meta-box">
+                            <span class="meta-label">Total Exams</span>
+                            <strong class="<%= hasExams ? 'green' : '' %>"><%= college.examCount || 0 %></strong>
+                        </div>
+
+                        <div class="meta-box">
+                            <span class="meta-label">Upcoming</span>
+                            <strong class="<%= hasUpcoming ? 'orange' : '' %>"><%= college.upcomingCount || 0 %></strong>
+                        </div>
+                    </div>
+
+                    <div class="college-actions">
+                        <a href="/dev/exam-tracker/<%= encodeURIComponent(displayName) %>" class="btn btn-good btn-sm">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                                <path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            </svg>
+                            Manage Exams
+                        </a>
+
+                        <% if (college.examCount > 0) { %>
+                        <span style="margin-left:auto;padding:6px 10px;border-radius:999px;background:var(--good-soft);color:var(--good);font-size:.76rem;font-weight:700;">
+                            Active
+                        </span>
+                        <% } else { %>
+                        <span style="margin-left:auto;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);color:var(--muted);font-size:.76rem;font-weight:700;">
+                            Empty
+                        </span>
+                        <% } %>
+                    </div>
+                </div>
+                <% }) %>
+            </div>
+
+            <% } else { %>
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <h3>No Colleges Found</h3>
+                <p>No colleges exist in the database yet.</p>
+            </div>
+            <% } %>
+
+        </section>
+    </main>
+</div>
+
+<script>
+    const searchInput   = document.getElementById("collegeSearch");
+    const filterBtns    = document.querySelectorAll(".filter-btn");
+    const cards         = document.querySelectorAll(".college-card");
+    let activeFilter    = "all";
+
+    searchInput.addEventListener("input", applyFilters);
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            filterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeFilter = btn.dataset.filter;
+            applyFilters();
+        });
+    });
+
+    function applyFilters() {
+        const q = searchInput.value.toLowerCase().trim();
+
+        cards.forEach(card => {
+            const name       = card.dataset.name;
+            const hasExams   = card.dataset.hasExams === "true";
+            const hasUpcoming= card.dataset.hasUpcoming === "true";
+
+            let visible = true;
+            if (q && !name.includes(q)) visible = false;
+            if (activeFilter === "has-exams"  && !hasExams)    visible = false;
+            if (activeFilter === "no-exams"   &&  hasExams)    visible = false;
+            if (activeFilter === "upcoming"   && !hasUpcoming) visible = false;
+
+            card.style.display = visible ? "" : "none";
+        });
+    }
+</script>
+
+<%- include('partials/page-loader') %>
+</body>
+</html>
