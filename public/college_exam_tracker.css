@@ -288,15 +288,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-3);
+    /*color: var(--text-3);*/
     font-size: .82rem;
     font-weight: 600;
     transition: var(--t);
     padding: 6px 10px;
     border-radius: var(--r-xs);
-    border: 1px solid transparent;
+    /*border: 1px solid transparent;*/
+    color: var(--text);
+    /*border-color: var(--border);*/
+    border:1px solid rgba(255, 255, 255, 0.14);
+    /*background: rgba(255,255,255,0.04);*/
 }
-.et-back-link:hover { color: var(--text); border-color: var(--border); background: rgba(255,255,255,0.04); }
+.et-back-link:hover {
+    border:1px solid rgba(255, 255, 255, 0.25);
+}
 
 .et-college-identity {
     display: flex;
@@ -362,7 +368,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .et-left {
     padding: 20px 24px;
-    border-right: 1px solid var(--border);
+    /*border-right: 1px solid var(--border);*/
     min-height: 100%;
 }
 

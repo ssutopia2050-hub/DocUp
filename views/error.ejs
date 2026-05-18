@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= code %> — <%= title %> | DocUp</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/error.css">
+</head>
+<body>
+
+<!-- Ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<main class="error-card code-<%= Math.floor(code / 100) %>xx
+             <%- code === 404 ? 'code-404' : '' %>
+             <%- code >= 500 ? 'code-5xx' : '' %>">
+
+    <!-- Brand -->
+    <a href="/" class="error-brand">
+        <span class="error-brand-name">DocUp</span>
+        <span class="error-brand-dot">.</span>
+    </a>
+
+    <!-- Status badge -->
+    <%
+        let badgeClass = 'badge-4xx';
+        if (code === 404) badgeClass = 'badge-404';
+        if (code >= 500) badgeClass = 'badge-5xx';
+        const badgeLabel = code >= 500 ? 'Server Error' : (code === 404 ? 'Not Found' : 'Client Error');
+    %>
+    <div class="error-status-badge <%= badgeClass %>">
+        <span class="badge-dot"></span>
+        HTTP <%= code %> &mdash; <%= badgeLabel %>
+    </div>
+
+    <!-- Big code number -->
+    <div class="error-code-wrap">
+        <div class="error-code"><%= code %></div>
+        <div class="error-code-glow" aria-hidden="true"><%= code %></div>
+    </div>
+
+    <!-- Divider -->
+    <div class="error-divider"></div>
+
+    <!-- Title -->
+    <h1 class="error-title"><%= icon %>&nbsp;&nbsp;<%= title %></h1>
+
+    <!-- Message -->
+    <p class="error-message"><%= message %></p>
+
+    <% if (detail && detail !== message) { %>
+    <!-- Technical detail -->
+    <div class="error-detail">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <%= detail %>
+    </div>
+    <% } %>
+
+    <!-- Actions -->
+    <div class="error-actions">
+        <a href="/" class="btn-home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Go Home
+        </a>
+
+        <button class="btn-back" onclick="history.length > 1 ? history.back() : (window.location.href='/')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Go Back
+        </button>
+
+        <% if (code >= 500) { %>
+        <a href="/contact" class="btn-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.8"/>
+                <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            Report Issue
+        </a>
+        <% } %>
+
+        <% if (code === 401) { %>
+        <a href="/signin" class="btn-home">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Sign In
+        </a>
+        <% } %>
+    </div>
+
+    <!-- Footer -->
+    <div class="error-footer">
+        <%
+            const suggestions = {
+                404: 'Try searching for what you need, or <a href="/">browse the homepage</a>.',
+                401: 'You need to <a href="/signin">sign in</a> before you can access this.',
+                403: 'If you think this is a mistake, <a href="/contact">let us know</a>.',
+                500: 'This is on us. Try again in a moment, or <a href="/contact">contact support</a>.',
+                503: 'We\'ll be back shortly. Check our status or <a href="/contact">contact support</a>.',
+            };
+            const footerText = suggestions[code] || 'Something went sideways. <a href="/">Head home</a> and try again.';
+        %>
+        <%- footerText %>
+    </div>
+
+</main>
+
+</body>
+</html>

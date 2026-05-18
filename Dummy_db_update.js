@@ -1,29 +1,32 @@
-import mongoose from "mongoose";
 import dotenv from "dotenv";
-import PaymentOrder from "./models/paymentOrder.js";
-
 dotenv.config();
 
-async function run() {
+import mongoose from "mongoose";
+import PaymentOrder from "./models/paymentOrder.js";
+
+const MONGO_URI = process.env.MONGO_URI;
+
+async function deleteUserOrders() {
+    if (!MONGO_URI) {
+        console.error("❌ MONGO_URI not found in .env");
+        process.exit(1);
+    }
+
     try {
-        await mongoose.connect(process.env.MONGO_URI);
-        console.log("Connected to DB ✅");
+        await mongoose.connect(MONGO_URI);
+        console.log("✅ Connected");
 
         const result = await PaymentOrder.deleteMany({
-            status: "PENDING",
-            $or: [
-                { email: "vinayaklamba46@gmail.com" },
-                { user_email: "vinayaklamba46@gmail.com" } // typo field
-            ]
+            user_email:"ssbiology26@gmail.com",
         });
 
-        console.log(`Deleted ${result.deletedCount} documents ✅`);
+        console.log(`🔥 Deleted ${result.deletedCount} documents`);
 
-        process.exit(0);
     } catch (err) {
         console.error(err);
-        process.exit(1);
+    } finally {
+        await mongoose.disconnect();
     }
 }
 
-run();
+deleteUserOrders();

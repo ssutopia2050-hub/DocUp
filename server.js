@@ -165,7 +165,7 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
             .digest("hex");
 
         if (signature !== expectedSignature) {
-            return res.status(400).send("Invalid signature");
+            return renderError(res, 400, "Invalid signature");
         }
 
         const event = JSON.parse(req.body.toString());
@@ -174,7 +174,7 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
         if (event.event === "invoice.paid") {
             const invoice = event.payload?.invoice?.entity;
             if (!invoice || !invoice.subscription_id) {
-                return res.status(200).send("OK");
+                return renderError(res, 200, "OK");
             }
 
             const user = await user_profile.findOne({
@@ -183,7 +183,7 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
 
             if (!user) {
                 console.log("No user found for subscription:", invoice.subscription_id);
-                return res.status(200).send("OK");
+                return renderError(res, 200, "OK");
             }
 
             const planKey = user.subscription_plan_key;
@@ -191,7 +191,7 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
 
             if (!selectedPlan) {
                 console.log("No matching plan found for user:", user.email);
-                return res.status(200).send("OK");
+                return renderError(res, 200, "OK");
             }
 
             const alreadyCredited = Array.isArray(user.payment_history)
@@ -289,15 +289,49 @@ app.post("/razorpay/webhook", express.raw({ type: "application/json" }), async (
             console.log("subscription.charged:", event.payload?.subscription?.entity?.id);
         }
 
-        return res.status(200).send("OK");
+        return renderError(res, 200, "OK");
     } catch (err) {
         console.error("Webhook error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+/* ============================================================
+ *  CENTRALISED ERROR RENDERER
+ *  Usage:  return renderError(res, 500, "Something went wrong", "Optional detail");
+ * ============================================================ */
+const ERROR_META = {
+    400: { title: "Bad Request",           icon: "⚠️",  hint: "The request was malformed or missing required fields." },
+    401: { title: "Unauthorised",          icon: "🔒",  hint: "You need to sign in to access this page." },
+    403: { title: "Forbidden",             icon: "🚫",  hint: "You don't have permission to view this resource." },
+    404: { title: "Page Not Found",        icon: "🔍",  hint: "The page you\'re looking for has moved or doesn\'t exist." },
+    413: { title: "File Too Large",        icon: "📦",  hint: "The file you tried to upload exceeds the size limit." },
+    429: { title: "Too Many Requests",     icon: "⏱️",  hint: "You\'ve made too many requests. Please slow down." },
+    500: { title: "Internal Server Error", icon: "💥",  hint: "Something broke on our end. We\'re looking into it." },
+    503: { title: "Service Unavailable",   icon: "🔧",  hint: "The server is temporarily offline. Try again shortly." },
+};
+
+function renderError(res, code, message, detail) {
+    code = code || 500;
+    const meta = ERROR_META[code] || { title: "Error", icon: "❌", hint: "" };
+    const displayMessage = message || meta.hint;
+    try {
+        return res.status(code).render("error", {
+            code,
+            title:   meta.title,
+            icon:    meta.icon,
+            message: displayMessage,
+            detail:  detail || meta.hint
+        });
+    } catch (_) {
+        return res.status(code).send("<h1>" + code + " — " + meta.title + "</h1><p>" + displayMessage + "</p>");
+    }
+}
+
+
 
 const isProduction = process.env.NODE_ENV === "production";
 app.set("trust proxy", 1); // Required for secure cookies behind Render/nginx proxy
@@ -327,7 +361,7 @@ app.use(sessionMiddleware);
 //     next();
 // });
 app.get("/health", (req, res) => {
-    res.status(200).send("OK");
+    renderError(res, 200, "OK");
 });
 app.use(express.static("public", {
     maxAge: "7d"
@@ -2044,7 +2078,7 @@ app.get("/dashboard", async (req, res) => {
 
     } catch (err) {
         console.log(err);
-        res.status(500).send("Server error");
+        renderError(res, 500, "Server error");
     }
 });
 app.post("/api/dashboard-search", async (req, res) => {
@@ -2317,7 +2351,7 @@ app.get("/college/:collegeName", async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).send("Something went wrong");
+        renderError(res, 500, "Something went wrong");
     }
 });
 /******************************
@@ -2580,7 +2614,7 @@ app.get("/profile", async (req, res) => {
 
     } catch (error) {
         console.log("Profile Page Error:", error);
-        res.status(500).send("Internal Server Error");
+        renderError(res, 500, "Internal Server Error");
     }
 });
 app.post("/update-avatar", async (req, res) => {
@@ -2899,7 +2933,7 @@ app.get("/view/:id", async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        return res.status(500).send("Server Error");
+        return renderError(res, 500, "Server Error");
     }
 });
 
@@ -2909,13 +2943,13 @@ app.get("/view/:id", async (req, res) => {
 app.get("/pdf-proxy/:id", async (req, res) => {
     try {
         if (!req.session.email) {
-            return res.status(401).send("Unauthorized");
+            return renderError(res, 401, "Unauthorized");
         }
 
         const doc = await Docs.findById(req.params.id).select("file_url protected uploaded_by").lean();
 
         if (!doc || !doc.file_url) {
-            return res.status(404).send("Document not found");
+            return renderError(res, 404, "Document not found");
         }
 
         const response = await fetch(doc.file_url, {
@@ -2924,7 +2958,7 @@ app.get("/pdf-proxy/:id", async (req, res) => {
 
         if (!response.ok) {
             console.error("R2 fetch failed:", response.status, doc.file_url);
-            return res.status(502).send("Failed to fetch PDF from storage");
+            return renderError(res, 502, "Failed to fetch PDF from storage");
         }
 
         const contentLength = response.headers.get("content-length");
@@ -2944,7 +2978,7 @@ app.get("/pdf-proxy/:id", async (req, res) => {
 
     } catch (err) {
         console.error("PDF proxy error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -2974,7 +3008,7 @@ app.get("/save/:id", async (req, res) => {
         res.redirect("/view/" + docId);
     } catch (err) {
         console.error(err);
-        res.status(500).send("Server Error");
+        renderError(res, 500, "Server Error");
     }
 });
 app.get("/api/docscore", async (req, res) => {
@@ -3045,7 +3079,7 @@ app.get("/update_likes/:id", async (req, res) => {
         return res.redirect("/view/" + req.params.id);
     } catch (err) {
         console.error(err);
-        return res.status(500).send("Server Error");
+        return renderError(res, 500, "Server Error");
     }
 });
 app.get("/update_dislikes/:id", async (req, res) => {
@@ -3092,7 +3126,7 @@ app.get("/update_dislikes/:id", async (req, res) => {
         return res.redirect("/view/" + req.params.id);
     } catch (err) {
         console.error(err);
-        return res.status(500).send("Server Error");
+        return renderError(res, 500, "Server Error");
     }
 });
 // ── AJAX: like (no page reload) ──────────────────────────────
@@ -4166,7 +4200,7 @@ app.get("/pricing", async (req, res) => {
         });
     } catch (err) {
         console.error("GET /pricing error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -4193,7 +4227,7 @@ app.get("/payment-success", async (req, res) => {
         return res.render("payment-success", { data: user, docscore, bonusDocscore });
     } catch (err) {
         console.error("GET /payment-success error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -4218,7 +4252,7 @@ app.get("/upgrade-plans", async (req, res) => {
         });
     } catch (err) {
         console.error("GET /upgrade-plans error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -4426,7 +4460,7 @@ app.post("/google_create_password", async (req, res) => {
         });
     } catch (err) {
         console.log("Google create password error:", err);
-        return res.status(500).send("Internal Server Error");
+        return renderError(res, 500, "Internal Server Error");
     }
 });
 /* ***************************
@@ -4441,7 +4475,7 @@ app.get("/show_other_user_profile/:email", async (req, res) => {
         }).populate("uploads.doc_id", "college subject chapter reviewed");
 
         if (!user_data) {
-            return res.status(404).send("User not found");
+            return renderError(res, 404, "User not found");
         }
 
         const personal_data = await user_profile.findOne({
@@ -4464,7 +4498,7 @@ app.get("/show_other_user_profile/:email", async (req, res) => {
 
     } catch (err) {
         console.log("Public profile error:", err);
-        return res.status(500).send("Internal Server Error");
+        return renderError(res, 500, "Internal Server Error");
     }
 });
 app.get("/save_profile/:email", async (req, res) => {
@@ -4504,7 +4538,7 @@ app.get("/all_uploads_view_second_pov_profile/:_id", async (req, res) => {
             .populate("uploads.doc_id");
 
         if (!user_data) {
-            return res.status(404).send("User not found");
+            return renderError(res, 404, "User not found");
         }
 
         const verifiedUploads = (user_data.uploads || [])
@@ -4517,7 +4551,7 @@ app.get("/all_uploads_view_second_pov_profile/:_id", async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Server Error");
+        renderError(res, 500, "Server Error");
     }
 });
 
@@ -4532,7 +4566,7 @@ app.get("/saved_docs", async (req, res) => {
             .populate("saved_documents");
 
         if (!user_data) {
-            return res.status(404).send("User not found");
+            return renderError(res, 404, "User not found");
         }
 
         // Filter out any null documents (in case a saved doc was deleted from the database)
@@ -4546,7 +4580,7 @@ app.get("/saved_docs", async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Server Error");
+        renderError(res, 500, "Server Error");
     }
 });
 // ── Add this route to server.js (after the /saved_docs route is a good spot) ──
@@ -4560,7 +4594,7 @@ app.get("/payment_history", async (req, res) => {
         const user_data = await user_profile.findOne({ email: req.session.email });
 
         if (!user_data) {
-            return res.status(404).send("User not found");
+            return renderError(res, 404, "User not found");
         }
 
         // Sort newest first (same as profile.ejs does for payment_history)
@@ -4576,7 +4610,7 @@ app.get("/payment_history", async (req, res) => {
         });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Server Error");
+        renderError(res, 500, "Server Error");
     }
 });
 /* ***************************
@@ -4616,7 +4650,7 @@ app.get("/notifications", async (req, res) => {
         });
     } catch (err) {
         console.log("Notifications page error:", err);
-        res.status(500).send("Server Error");
+        renderError(res, 500, "Server Error");
     }
 });
 
@@ -4827,7 +4861,7 @@ app.get("/college_chat/:collegeName", async (req, res) => {
         });
     } catch (err) {
         console.log("college chat route error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -5084,7 +5118,7 @@ app.get("/dev/dashboard", async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error loading dashboard");
+        renderError(res, 500, "Error loading dashboard");
     }
 });
 /****************
@@ -5118,7 +5152,7 @@ app.get("/dev/docs", async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error loading docs moderation page");
+        renderError(res, 500, "Error loading docs moderation page");
     }
 });
 
@@ -5154,7 +5188,7 @@ app.post("/dev/docs/:id/review", async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error marking doc as reviewed");
+        renderError(res, 500, "Error marking doc as reviewed");
     }
 });
 
@@ -5190,7 +5224,7 @@ app.post("/dev/docs/:id/unreview", async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error marking doc as unreviewed");
+        renderError(res, 500, "Error marking doc as unreviewed");
     }
 });
 
@@ -5205,7 +5239,7 @@ app.post("/dev/docs/:id/delete", async (req, res) => {
         const doc = await Docs.findById(docId);
 
         if (!doc) {
-            return res.status(404).send("Document not found");
+            return renderError(res, 404, "Document not found");
         }
 
         await reports.deleteMany({ doc_id: docId });
@@ -5254,7 +5288,7 @@ app.post("/dev/docs/:id/delete", async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error deleting doc");
+        renderError(res, 500, "Error deleting doc");
     }
 });
 /****************
@@ -5323,7 +5357,7 @@ app.get("/dev/reports", async (req, res) => {
 
     } catch (error) {
         console.error("DEV REPORTS ERROR:", error);
-        res.status(500).send("Error loading reports page");
+        renderError(res, 500, "Error loading reports page");
     }
 });
 
@@ -5335,7 +5369,7 @@ app.post("/dev/reports/:id/delete-doc", async (req, res) => {
         const reportDoc = await reports.findById(req.params.id);
 
         if (!reportDoc) {
-            return res.status(404).send("Report not found");
+            return renderError(res, 404, "Report not found");
         }
 
         await reports.deleteMany({ doc_id: reportDoc.doc_id });
@@ -5344,7 +5378,7 @@ app.post("/dev/reports/:id/delete-doc", async (req, res) => {
         res.redirect("/dev/reports");
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error deleting reported doc");
+        renderError(res, 500, "Error deleting reported doc");
     }
 });
 app.post("/dev/reports/:id/delete", async (req, res) => {
@@ -5355,7 +5389,7 @@ app.post("/dev/reports/:id/delete", async (req, res) => {
         const reportDoc = await reports.findById(req.params.id);
 
         if (!reportDoc) {
-            return res.status(404).send("Report not found");
+            return renderError(res, 404, "Report not found");
         }
 
         await reports.deleteMany({ doc_id: reportDoc.doc_id });
@@ -5364,7 +5398,7 @@ app.post("/dev/reports/:id/delete", async (req, res) => {
         res.redirect("/dev/reports");
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error deleting reported doc");
+        renderError(res, 500, "Error deleting reported doc");
     }
 });
 app.post("/dev/contact/:id/delete", async (req, res) => {
@@ -5377,7 +5411,7 @@ app.post("/dev/contact/:id/delete", async (req, res) => {
         res.redirect("/dev/reports");
     } catch (err) {
         console.error(err);
-        res.status(500).send("Error deleting contact message");
+        renderError(res, 500, "Error deleting contact message");
     }
 });
 /****************
@@ -5411,7 +5445,7 @@ app.get("/dev/users", async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error loading users page");
+        renderError(res, 500, "Error loading users page");
     }
 });
 app.post("/dev/users/:id/delete", async (req, res) => {
@@ -5423,7 +5457,7 @@ app.post("/dev/users/:id/delete", async (req, res) => {
         res.redirect("/dev/users");
     } catch (error) {
         console.error(error);
-        res.status(500).send("Error deleting user");
+        renderError(res, 500, "Error deleting user");
     }
 });
 /****************
@@ -5486,7 +5520,7 @@ app.get("/dev/activity", async (req, res) => {
         res.render("dev_activity", { usersAnalytics });
     } catch (err) {
         console.error(err);
-        res.status(500).send("Activity error");
+        renderError(res, 500, "Activity error");
     }
 });
 function escapeRegexSEO(str = "") {
@@ -5653,7 +5687,7 @@ async function renderCollegeSeoPage(req, res) {
         const rawSubjectSlug = decodeURIComponent(req.params.subjectSlug || "").trim();
 
         if (!rawCollegeSlug) {
-            return res.status(404).send("Page not found");
+            return renderError(res, 404, "Page not found");
         }
 
         let resolvedCollegeName = resolveCollegeNameFromSlug(rawCollegeSlug);
@@ -5672,7 +5706,7 @@ async function renderCollegeSeoPage(req, res) {
         }
 
         if (!resolvedCollegeName) {
-            return res.status(404).send("Page not found");
+            return renderError(res, 404, "Page not found");
         }
 
         const requestedName = normalizeText(resolvedCollegeName);
@@ -5695,7 +5729,7 @@ async function renderCollegeSeoPage(req, res) {
         );
 
         if (!allCollegeDocs.length) {
-            return res.status(404).send("Page not found");
+            return renderError(res, 404, "Page not found");
         }
 
         const subjectMap = new Map();
@@ -5725,7 +5759,7 @@ async function renderCollegeSeoPage(req, res) {
             selectedSubjectGroup = subjectMap.get(slugifyText(rawSubjectSlug)) || null;
 
             if (!selectedSubjectGroup) {
-                return res.status(404).send("Page not found");
+                return renderError(res, 404, "Page not found");
             }
 
             filteredDocs = selectedSubjectGroup.items;
@@ -5812,7 +5846,7 @@ async function renderCollegeSeoPage(req, res) {
 
     } catch (error) {
         console.log("SEO college notes page error:", error);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 }
 
@@ -5912,7 +5946,7 @@ ${Array.from(urlMap.values())
         return res.send(xml);
     } catch (error) {
         console.log("Sitemap error:", error);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 /******************************
@@ -5981,7 +6015,7 @@ app.get("/exam-tracker/:collegeName", async (req, res) => {
 
     } catch (err) {
         console.error("Exam tracker render error:", err);
-        return res.status(500).send("Server error");
+        return renderError(res, 500, "Server error");
     }
 });
 
@@ -6047,7 +6081,7 @@ app.get("/dev/exam-tracker", async (req, res) => {
 
     } catch (err) {
         console.error("Dev exam tracker list error:", err);
-        return res.status(500).send("Error loading exam tracker manager");
+        return renderError(res, 500, "Error loading exam tracker manager");
     }
 });
 
@@ -6078,7 +6112,7 @@ app.get("/dev/exam-tracker/:collegeName", async (req, res) => {
 
     } catch (err) {
         console.error("Dev exam tracker college page error:", err);
-        return res.status(500).send("Error loading college exam manager");
+        return renderError(res, 500, "Error loading college exam manager");
     }
 });
 
@@ -6128,7 +6162,7 @@ app.post("/dev/exam-tracker/:collegeName/add", async (req, res) => {
 
     } catch (err) {
         console.error("Add exam error:", err);
-        return res.status(500).send("Error adding exam");
+        return renderError(res, 500, "Error adding exam");
     }
 });
 
@@ -6176,7 +6210,7 @@ app.post("/dev/exam-tracker/:collegeName/:examId/edit", async (req, res) => {
 
     } catch (err) {
         console.error("Edit exam error:", err);
-        return res.status(500).send("Error editing exam");
+        return renderError(res, 500, "Error editing exam");
     }
 });
 
@@ -6194,7 +6228,7 @@ app.post("/dev/exam-tracker/:collegeName/:examId/delete", async (req, res) => {
 
     } catch (err) {
         console.error("Delete exam error:", err);
-        return res.status(500).send("Error deleting exam");
+        return renderError(res, 500, "Error deleting exam");
     }
 });
 
@@ -6226,4 +6260,20 @@ app.get("/api/dev/exam-tracker/:collegeName/:examId", async (req, res) => {
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
+});
+
+/* ============================================================
+ *  404 CATCH-ALL  — must be AFTER all app.get / app.post routes
+ * ============================================================ */
+app.use((req, res) => {
+    renderError(res, 404, "The page you requested doesn't exist.", `Path: ${req.originalUrl}`);
+});
+
+/* ============================================================
+ *  GLOBAL ERROR MIDDLEWARE  — catches any uncaught next(err)
+ * ============================================================ */
+app.use((err, req, res, next) => {
+    console.error("[Unhandled Error]", err);
+    const code = err.status || err.statusCode || 500;
+    renderError(res, code, err.message || "An unexpected error occurred.", "");
 });

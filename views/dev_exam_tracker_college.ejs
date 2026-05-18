@@ -311,8 +311,8 @@
                     <!-- actions -->
                     <div class="exam-actions">
                         <button class="btn btn-secondary btn-sm"
-                                onclick='openEditModal(<%- JSON.stringify({
-                                    id: exam._id,
+                                data-exam='<%- JSON.stringify({
+                                    id: String(exam._id),
                                     subject: exam.subject,
                                     type: exam.type,
                                     dateISO: dateISO,
@@ -324,7 +324,8 @@
                                     semester: exam.semester || "",
                                     notesLinks: exam.notesLinks || [],
                                     pyqLinks: exam.pyqLinks || []
-                                }) %>)'>
+                                }).replace(/'/g, "&#39;") %>'
+                                onclick="openEditModal(JSON.parse(this.dataset.exam))">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -531,13 +532,18 @@ function filterExams(filter, btn) {
 
 /* ══════════════ EDIT MODAL ══════════════ */
 function openEditModal(exam) {
+    const examId = String(exam.id || "");
+    if (!examId || examId === "undefined") {
+        alert("Error: could not resolve exam ID. Please refresh the page.");
+        return;
+    }
+
     // Set form action
     const collegeName = "<%= encodeURIComponent(collegeName) %>";
-    document.getElementById("editForm").action = `/dev/exam-tracker/${collegeName}/${exam.id}/edit`;
+    document.getElementById("editForm").action = `/dev/exam-tracker/${collegeName}/${examId}/edit`;
 
-    // Populate fields
+    // Populate text fields
     document.getElementById("editSubject").value     = exam.subject     || "";
-    document.getElementById("editType").value        = exam.type        || "other";
     document.getElementById("editDate").value        = exam.dateISO     || "";
     document.getElementById("editTime").value        = exam.time        || "";
     document.getElementById("editVenue").value       = exam.venue       || "";
@@ -545,6 +551,12 @@ function openEditModal(exam) {
     document.getElementById("editBranch").value      = exam.branch      || "";
     document.getElementById("editYear").value        = exam.year        || "";
     document.getElementById("editSemester").value    = exam.semester    || "";
+
+    // Set <select> — loop options instead of .value to avoid silent failures
+    const typeSelect = document.getElementById("editType");
+    Array.from(typeSelect.options).forEach(opt => {
+        opt.selected = (opt.value === (exam.type || "other"));
+    });
 
     // Populate link rows
     const notesList = document.getElementById("editNotesList");
