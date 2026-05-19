@@ -375,7 +375,7 @@ const geminiClient = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Vision model — processes page images, extracts structured academic text
 const geminiVisionModel = geminiClient.getGenerativeModel({
-    model: "gemini-1.5-flash-8b"
+    model: "gemini-2.0-flash"
 });
 
 // Embedding model — text-embedding-004, 768-dim
@@ -385,7 +385,7 @@ const geminiEmbeddingModel = geminiClient.getGenerativeModel({
 
 // Flash model for Q&A (fast, cheap, great for RAG)
 const geminiFlashModel = geminiClient.getGenerativeModel({
-    model: "gemini-1.5-flash-8b"
+    model: "gemini-2.0-flash"
 });
 
 // Promisify the already-imported execFile for PDF→image conversion
@@ -744,8 +744,10 @@ const processedCache  = new Set();   // already has embeddings this server lifet
 
 // ── 1. Auth guard helper (unchanged contract) ────────────────────────────────
 async function getAuthorizedDoc(req, docId) {
+    console.log("[DEBUG][getAuthorizedDoc] session.email:", req.session?.email, "| docId received:", docId);
     if (!req.session?.email) throw new Error("Unauthorized");
     const doc = await Docs.findById(docId);
+    console.log("[DEBUG][getAuthorizedDoc] doc found:", !!doc);
     if (!doc) throw new Error("Document not found");
     return doc;
 }
@@ -1020,20 +1022,25 @@ async function runFullPipeline(doc) {
     processingCache.set(docId, true);
 
     try {
-        console.log(`[DocAI] Pipeline start: ${docId}`);
+        console.log(`[DEBUG][Pipeline] START for docId: ${docId}`);
 
         // Step A: Download PDF
+        console.log(`[DEBUG][Pipeline] Step A: fetching PDF from URL:`, doc.file_url);
         const pdfBuffer = await getPdfBufferFromExistingUrl(doc);
+        console.log(`[DEBUG][Pipeline] Step A: PDF downloaded, bytes:`, pdfBuffer.length);
 
         // Step B: PDF → images
+        console.log(`[DEBUG][Pipeline] Step B: converting PDF to images via pdftoppm...`);
         const images = await convertPdfToImages(pdfBuffer);
-        console.log(`[DocAI] ${images.length} pages converted to images`);
+        console.log(`[DEBUG][Pipeline] Step B: ${images.length} pages converted to images`);
 
         // Step C: Gemini Vision on every page
+        console.log(`[DEBUG][Pipeline] Step C: calling Gemini Vision on ${images.length} pages...`);
         const extractedPages = await processAllPagesWithGemini(images);
-        console.log(`[DocAI] Vision extraction done for ${extractedPages.length} pages`);
+        console.log(`[DEBUG][Pipeline] Step C: extracted ${extractedPages.length} pages`);
 
         // Step D: Chunking
+        console.log(`[DEBUG][Pipeline] Step D: chunking ${extractedPages.length} pages...`);
         let   allChunks    = [];
         let   globalIndex  = 0;
 
@@ -1042,11 +1049,12 @@ async function runFullPipeline(doc) {
             allChunks.push(...chunks);
             globalIndex = nextIndex;
         }
-        console.log(`[DocAI] ${allChunks.length} chunks created`);
+        console.log(`[DEBUG][Pipeline] Step D: ${allChunks.length} chunks created`);
 
         // Step E: Embed all chunks
+        console.log(`[DEBUG][Pipeline] Step E: embedding ${allChunks.length} chunks via Gemini...`);
         const embeddedChunks = await embedAllChunks(allChunks);
-        console.log(`[DocAI] Embeddings generated`);
+        console.log(`[DEBUG][Pipeline] Step E: embeddings generated, count:`, embeddedChunks.length);
 
         // Step F: Persist — atomic replace (delete old → insert new)
         await DocChunk.deleteMany({ doc_id: doc._id });
@@ -1076,9 +1084,14 @@ async function runFullPipeline(doc) {
         );
 
         processedCache.add(docId);
-        console.log(`[DocAI] Pipeline complete: ${docId}`);
+        console.log(`[DEBUG][Pipeline] COMPLETE for docId: ${docId}, chunks stored: ${embeddedChunks.length}`);
         return aiRecord;
 
+    } catch (err) {
+        console.error(`[DEBUG][Pipeline] FAILED for docId: ${docId}`);
+        console.error(`[DEBUG][Pipeline] Error message:`, err.message);
+        console.error(`[DEBUG][Pipeline] Stack:`, err.stack);
+        throw err;
     } finally {
         processingCache.delete(docId);
     }
@@ -1108,6 +1121,7 @@ async function ensureDocAiData(doc) {
 app.post("/ai/process-doc", async (req, res) => {
     try {
         const { docId } = req.body;
+        console.log("[DEBUG][/ai/process-doc] body:", req.body, "| session.email:", req.session?.email);
         const doc = await getAuthorizedDoc(req, docId);
 
         // Fire-and-forget so the request returns immediately
@@ -1125,7 +1139,8 @@ app.post("/ai/process-doc", async (req, res) => {
             processing: processingCache.has(docIdStr)
         });
     } catch (err) {
-        console.error("process-doc error:", err);
+        console.error("[DEBUG][/ai/process-doc] CAUGHT ERROR:", err.message);
+        console.error("[DEBUG][/ai/process-doc] Stack:", err.stack);
         return res.status(err.message === "Unauthorized" ? 401 : 500).json({
             success: false, message: err.message
         });
@@ -1136,6 +1151,7 @@ app.post("/ai/process-doc", async (req, res) => {
 app.post("/ai/ask-doc", async (req, res) => {
     try {
         const { docId, question } = req.body;
+        console.log("[DEBUG][/ai/ask-doc] body:", { docId, question: question?.slice(0, 80) }, "| session.email:", req.session?.email);
 
         if (!question || !String(question).trim()) {
             return res.status(400).json({ success: false, message: "Question is required" });
@@ -1152,10 +1168,13 @@ app.post("/ai/ask-doc", async (req, res) => {
         }
 
         // Embed the question
+        console.log("[DEBUG][/ai/ask-doc] embedding question...");
         const queryEmbedding = await embedQuery(String(question).trim());
+        console.log("[DEBUG][/ai/ask-doc] embedding done, retrieving top chunks...");
 
         // Retrieve top-5 relevant chunks
         const topChunks = await retrieveTopChunks(doc._id, queryEmbedding, 5);
+        console.log("[DEBUG][/ai/ask-doc] topChunks count:", topChunks.length);
 
         if (!topChunks.length) {
             return res.json({
@@ -1208,7 +1227,8 @@ Return ONLY valid JSON, no markdown fences:
         });
 
     } catch (err) {
-        console.error("Ask-doc error:", err);
+        console.error("[DEBUG][/ai/ask-doc] CAUGHT ERROR:", err.message);
+        console.error("[DEBUG][/ai/ask-doc] Stack:", err.stack);
         return res.status(err.message === "Unauthorized" ? 401 : 500).json({
             success: false, message: err.message || "Failed to answer question"
         });
@@ -1388,6 +1408,108 @@ ${combinedText}`;
         });
     }
 });
+// ── 19. GET /api/capsule/:id — fetch cached capsule from DB ──────────────────
+app.get("/api/capsule/:id", async (req, res) => {
+    try {
+        if (!req.session?.email) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const doc = await Docs.findById(req.params.id).select("capsule").lean();
+        if (!doc) {
+            return res.status(404).json({ success: false, message: "Document not found" });
+        }
+
+        if (!doc.capsule) {
+            return res.json({ success: false, message: "No capsule found for this document" });
+        }
+
+        return res.json({ success: true, capsule: doc.capsule });
+
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message || "Failed to fetch capsule" });
+    }
+});
+
+// ── 20. POST /api/capsule/:id — build capsule from metadata, zero API cost ────
+// Constructs the context string entirely from DB fields — no Gemini call,
+// no PDF download, no quota usage. Cached in Docs.capsule after first build
+// so every subsequent "Discuss with AI" click is served straight from DB.
+app.post("/api/capsule/:id", async (req, res) => {
+    try {
+        if (!req.session?.email) {
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
+        const doc = await Docs.findById(req.params.id)
+            .select("capsule college year semester branch subject chapter doc_type special_tag uploaded_by")
+            .lean();
+
+        if (!doc) {
+            return res.status(404).json({ success: false, message: "Document not found" });
+        }
+
+        // Serve from cache instantly — no work needed
+        if (doc.capsule) {
+            return res.json({ success: true, capsule: doc.capsule });
+        }
+
+        // ── Build capsule deterministically from metadata ──────────────────
+        // No AI call. We construct a structured context string that any AI
+        // agent can read and immediately understand what this document is.
+
+        const DOC_TYPE_LABEL = {
+            college_doc:  "a college academic document",
+            ed_doc:       "an educational resource",
+            research_doc: "a research document",
+            random_doc:   "a general document",
+        };
+
+        const typeLabel = DOC_TYPE_LABEL[doc.doc_type] || "an academic document";
+
+        // Opening sentence — always present
+        const parts = [];
+
+        let opening = `This is ${typeLabel}`;
+        if (doc.subject) opening += ` covering the subject "${doc.subject}"`;
+        if (doc.chapter) opening += `, specifically the chapter or topic "${doc.chapter}"`;
+        opening += ".";
+        parts.push(opening);
+
+        // Academic context sentence
+        const ctx = [];
+        if (doc.college)  ctx.push(`institution: ${doc.college}`);
+        if (doc.branch)   ctx.push(`stream/branch: ${doc.branch}`);
+        if (doc.year)     ctx.push(`year: ${doc.year}`);
+        if (doc.semester) ctx.push(`semester: ${doc.semester}`);
+        if (ctx.length)   parts.push(`Academic context — ${ctx.join(", ")}.`);
+
+        // Quality / uploader note
+        if (doc.special_tag) {
+            parts.push(`This document is tagged "${doc.special_tag}", indicating high academic quality.`);
+        }
+
+        // Instruction line for the receiving AI agent
+        parts.push(
+            `The student may ask questions about concepts, definitions, formulas, ` +
+            `or explanations related to ${doc.subject || "this subject"}` +
+            (doc.chapter ? ` and the topic "${doc.chapter}"` : "") +
+            `. Answer based on standard academic knowledge for this subject area.`
+        );
+
+        const capsule = parts.join(" ");
+
+        // Persist — next click returns instantly from cache
+        await Docs.findByIdAndUpdate(req.params.id, { $set: { capsule } });
+
+        return res.json({ success: true, capsule });
+
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message || "Failed to generate capsule" });
+    }
+});
+
+
 function normalizeSearchText(text = "") {
     return String(text)
         .toLowerCase()

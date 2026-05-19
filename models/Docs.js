@@ -101,6 +101,11 @@ const Docs = new mongoose.Schema({
         type:String,
         enum:["college_doc","ed_doc","research_doc","random_doc"],
         required:true,
+    },
+    capsule:{
+        type:String,
+        trim:true,
+        default:null
     }
 
 });
