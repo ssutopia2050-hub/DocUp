@@ -39,6 +39,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { promisify } from "util";
 import { UAParser } from "ua-parser-js";
 import Fuse from "fuse.js";
+import mongoose from "mongoose";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -334,7 +335,8 @@ function renderError(res, code, message, detail) {
 
 
 const isProduction = process.env.NODE_ENV === "production";
-app.set("trust proxy", 1); // Required for secure cookies behind Render/nginx proxy
+// AWS: ALB → nginx → Node = 2 proxy hops. Render/single-proxy setups also work with 2.
+app.set("trust proxy", 2);
 
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
@@ -349,7 +351,8 @@ const sessionMiddleware = session({
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         secure: isProduction,                      // true on prod (HTTPS), false on localhost
-        sameSite: isProduction ? "none" : "lax"    // "none" required for cross-site on prod
+        sameSite: isProduction ? "none" : "lax",   // "none" required for cross-site on prod
+        proxy: true                                // trust X-Forwarded-Proto from ALB/nginx
     }
 });
 
@@ -2588,7 +2591,6 @@ app.post("/upload_docs", upload.single("file"), async (req, res) => {
 
         // ☁️ UPLOAD TO CLOUDFLARE R2
         // Pre-create a doc _id so the R2 key and DB id match (mirrors cdn.docup.in/docs/<id>.pdf pattern)
-        const { default: mongoose } = await import("mongoose");
         const docId = new mongoose.Types.ObjectId();
         const r2Key = `docs/${docId}.${extension}`;
 
@@ -2850,11 +2852,13 @@ app.get("/view/:id", async (req, res) => {
         // Only deduct DocScore if the document is protected
         let chargedUser = null;
 
+        const docPrice = document.price ?? 1;
+
         if (document.protected) {
             chargedUser = await user_profile.findOneAndUpdate(
                 {
                     email: req.session.email,
-                    Doc_score: { $gt: 0 },
+                    Doc_score: { $gte: docPrice },
                     $or: [
                         { last_doc_views: { $not: { $elemMatch: { doc_id: docId } } } },
                         {
@@ -2870,7 +2874,7 @@ app.get("/view/:id", async (req, res) => {
                 [
                     {
                         $set: {
-                            Doc_score: { $subtract: ["$Doc_score", 1] },
+                            Doc_score: { $subtract: ["$Doc_score", docPrice] },
                             last_doc_views: {
                                 $concatArrays: [
                                     [
@@ -2906,6 +2910,10 @@ app.get("/view/:id", async (req, res) => {
                     updatePipeline: true
                 }
             );
+
+            if (chargedUser) {
+                await invalidate(`docscore:${req.session.email}`);
+            }
         }
 
         let renderUser = chargedUser;
@@ -2930,8 +2938,8 @@ app.get("/view/:id", async (req, res) => {
             const stillInCooldown = lastViewedAt && (Date.now() - lastViewedAt < cooldownMs);
 
             // Only block access due to low DocScore if the doc is protected
-            if (document.protected && !stillInCooldown && freshUser.Doc_score <= 0) {
-                const msg = { err: "Insufficient DocScore" };
+            if (document.protected && !stillInCooldown && freshUser.Doc_score < docPrice) {
+                const msg = { err: "Insufficient DocScore", requiredScore: docPrice };
                 const clg = await college.find({});
 
                 const collegeImageMap = {};
@@ -5371,12 +5379,13 @@ app.post("/dev/docs/:id/delete", async (req, res) => {
 
         // Deduct score ONLY if protected
         if (doc.protected && doc.uploaded_by) {
+            const penalty = doc.price ?? 1;
             await user_profile.updateOne(
                 { email: doc.uploaded_by },
-                { $inc: { Doc_score: -1 } }
+                { $inc: { Doc_score: -penalty } }
             );
 
-            message += ` 1 DocScore has been deducted.`;
+            message += ` ${penalty} DocScore has been deducted.`;
         }
 
         // Remove from uploads
@@ -6381,6 +6390,135 @@ app.get("/api/dev/exam-tracker/:collegeName/:examId", async (req, res) => {
         return res.json({ success: true, exam });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+ *  DEV — DOC PRICE MANAGER
+ *  GET  /dev/doc-price           → dev_doc_price_1.ejs  (list + edit)
+ *  POST /dev/doc-price/:docId    → update price of a single doc
+ * ============================================================ */
+app.get("/dev/doc-price", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const page       = Math.max(1, parseInt(req.query.page) || 1);
+        const limit      = 20;
+        const search     = (req.query.search    || "").trim();
+        const docType    = (req.query.docType   || "").trim();
+        const yearFilter = (req.query.year      || "").trim();
+        const semFilter  = (req.query.semester  || "").trim();
+        const protFilter = req.query.protected;   // "true" | "false" | undefined
+        const revFilter  = req.query.reviewed;    // "true" | "false" | undefined
+
+        // ── Build compound filter ──────────────────────────────────────
+        const filter = {};
+
+        if (search) {
+            filter.$or = [
+                { subject:  { $regex: search, $options: "i" } },
+                { chapter:  { $regex: search, $options: "i" } },
+                { college:  { $regex: search, $options: "i" } },
+                { branch:   { $regex: search, $options: "i" } },
+                { year:     { $regex: search, $options: "i" } },
+                { semester: { $regex: search, $options: "i" } },
+            ];
+        }
+        if (docType)              filter.doc_type   = docType;
+        if (yearFilter)           filter.year       = yearFilter;
+        if (semFilter)            filter.semester   = semFilter;
+        if (protFilter === "true")  filter.protected = true;
+        if (protFilter === "false") filter.protected = false;
+        if (revFilter  === "true")  filter.reviewed  = true;
+        if (revFilter  === "false") filter.reviewed  = false;
+
+        // ── Fetch distinct years & semesters for dropdowns ─────────────
+        const [docs, total, allYears, allSemesters] = await Promise.all([
+            Docs.find(filter)
+                .select("subject chapter college branch year semester doc_type price protected reviewed")
+                .sort({ _id: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .lean(),
+            Docs.countDocuments(filter),
+            Docs.distinct("year"),
+            Docs.distinct("semester"),
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
+        // Sort year/semester lists sensibly
+        const sortedYears = allYears.filter(Boolean).sort();
+        const sortedSems  = allSemesters.filter(Boolean).sort();
+
+        return res.render("dev_doc_price", {
+            docs,
+            total,
+            page,
+            totalPages,
+            search,
+            limit,
+            docType,
+            yearFilter,
+            semFilter,
+            protFilter: protFilter || "",
+            revFilter:  revFilter  || "",
+            allYears:   sortedYears,
+            allSemesters: sortedSems,
+            successMsg: req.query.success || null,
+            errorMsg:   req.query.error   || null
+        });
+
+    } catch (err) {
+        console.error("Dev doc-price GET error:", err);
+        return renderError(res, 500, "Error loading doc price manager");
+    }
+});
+
+app.post("/dev/doc-price/:docId", async (req, res) => {
+    if (!req.session.dev_email) return res.redirect("/dev/signin");
+
+    try {
+        const { docId } = req.params;
+        const newPrice  = parseInt(req.body.price);
+
+        if (!newPrice || newPrice < 1) {
+            return res.redirect("/dev/doc-price?error=Price+must+be+at+least+1");
+        }
+
+        const updated = await Docs.findByIdAndUpdate(
+            docId,
+            { $set: { price: newPrice } },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.redirect("/dev/doc-price?error=Doc+not+found");
+        }
+
+        // Invalidate any cached doc meta so viewers see the new price immediately
+        await invalidate(`doc:meta:${docId}`);
+
+        const page       = req.body.page      || 1;
+        const search     = req.body.search    || "";
+        const docType    = req.body.docType   || "";
+        const yearFilter = req.body.year      || "";
+        const semFilter  = req.body.semester  || "";
+        const protFilter = req.body.protected || "";
+        const revFilter  = req.body.reviewed  || "";
+
+        const params = new URLSearchParams({ page, search, success: "Price updated" });
+        if (docType)    params.set("docType",    docType);
+        if (yearFilter) params.set("year",       yearFilter);
+        if (semFilter)  params.set("semester",   semFilter);
+        if (protFilter) params.set("protected",  protFilter);
+        if (revFilter)  params.set("reviewed",   revFilter);
+
+        return res.redirect(`/dev/doc-price?${params.toString()}`);
+
+    } catch (err) {
+        console.error("Dev doc-price POST error:", err);
+        return renderError(res, 500, "Error updating doc price");
     }
 });
 

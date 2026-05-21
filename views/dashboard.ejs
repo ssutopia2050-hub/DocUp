@@ -532,8 +532,8 @@ const activePopups = (data.popup || []).filter(p => {
 
         <p id="docscore-overlay-title" class="upload-loader-title">Insufficient DocScore</p>
         <p class="upload-loader-subtext">
-            You need at least <span>1 DocScore</span> to view this document.
-            Recharge your DocScore or upload a valid document to increase it by <span>+1</span>.
+            You need at least <span id="docscore-required">1 DocScore</span> to view this document.
+            Recharge your DocScore or upload a valid document to earn more.
         </p>
 
         <div class="upload-loader-actions">
@@ -604,6 +604,10 @@ const activePopups = (data.popup || []).filter(p => {
         // Clear any cached search state so restoreDashboardState() doesn't
         // overwrite the initial college grid with stale search results
         sessionStorage.removeItem("dashboardState");
+        const requiredEl = document.getElementById("docscore-required");
+        if (requiredEl && msg.requiredScore) {
+            requiredEl.textContent = msg.requiredScore + " DocScore";
+        }
         openDocscoreOverlay();
     }
 

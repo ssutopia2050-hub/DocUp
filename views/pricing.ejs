@@ -1248,11 +1248,13 @@
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Score <strong>never expires</strong></span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/></svg><span>UPI · Cards · Net Banking · Wallets</span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Verified in <strong>seconds</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg><span>Doc cost <strong>shown before you open</strong></span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Payments secured by <strong>Razorpay</strong></span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span><strong>Instant</strong> DocScore credit</span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Score <strong>never expires</strong></span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" stroke="currentColor" stroke-width="2"/><line x1="1" y1="10" x2="23" y2="10" stroke="currentColor" stroke-width="2"/></svg><span>UPI · Cards · Net Banking · Wallets</span></div>
         <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Verified in <strong>seconds</strong></span></div>
+        <div class="ticker-item"><svg class="tick-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/></svg><span>Doc cost <strong>shown before you open</strong></span></div>
     </div>
 </div>
 
@@ -1269,12 +1271,12 @@
             <span class="accent">Pay only for what<br>you open.</span>
         </h1>
         <p class="hero-subline">
-            No monthly subscriptions. No auto-charges. Just DocScore — spend it whenever you want, on whichever document you need.
+            No monthly subscriptions. No auto-charges. Just DocScore — spend it whenever you want, on whichever document you need. Most docs cost 1 DocScore. Premium or high-quality docs may cost 2–3.
         </p>
         <div class="hero-stats">
             <div class="hero-stat">
-                <div class="stat-num">1<span>:1</span></div>
-                <div class="stat-label">Score to Doc Ratio</div>
+                <div class="stat-num" style="display: flex;justify-content: flex-start;align-items:flex-start;gap:5px "><span style="color:#ff7340">1</span><span style="font-size: 0.7rem;color:rgba(255,255,255,0.24)">*</span></div>
+                <div class="stat-label">DocScore per Doc</div>
             </div>
             <div class="hero-stat">
                 <div class="stat-num">₹<span>0</span></div>
@@ -1307,13 +1309,13 @@
 
     <!-- Right — floating exchange card with coupon -->
     <div class="hero-exchange-card">
-        <div class="exchange-label">How it works</div>
+        <div class="exchange-label">How DocScore works</div>
         <div class="exchange-row">
             <div class="exchange-pill">
                 <svg class="exchange-pill-icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <div class="exchange-pill-num">1</div>
+                <div class="exchange-pill-num" style="font-size:1.8rem;letter-spacing:-0.02em;display: flex;justify-content: flex-end;align-items:flex-start;gap:5px;">1 <span style="font-size: 0.7rem;color:rgba(255,255,255,0.24)">*</span></div>
                 <div class="exchange-pill-label">DocScore</div>
             </div>
             <div class="exchange-equals">
@@ -1331,7 +1333,9 @@
             </div>
         </div>
         <p class="exchange-subtext">
-            Every protected document costs 1 DocScore to open.<br>Simple, fair, no tricks.
+            *Most docs cost <strong style="color:rgba(255,255,255,0.7)">1 DocScore</strong> to open.<br>
+            Premium or high-quality docs cost <strong style="color:rgba(255,255,255,0.7)">2–3 DocScore</strong>.<br>
+            The cost is always shown before you open.
         </p>
         <div class="card-coupon-section">
             <p class="card-coupon-label">Have a coupon code?</p>
@@ -1381,9 +1385,9 @@
                     <span class="pc-currency">₹</span>
                     <span class="pc-amount" id="price-starter"><%= saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount %></span>
                 </div>
-                <div class="pc-score">+20 DocScore <span class="ds-doc-hint">= 20 docs</span></div>
+                <div class="pc-score">+20 DocScore <span class="ds-doc-hint">= up to 20 docs</span></div>
                 <div class="pc-per-doc">
-                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount) / 20 * 10) / 10 %> per doc
+                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.starter.amount) : RECHARGE_PLANS.starter.amount) / 20 * 10) / 10 %> per standard doc
                 </div>
                 <div class="pc-features">
                     <div class="pc-feature">
@@ -1422,9 +1426,9 @@
                     <span class="pc-currency">₹</span>
                     <span class="pc-amount" id="price-standard"><%= saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount %></span>
                 </div>
-                <div class="pc-score">+60 DocScore <span class="ds-doc-hint">= 60 docs</span></div>
+                <div class="pc-score">+60 DocScore <span class="ds-doc-hint">= up to 60 docs</span></div>
                 <div class="pc-per-doc">
-                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount) / 60 * 10) / 10 %> per doc
+                    ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.standard.amount) : RECHARGE_PLANS.standard.amount) / 60 * 10) / 10 %> per standard doc
                 </div>
                 <div class="pc-features">
                     <div class="pc-feature">
@@ -1462,10 +1466,10 @@
                     <span class="pc-currency">₹</span>
                     <span class="pc-amount" id="price-pro"><%= saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount %></span>
                 </div>
-                <div class="pc-score">+180 DocScore <span class="ds-doc-hint">= 180 docs</span></div>
+                <div class="pc-score">+180 DocScore <span class="ds-doc-hint">= up to 180 docs</span></div>
                 <div class="pc-per-doc best">
                     <svg width="9" height="9" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    Best value — ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount) / 180 * 10) / 10 %> per doc
+                    Best value — ₹<%= Math.round((saleConfig ? salePrice(RECHARGE_PLANS.pro.amount) : RECHARGE_PLANS.pro.amount) / 180 * 10) / 10 %> per standard doc
                 </div>
                 <div class="pc-features">
                     <div class="pc-feature">
@@ -1560,6 +1564,10 @@
                     </div>
                     <div class="tp-check">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Doc cost always shown before you open it
+                    </div>
+                    <div class="tp-check">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         Support available via Contact Us
                     </div>
                 </div>
@@ -1645,7 +1653,14 @@
                     What is DocScore?
                     <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 </button>
-                <div class="faq-a">DocScore is the access credit used when opening protected documents on DocUp. Every protected document costs 1 DocScore to unlock — think of it like a token system rather than a subscription.</div>
+                <div class="faq-a">DocScore is the access credit used when opening protected documents on DocUp. Think of it like a token system — you recharge once and spend tokens per document. Most standard docs cost 1 DocScore. High-quality or premium docs may cost 2–3 DocScore. The cost is always shown on the document before you open it.</div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-q">
+                    Why do some docs cost more than 1 DocScore?
+                    <span class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <div class="faq-a">Docs are priced based on quality and effort — a verified, well-structured set of notes from a 9+ CGPA student may cost 2–3 DocScore, while most standard uploads cost just 1. The price is always visible on the document card before you click Open, so there are no surprises. You stay in full control of what you spend.</div>
             </div>
             <div class="faq-item">
                 <button class="faq-q">

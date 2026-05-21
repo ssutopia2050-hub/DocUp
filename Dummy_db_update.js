@@ -2,11 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import PaymentOrder from "./models/paymentOrder.js";
+import Docs from "./models/Docs.js"; // adjust path if needed
 
 const MONGO_URI = process.env.MONGO_URI;
 
-async function deleteUserOrders() {
+async function updateDocsPrice() {
     if (!MONGO_URI) {
         console.error("❌ MONGO_URI not found in .env");
         process.exit(1);
@@ -16,17 +16,30 @@ async function deleteUserOrders() {
         await mongoose.connect(MONGO_URI);
         console.log("✅ Connected");
 
-        const result = await PaymentOrder.deleteMany({
-            user_email:"ssbiology26@gmail.com",
-        });
+        // OPTION 1: Add price ONLY if missing
+        const result = await Docs.updateMany(
+            { price: { $exists: false } },  // filter
+            { $set: { price: 1 } }          // default value
+        );
 
-        console.log(`🔥 Deleted ${result.deletedCount} documents`);
+        console.log(`🔥 Updated ${result.modifiedCount} documents (missing price)`);
+
+        // OPTION 2 (alternative): Force update ALL docs
+        /*
+        const result = await Docs.updateMany(
+            {},
+            { $set: { price: 1 } }
+        );
+
+        console.log(`🔥 Updated ${result.modifiedCount} documents (all docs)`);
+        */
 
     } catch (err) {
         console.error(err);
     } finally {
         await mongoose.disconnect();
+        console.log("🔌 Disconnected");
     }
 }
 
-deleteUserOrders();
+updateDocsPrice();

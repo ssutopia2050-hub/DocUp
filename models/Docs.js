@@ -106,6 +106,12 @@ const Docs = new mongoose.Schema({
         type:String,
         trim:true,
         default:null
+    },
+    price:{
+        type:Number,
+        required:true,
+        default:1,
+        min:1
     }
 
 });
