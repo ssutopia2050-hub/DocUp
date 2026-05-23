@@ -740,8 +740,7 @@ const allowedOrigins = [
     "http://localhost:5000",
     "http://localhost:3000",
     "https://www.docup.in",
-    "https://docup.in",
-    "https://docup-production.up.railway.app"
+    "https://docup.in"
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -754,6 +753,15 @@ app.use(cors({
     },
     credentials: true  // required for session cookies across origins
 }));
+
+// Redirect www → apex domain (keeps a single canonical URL for SEO)
+app.use((req, res, next) => {
+    if (req.hostname === "www.docup.in") {
+        return res.redirect(301, `https://docup.in${req.originalUrl}`);
+    }
+    next();
+});
+
 const server = http.createServer(app);
 /*
  * ═══════════════════════════════════════════════════════════════════
@@ -2870,10 +2878,9 @@ app.post("/set_avatar", async (req, res) => {
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
     if(!req.session.email){
-        return res.redirect("/signin");
+        res.redirect("/signin");
     }
     const user_details = await user_profile.findOne({email:req.session.email});
-    if (!user_details) return res.redirect("/signin");
     res.render("privacy_policy",{user:user_details});
 });
 /******************************
@@ -4479,10 +4486,9 @@ app.get("/contact",(req,res)=>{
  ****************************/
 app.get("/version_report",async (req,res)=>{
     if(!req.session.email){
-        return res.redirect("/signin");
+        res.redirect("/signin");
     }
     const user_details = await user_profile.findOne({email:req.session.email});
-    if (!user_details) return res.redirect("/signin");
     res.render("version_report",{user:user_details});
 })
 app.get("/auth/google", (req, res, next) => {
