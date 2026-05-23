@@ -740,7 +740,8 @@ const allowedOrigins = [
     "http://localhost:5000",
     "http://localhost:3000",
     "https://www.docup.in",
-    "https://docup.in"
+    "https://docup.in",
+    "https://docup-production.up.railway.app"
 ];
 app.use(cors({
     origin: (origin, callback) => {
@@ -2869,9 +2870,10 @@ app.post("/set_avatar", async (req, res) => {
  ******************************/
 app.get("/privacy_policy", async (req, res) => {
     if(!req.session.email){
-        res.redirect("/signin");
+        return res.redirect("/signin");
     }
     const user_details = await user_profile.findOne({email:req.session.email});
+    if (!user_details) return res.redirect("/signin");
     res.render("privacy_policy",{user:user_details});
 });
 /******************************
@@ -4477,9 +4479,10 @@ app.get("/contact",(req,res)=>{
  ****************************/
 app.get("/version_report",async (req,res)=>{
     if(!req.session.email){
-        res.redirect("/signin");
+        return res.redirect("/signin");
     }
     const user_details = await user_profile.findOne({email:req.session.email});
+    if (!user_details) return res.redirect("/signin");
     res.render("version_report",{user:user_details});
 })
 app.get("/auth/google", (req, res, next) => {
