@@ -13,6 +13,7 @@ import Contact from "./models/contacts.js";
 import Coupon      from "./models/Coupon.js";
 import SaleConfig  from "./models/SaleConfig.js";
 import CollegeExam from "./models/CollegeExam.js";
+import Collection from "./models/Collection.js";
 import emailjs from "@emailjs/nodejs";
 import multer from "multer";
 import fs from "fs";
@@ -49,13 +50,22 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 import { createClient as createRedisClient } from "redis";
 
 const redisClient = createRedisClient({
-    url: process.env.REDIS_URL || "redis://localhost:6379"
+    url: process.env.REDIS_URL || "redis://localhost:6379",
+    socket: {
+        // Retry with exponential back-off capped at 10 s — survives Redis blips.
+        reconnectStrategy: (retries) => Math.min(retries * 100, 10_000)
+    }
 });
 
-redisClient.on("error", (err) => console.error("Redis error:", err));
-redisClient.on("connect", () => console.log("Redis connected ✅"));
+redisClient.on("error",        (err) => console.error("Redis error:", err));
+redisClient.on("connect",      ()    => console.log("Redis connected ✅"));
+redisClient.on("reconnecting", ()    => console.warn("Redis reconnecting…"));
 
-await redisClient.connect();
+// .catch() so a Redis blip at startup does NOT crash the whole server.
+// All cache helpers (getOrSet/invalidate) already fall back to the DB on error.
+await redisClient.connect().catch((err) => {
+    console.error("Redis initial connect failed — continuing without cache:", err.message);
+});
 
 // TTL constants (seconds)
 const TTL = {
@@ -335,27 +345,38 @@ function renderError(res, code, message, detail) {
 
 
 const isProduction = process.env.NODE_ENV === "production";
-// AWS: ALB → nginx → Node = 2 proxy hops. Render/single-proxy setups also work with 2.
-app.set("trust proxy", 2);
+
+if (isProduction) {
+    app.set("trust proxy", 1);
+}
 
 const sessionMiddleware = session({
     secret: process.env.SESSION_SECRET,
+
     resave: false,
     saveUninitialized: false,
+
     store: MongoStore.create({
         mongoUrl: process.env.MONGO_URI,
         collectionName: "sessions",
-        ttl: 24 * 60 * 60
+
+        ttl: 24 * 60 * 60,
+
+        touchAfter: 24 * 3600,
+
+        autoRemove: "native"
     }),
+
     cookie: {
         httpOnly: true,
+
         maxAge: 24 * 60 * 60 * 1000,
-        secure: isProduction,                      // true on prod (HTTPS), false on localhost
-        sameSite: isProduction ? "none" : "lax",   // "none" required for cross-site on prod
-        proxy: true                                // trust X-Forwarded-Proto from ALB/nginx
+
+        secure: isProduction,
+
+        sameSite: isProduction ? "none" : "lax"
     }
 });
-
 app.use(sessionMiddleware);
 // app.use((req, res, next) => {
 //     if (req.headers.host === "docup.in") {
@@ -1761,12 +1782,48 @@ async function startServer() {
 
         server.listen(port, () => {
             console.log(`Server running on url: http://localhost:${port}/`);
+
+            // ── AWS ALB keep-alive fix ───────────────────────────────────────
+            // ALB default idle timeout is 60 s. Node's default keepAliveTimeout
+            // is 5 s — ALB sends requests on connections Node already closed → 502.
+            // These two values MUST be: keepAlive > ALB idle, headers > keepAlive.
+            server.keepAliveTimeout = 65_000;  // 65 s  (> ALB's 60 s)
+            server.headersTimeout   = 66_000;  // 66 s  (> keepAliveTimeout)
         });
+
+        server.on("error", (err) => {
+            console.error("server.listen error:", err);
+            process.exit(1);
+        });
+
     } catch (err) {
         console.error("MongoDB connection failed ❌", err);
         process.exit(1);
     }
 }
+
+// ── Process-level crash guards ───────────────────────────────────────────────
+// Without these, any unhandled async throw kills the process → 502 until AWS restarts it.
+process.on("uncaughtException", (err) => {
+    console.error("[uncaughtException]", err);
+    // Don't exit — keep serving. Log it so you can fix the underlying bug.
+});
+
+process.on("unhandledRejection", (reason) => {
+    console.error("[unhandledRejection]", reason);
+});
+
+// ── Graceful shutdown on SIGTERM (AWS sends this before recycling the container) ──
+// Without this, in-flight requests are dropped instantly → 502 on every deploy.
+process.on("SIGTERM", () => {
+    console.log("SIGTERM received — draining connections…");
+    server.close(() => {
+        console.log("HTTP server closed. Exiting.");
+        process.exit(0);
+    });
+    // Force-exit after 30 s if something is stuck
+    setTimeout(() => process.exit(0), 30_000).unref();
+});
 
 startServer();
 /******************************
@@ -2190,6 +2247,28 @@ app.get("/dashboard", async (req, res) => {
             ]);
         });
 
+        // Fetch user's collections (pinned first, then most-recently updated, cap at 6 for preview)
+        const rawCollections = await Collection.find({ owner: data._id })
+            .sort({ pinned: -1, updatedAt: -1 })
+            .limit(6)
+            .lean();
+
+        const dashboardCollections = await Promise.all(
+            rawCollections.map(async (col) => {
+                const previewIds = (col.docs || []).slice(0, 3);
+                const previewDocs = previewIds.length
+                    ? await Docs.find({ _id: { $in: previewIds } })
+                        .select("subject college")
+                        .lean()
+                    : [];
+                return {
+                    ...col,
+                    docCount: (col.docs || []).length,
+                    previewDocs
+                };
+            })
+        );
+
         res.render("dashboard", {
             data,
             colleges: collegesList,
@@ -2199,6 +2278,7 @@ app.get("/dashboard", async (req, res) => {
             msg,
             trendingColleges,
             mostViewedColleges,
+            dashboardCollections,
         });
 
     } catch (err) {
@@ -6519,6 +6599,293 @@ app.post("/dev/doc-price/:docId", async (req, res) => {
     } catch (err) {
         console.error("Dev doc-price POST error:", err);
         return renderError(res, 500, "Error updating doc price");
+    }
+});
+
+// ─── helper ──────────────────────────────────────────────────────────────────
+async function getUserBySession(req) {
+    if (!req.session?.email) return null;
+    return user_profile.findOne({ email: req.session.email }).lean();
+}
+
+// ─── GET /collections  ───────────────────────────────────────────────────────
+app.get("/collections", async (req, res) => {
+    if (!req.session.email) return res.redirect("/signin");
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        if (!user) return res.redirect("/signin");
+
+        // Fetch all collections owned by this user, newest first
+        const rawCols = await Collection.find({ owner: user._id })
+            .sort({ pinned: -1, updatedAt: -1 })
+            .lean();
+
+        // Attach preview docs (max 4) for each collection mosaic
+        const collections = await Promise.all(
+            rawCols.map(async (col) => {
+                const previewIds = (col.docs || []).slice(0, 4);
+                const previewDocs = previewIds.length
+                    ? await Docs.find({ _id: { $in: previewIds } })
+                        .select("subject college doc_type")
+                        .lean()
+                    : [];
+
+                return {
+                    ...col,
+                    docCount: (col.docs || []).length,
+                    previewDocs
+                };
+            })
+        );
+
+        return res.render("collections", { user, collections });
+    } catch (err) {
+        console.error("[Collections GET /collections]", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+// ─── GET /collections/:id  ───────────────────────────────────────────────────
+app.get("/collections/:id", async (req, res) => {
+    if (!req.session.email) {
+        const next = encodeURIComponent(`/collections/${req.params.id}`);
+        return res.redirect(`/signin?next=${next}`);
+    }
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        if (!user) return res.redirect("/signin");
+
+        const col = await Collection.findById(req.params.id).lean();
+        if (!col) return res.status(404).render("404", { message: "Collection not found" });
+
+        // Access control: owner, or public
+        const isOwner = String(col.owner) === String(user._id);
+        if (!isOwner && !col.isPublic) {
+            return res.status(403).render("404", { message: "This collection is private" });
+        }
+
+        // Populate docs in order
+        const docs = col.docs?.length
+            ? await Docs.find({ _id: { $in: col.docs } })
+                .select("subject college chapter branch year semester doc_type reviewed view_count createdAt")
+                .lean()
+                .then(fetched => {
+                    // Preserve insertion order
+                    const map = {};
+                    fetched.forEach(d => { map[String(d._id)] = d; });
+                    return col.docs.map(id => map[String(id)]).filter(Boolean);
+                })
+            : [];
+
+        return res.render("collection_view", {
+            user,
+            col: { ...col, docCount: docs.length },
+            docs,
+            isOwner
+        });
+    } catch (err) {
+        console.error("[Collections GET /collections/:id]", err);
+        return res.status(500).send("Server error");
+    }
+});
+
+// ─── POST /api/collections/create  ──────────────────────────────────────────
+app.post("/api/collections/create", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        if (!user) return res.status(401).json({ success: false, message: "User not found" });
+
+        const { name, description, emoji, color, isPublic } = req.body;
+
+        if (!name || !String(name).trim()) {
+            return res.status(400).json({ success: false, message: "Collection name is required" });
+        }
+
+        const col = await Collection.create({
+            owner: user._id,
+            name:  String(name).trim().slice(0, 80),
+            description: String(description || "").trim().slice(0, 300),
+            emoji: emoji || "📁",
+            color: color || "#ff6a00",
+            isPublic: Boolean(isPublic)
+        });
+
+        return res.json({ success: true, collection: col });
+    } catch (err) {
+        console.error("[Collections POST create]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ─── PUT /api/collections/:id  ──────────────────────────────────────────────
+app.put("/api/collections/:id", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col) return res.status(404).json({ success: false, message: "Collection not found" });
+        if (String(col.owner) !== String(user._id)) return res.status(403).json({ success: false, message: "Forbidden" });
+
+        const { name, description, emoji, color, isPublic } = req.body;
+
+        if (name !== undefined)        col.name        = String(name).trim().slice(0, 80);
+        if (description !== undefined) col.description = String(description).trim().slice(0, 300);
+        if (emoji !== undefined)       col.emoji       = emoji;
+        if (color !== undefined)       col.color       = color;
+        if (isPublic !== undefined)    col.isPublic    = Boolean(isPublic);
+
+        await col.save();
+        return res.json({ success: true, collection: col });
+    } catch (err) {
+        console.error("[Collections PUT /:id]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ─── DELETE /api/collections/:id  ───────────────────────────────────────────
+app.delete("/api/collections/:id", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col) return res.status(404).json({ success: false, message: "Not found" });
+        if (String(col.owner) !== String(user._id)) return res.status(403).json({ success: false, message: "Forbidden" });
+
+        await col.deleteOne();
+        return res.json({ success: true });
+    } catch (err) {
+        console.error("[Collections DELETE /:id]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ─── POST /api/collections/:id/toggle-pin  ──────────────────────────────────
+app.post("/api/collections/:id/toggle-pin", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col || String(col.owner) !== String(user._id)) return res.status(403).json({ success: false });
+
+        col.pinned = !col.pinned;
+        await col.save();
+        return res.json({ success: true, pinned: col.pinned });
+    } catch (err) {
+        return res.status(500).json({ success: false });
+    }
+});
+
+// ─── POST /api/collections/:id/add-doc  ─────────────────────────────────────
+app.post("/api/collections/:id/add-doc", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col) return res.status(404).json({ success: false, message: "Collection not found" });
+        if (String(col.owner) !== String(user._id)) return res.status(403).json({ success: false, message: "Forbidden" });
+
+        const { docId } = req.body;
+        if (!docId) return res.status(400).json({ success: false, message: "docId required" });
+
+        const docObjectId = new mongoose.Types.ObjectId(docId);
+        const alreadyIn   = col.docs.some(id => String(id) === String(docObjectId));
+
+        if (!alreadyIn) {
+            col.docs.push(docObjectId);
+            col.updatedAt = new Date();
+            await col.save();
+        }
+
+        return res.json({ success: true, alreadyIn, docCount: col.docs.length });
+    } catch (err) {
+        console.error("[Collections add-doc]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ─── POST /api/collections/:id/remove-doc  ──────────────────────────────────
+app.post("/api/collections/:id/remove-doc", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col) return res.status(404).json({ success: false, message: "Not found" });
+        if (String(col.owner) !== String(user._id)) return res.status(403).json({ success: false, message: "Forbidden" });
+
+        const { docId } = req.body;
+        col.docs = col.docs.filter(id => String(id) !== String(docId));
+        await col.save();
+
+        return res.json({ success: true, docCount: col.docs.length });
+    } catch (err) {
+        console.error("[Collections remove-doc]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+// ─── POST /api/collections/:id/reorder  ─────────────────────────────────────
+app.post("/api/collections/:id/reorder", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const col  = await Collection.findById(req.params.id);
+
+        if (!col || String(col.owner) !== String(user._id)) return res.status(403).json({ success: false });
+
+        const { orderedIds } = req.body; // array of doc id strings in new order
+        if (!Array.isArray(orderedIds)) return res.status(400).json({ success: false });
+
+        // Validate that all ids belong to this collection
+        const existing = new Set(col.docs.map(String));
+        const valid    = orderedIds.filter(id => existing.has(String(id)));
+
+        col.docs = valid.map(id => new mongoose.Types.ObjectId(id));
+        await col.save();
+
+        return res.json({ success: true });
+    } catch (err) {
+        return res.status(500).json({ success: false });
+    }
+});
+
+// ─── GET /api/collections/check/:docId  ─────────────────────────────────────
+// Returns all collections of this user + whether each contains the given doc
+app.get("/api/collections/check/:docId", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const cols = await Collection.find({ owner: user._id })
+            .select("name emoji color docs")
+            .lean();
+
+        const docIdStr = String(req.params.docId);
+        const result   = cols.map(c => ({
+            _id:      c._id,
+            name:     c.name,
+            emoji:    c.emoji,
+            color:    c.color,
+            contains: c.docs.some(id => String(id) === docIdStr)
+        }));
+
+        return res.json({ success: true, collections: result });
+    } catch (err) {
+        return res.status(500).json({ success: false });
     }
 });
 
