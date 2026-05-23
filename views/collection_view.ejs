@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | <%= col.emoji %> <%= col.name %></title>
+    <link rel="shortcut icon" href="/images/android-chrome-512x512.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/collection_view.css">
+</head>
+<body>
+
+<%
+function catMeta(cat) {
+    const map = {
+        document: { label: 'Document', clr: '#4b9eff', bg: 'rgba(75,158,255,0.10)', border: 'rgba(75,158,255,0.22)', glow: 'rgba(75,158,255,0.5)' },
+        docscore: { label: 'DocScore', clr: '#ffb700', bg: 'rgba(255,183,0,0.10)',   border: 'rgba(255,183,0,0.22)',   glow: 'rgba(255,183,0,0.5)' },
+        system:   { label: 'System',   clr: '#a78bfa', bg: 'rgba(167,139,250,0.10)', border: 'rgba(167,139,250,0.22)', glow: 'rgba(167,139,250,0.5)' },
+        profile:  { label: 'Profile',  clr: '#34d399', bg: 'rgba(52,211,153,0.10)',  border: 'rgba(52,211,153,0.22)',  glow: 'rgba(52,211,153,0.5)' },
+        payment:  { label: 'Payment',  clr: '#4ade80', bg: 'rgba(74,222,128,0.10)',  border: 'rgba(74,222,128,0.22)',  glow: 'rgba(74,222,128,0.5)' }
+    };
+    return map[cat] || { label: 'General', clr: '#ff6a00', bg: 'rgba(255,106,0,0.10)', border: 'rgba(255,106,0,0.22)', glow: 'rgba(255,106,0,0.5)' };
+}
+
+function relativeTime(date) {
+    if (!date) return 'Just now';
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7)  return `${days}d ago`;
+    return new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+
+function fullTime(date) {
+    if (!date) return '';
+    return new Date(date).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+function docTypeIcon(type) {
+    switch(type) {
+        case 'college_doc':  return '🏛️';
+        case 'ed_doc':       return '📘';
+        case 'research_doc': return '🔬';
+        case 'random_doc':   return '📄';
+        default:             return '📄';
+    }
+}
+
+function docTypeLabel(type) {
+    switch(type) {
+        case 'college_doc':  return 'College';
+        case 'ed_doc':       return 'EdDoc';
+        case 'research_doc': return 'Research';
+        case 'random_doc':   return 'General';
+        default:             return 'Doc';
+    }
+}
+%>
+
+<!-- TOPBAR -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <span class="topbar-breadcrumb">
+            <a href="/collections">Collections</a>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="breadcrumb-current"><%= col.emoji %> <%= col.name %></span>
+        </span>
+    </div>
+    <div class="topbar-right">
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>FindDocs</span>
+        </a>
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= user.Doc_score %></span>
+
+        </div>
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Upload</span>
+        </a>
+        <!-- Collections -->
+        <a href="/collections" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            <span>Collections</span>
+        </a>
+
+        <!-- Notifications -->
+        <div class="notification-wrap">
+            <button type="button" class="icon-btn notification-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17H15M6.5 17H17.5C16.9 16.35 16.5 15.48 16.5 14.5V10.5C16.5 8.01 14.49 6 12 6C9.51 6 7.5 8.01 7.5 10.5V14.5C7.5 15.48 7.1 16.35 6.5 17Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 20C10.74 20.62 11.32 21 12 21C12.68 21 13.26 20.62 13.5 20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <% const unreadCount = (user.notifications || []).filter(n => !n.isRead).length; %>
+                <% if (unreadCount > 0) { %>
+                    <span class="notif-badge"><%= unreadCount > 9 ? "9+" : unreadCount %></span>
+                <% } %>
+            </button>
+            <div class="notification-dropdown">
+                <div class="nd-header">
+                    <span class="nd-title">Notifications</span>
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                        <a href="/notifications" class="nd-view-all">View all</a>
+                    <% } %>
+                </div>
+                <div class="nd-list">
+                    <% if (user.notifications && user.notifications.length > 0) { %>
+                        <% user.notifications.slice().reverse().slice(0,8).forEach((item) => { const m = catMeta(item.category); %>
+                        <div class="nd-item <%= item.isRead ? '' : 'unread' %>" data-cat="<%= item.category || '' %>">
+                            <div class="nd-item-row">
+                                <div class="nd-item-left">
+                                    <span class="nd-dot" style="--dot-clr:<%=m.clr%>;--dot-glow:<%=m.glow%>"></span>
+                                    <span class="nd-cat-pill" style="--pill-clr:<%=m.clr%>;--pill-bg:<%=m.bg%>;--pill-border:<%=m.border%>"><%=m.label%></span>
+                                </div>
+                                <span class="nd-when" title="<%= fullTime(item.createdAt) %>"><%= relativeTime(item.createdAt) %></span>
+                            </div>
+                            <p class="nd-text"><%= item.content %></p>
+                        </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="nd-empty">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" style="margin-bottom:6px;opacity:0.3"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                            No notifications yet.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="avatar-btn" id="avatarBtn">
+            <% if (user.avatar_img_path) { %>
+                <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+                <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<!-- Avatar dropdown -->
+<div class="avatar-dropdown" id="avatarDropdown">
+    <a href="/profile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Profile</a>
+    <a href="/collections" class="active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>Collections</a>
+    <a href="/pricing"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Recharge DocScore</a>
+    <a href="/logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Logout</a>
+</div>
+
+<!-- MAIN -->
+<main class="cv-main">
+
+    <!-- HERO -->
+    <div class="cv-hero" style="--hero-color: <%= col.color %>">
+        <div class="cv-hero-inner">
+            <div class="cv-hero-emoji"><%= col.emoji %></div>
+
+            <div class="cv-hero-body">
+                <div class="cv-hero-meta">
+                    <% if (col.isPublic) { %>
+                    <span class="cv-badge cv-badge-public">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                        Public
+                    </span>
+                    <% } else { %>
+                    <span class="cv-badge cv-badge-private">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Private
+                    </span>
+                    <% } %>
+                    <% if (col.pinned) { %>
+                    <span class="cv-badge cv-badge-pinned">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 1 1v1l1.5 6H18a1 1 0 0 0-1 1v4l-4 4-4-4v-4a1 1 0 0 0-1-1H6.5L8 5V4a1 1 0 0 1 1-1h7z"/></svg>
+                        Pinned
+                    </span>
+                    <% } %>
+                </div>
+
+                <h1 class="cv-hero-title"><%= col.name %></h1>
+                <% if (col.description) { %>
+                <p class="cv-hero-desc"><%= col.description %></p>
+                <% } %>
+
+                <div class="cv-hero-stats">
+                    <span class="cv-stat">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.7"/></svg>
+                        <strong><%= col.docCount %></strong> doc<%= col.docCount !== 1 ? 's' : '' %>
+                    </span>
+                    <span class="cv-stat">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.7"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Updated <%= relativeTime(col.updatedAt) %>
+                    </span>
+                    <span class="cv-stat">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M9 4v5M15 4v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Created <%= relativeTime(col.createdAt) %>
+                    </span>
+                </div>
+            </div>
+
+            <% if (isOwner) { %>
+            <div class="cv-hero-actions">
+                <button class="cv-action-btn ghost" id="editColBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Edit
+                </button>
+                <% if (col.isPublic) { %>
+                <button class="cv-action-btn ghost" id="shareBtn" data-url="/collections/<%= col._id %>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    Share
+                </button>
+                <% } %>
+            </div>
+            <% } else { %>
+            <div class="cv-hero-actions">
+                <% if (col.isPublic) { %>
+                <button class="cv-action-btn ghost" id="shareBtn" data-url="/collections/<%= col._id %>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    Share
+                </button>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+
+        <div class="cv-hero-accent-bar"></div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="cv-toolbar">
+        <div class="cv-toolbar-left">
+            <div class="cv-search-wrap">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input type="text" class="cv-search" id="cvSearch" placeholder="Search docs…" autocomplete="off" spellcheck="false">
+            </div>
+            <select class="cv-sort" id="cvSort">
+                <option value="order">Collection order</option>
+                <option value="subject">Subject A–Z</option>
+                <option value="college">College A–Z</option>
+                <option value="added">Recently added</option>
+            </select>
+        </div>
+        <div class="cv-toolbar-right">
+            <span class="cv-count-label" id="cvCountLabel"><%= col.docCount %> doc<%= col.docCount !== 1 ? 's' : '' %></span>
+            <div class="view-toggle">
+                <button class="view-btn active" id="viewGrid" title="Grid view">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/></svg>
+                </button>
+                <button class="view-btn" id="viewList" title="List view">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DOCS GRID -->
+    <div class="cv-docs-grid" id="cvDocsGrid">
+
+        <% if (docs.length === 0) { %>
+        <!-- EMPTY STATE — shown by default when no docs -->
+        <% } %>
+
+        <% docs.forEach((doc, idx) => { %>
+        <div class="cv-doc-card"
+             data-id="<%= doc._id %>"
+             data-subject="<%= (doc.subject || '').toLowerCase() %>"
+             data-college="<%= (doc.college || '').toLowerCase() %>"
+             data-idx="<%= idx %>">
+
+            <% if (isOwner) { %>
+            <div class="cv-drag-handle" title="Drag to reorder" draggable="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="5" r="1.3" fill="currentColor"/><circle cx="15" cy="5" r="1.3" fill="currentColor"/><circle cx="9" cy="12" r="1.3" fill="currentColor"/><circle cx="15" cy="12" r="1.3" fill="currentColor"/><circle cx="9" cy="19" r="1.3" fill="currentColor"/><circle cx="15" cy="19" r="1.3" fill="currentColor"/></svg>
+            </div>
+            <% } %>
+
+            <div class="cv-doc-card-top">
+                <div class="cv-doc-type-icon"><%= docTypeIcon(doc.doc_type) %></div>
+                <div class="cv-doc-arrow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </div>
+            </div>
+
+            <a href="/view/<%= doc._id %>" class="cv-doc-link">
+                <p class="cv-doc-subject"><%= doc.subject || 'Untitled' %></p>
+                <% if (doc.chapter) { %>
+                <p class="cv-doc-chapter"><%= doc.chapter %></p>
+                <% } %>
+            </a>
+
+            <div class="cv-doc-footer">
+                <div class="cv-doc-tags">
+                    <span class="cv-doc-tag"><%= docTypeLabel(doc.doc_type) %></span>
+                    <% if (doc.college) { %><span class="cv-doc-tag"><%= doc.college %></span><% } %>
+                    <% if (doc.year) { %><span class="cv-doc-tag"><%= doc.year %></span><% } %>
+                    <% if (doc.semester) { %><span class="cv-doc-tag">Sem <%= doc.semester %></span><% } %>
+                    <% if (doc.reviewed) { %>
+                    <span class="cv-doc-reviewed-badge">
+                        <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Verified
+                    </span>
+                    <% } %>
+                </div>
+                <% if (isOwner) { %>
+                <button class="cv-doc-remove"
+                        data-id="<%= doc._id %>"
+                        data-subject="<%= doc.subject || 'this doc' %>"
+                        title="Remove from collection">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </button>
+                <% } %>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+
+    <!-- EMPTY STATE (shown via JS or when 0 docs) -->
+    <div class="cv-empty <%= docs.length === 0 ? 'visible' : '' %>" id="cvEmpty">
+        <div class="cv-empty-icon">📭</div>
+        <h2 class="cv-empty-title">No docs yet</h2>
+        <p class="cv-empty-sub">Add documents to this collection from the doc viewer page.</p>
+        <a href="/dashboard" class="cv-action-btn primary" style="margin-top:4px;text-decoration:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Find Docs
+        </a>
+    </div>
+
+    <!-- NO RESULTS (search) -->
+    <div class="cv-no-results" id="cvNoResults">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <p>No docs match your search.</p>
+    </div>
+
+</main>
+
+<!-- ════════════  REMOVE CONFIRM MODAL  ════════════ -->
+<div class="modal-overlay" id="removeModal">
+    <div class="modal-box">
+        <h3 class="modal-title">Remove from collection?</h3>
+        <p class="modal-body">
+            <span class="modal-doc-name" id="removeDocName"></span> will be removed from this collection. The doc itself won't be deleted.
+        </p>
+        <div class="modal-actions">
+            <button class="btn-cancel" id="cancelRemove">Cancel</button>
+            <button class="btn-remove-confirm" id="confirmRemove">Remove</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════  EDIT COLLECTION MODAL  ════════════ -->
+<% if (isOwner) { %>
+<div class="modal-overlay edit-modal-overlay" id="editModal">
+    <div class="edit-modal-box">
+        <button class="modal-close-btn" id="closeEditModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+
+        <div class="edit-modal-header">
+            <div class="edit-emoji-display" id="editEmojiDisplay"><%= col.emoji %></div>
+            <div>
+                <h2 class="edit-modal-title">Edit Collection</h2>
+                <p class="edit-modal-sub">Update this collection's details</p>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Pick an Emoji</label>
+            <div class="emoji-picker">
+                <% ['📁','📚','📖','📝','🎯','🔬','💡','🏆','⚡','🎓','🔭','🧮','📊','🗺️','🧠','💻','🌟','🔥','📌','🎨'].forEach(em => { %>
+                <button type="button" class="emoji-opt <%= col.emoji === em ? 'active' : '' %>" data-emoji="<%= em %>"><%= em %></button>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label" for="editColName">Collection Name <span class="required">*</span></label>
+            <input type="text" id="editColName" class="field-input" placeholder="e.g. Physics Sem 4 Notes" maxlength="80" spellcheck="false" autocomplete="off" value="<%= col.name %>">
+            <span class="field-hint"><span id="editNameCount"><%= col.name.length %></span>/80</span>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label" for="editColDesc">Description <span class="field-optional">(optional)</span></label>
+            <textarea id="editColDesc" class="field-input field-textarea" placeholder="What's in this collection?" maxlength="300" rows="3"><%= col.description || '' %></textarea>
+            <span class="field-hint"><span id="editDescCount"><%= (col.description || '').length %></span>/300</span>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Accent Colour</label>
+            <div class="color-picker">
+                <% [
+                    { hex: '#ff6a00', label: 'Orange' },
+                    { hex: '#4b9eff', label: 'Blue' },
+                    { hex: '#a78bfa', label: 'Purple' },
+                    { hex: '#34d399', label: 'Teal' },
+                    { hex: '#f472b6', label: 'Pink' },
+                    { hex: '#facc15', label: 'Yellow' },
+                    { hex: '#f87171', label: 'Red' },
+                    { hex: '#94a3b8', label: 'Slate' }
+                ].forEach(c => { %>
+                <button type="button" class="color-swatch <%= col.color === c.hex ? 'active' : '' %>" data-color="<%= c.hex %>" title="<%= c.label %>" style="--swatch: <%= c.hex %>"></button>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="modal-toggles">
+            <label class="toggle-row">
+                <div class="toggle-info">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <div>
+                        <span class="toggle-label">Public collection</span>
+                        <span class="toggle-desc">Anyone with the link can view</span>
+                    </div>
+                </div>
+                <div class="toggle-switch <%= col.isPublic ? 'on' : '' %>" id="editPublicToggle" role="switch" aria-checked="<%= col.isPublic %>">
+                    <div class="toggle-thumb"></div>
+                </div>
+            </label>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" id="cancelEditModal">Cancel</button>
+            <button class="btn-save" id="saveEditBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+<% } %>
+
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<!-- Footer -->
+<div class="footer">
+    <div style="font-family:'Archivo Black',sans-serif;display:flex;align-items:flex-end" class="footer-left">DocUp</div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/collections">Collections</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">Contact Us</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<!-- Pass server data to JS -->
+<script>
+    window.__COL_ID__    = '<%- String(col._id) %>';
+    window.__IS_OWNER__  = <%- isOwner ? 'true' : 'false' %>;
+    window.__COL_DATA__  = <%- JSON.stringify({
+        _id:         col._id,
+        name:        col.name,
+        description: col.description || '',
+        emoji:       col.emoji,
+        color:       col.color,
+        isPublic:    col.isPublic,
+        pinned:      col.pinned
+    }) %>;
+    window.__DOCS__      = <%- JSON.stringify(docs.map(d => ({
+        _id:      d._id,
+        subject:  d.subject || '',
+        college:  d.college || '',
+        chapter:  d.chapter || '',
+        year:     d.year || '',
+        semester: d.semester || '',
+        doc_type: d.doc_type || '',
+        reviewed: d.reviewed || false
+    }))) %>;
+</script>
+<script src="/dashboard3.js"></script>
+<script src="/collection_view.js"></script>
+</body>
+</html>

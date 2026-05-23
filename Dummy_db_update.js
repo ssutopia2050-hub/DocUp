@@ -18,8 +18,8 @@ async function updateDocsPrice() {
 
         // OPTION 1: Add price ONLY if missing
         const result = await Docs.updateMany(
-            { price: { $exists: false } },  // filter
-            { $set: { price: 1 } }          // default value
+            {},  // filter
+            { $set: { reviewed: true } }          // default value
         );
 
         console.log(`🔥 Updated ${result.modifiedCount} documents (missing price)`);

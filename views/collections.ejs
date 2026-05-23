@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocUp | My Collections</title>
+    <link rel="shortcut icon" href="/images/android-chrome-512x512.png" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/collections.css">
+</head>
+<body>
+
+<%
+function relativeTime(date) {
+    if (!date) return 'Just now';
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7)  return `${days}d ago`;
+    return new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+}
+%>
+
+<!-- TOPBAR -->
+<header class="topbar">
+    <div class="topbar-left">
+        <a href="/dashboard" class="logo-wordmark">DocUp</a>
+        <div class="topbar-divider"></div>
+        <span class="topbar-breadcrumb">
+            <a href="/dashboard">Dashboard</a>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M4.5 2.5L7.5 6L4.5 9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="breadcrumb-current">Collections</span>
+        </span>
+    </div>
+    <div class="topbar-right">
+        <a href="/dashboard" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>FindDocs</span>
+        </a>
+        <div class="docscore-pill">
+            <span class="docscore-label">DocScore</span>
+            <span class="docscore-value"><%= user.Doc_score %></span>
+        </div>
+        <a href="/uploads" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 18.5h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Upload</span>
+        </a>
+        <!-- Collections -->
+        <a href="/collections" class="topbar-pill">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+                <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            <span>Collections</span>
+        </a>
+        <div class="avatar-btn">
+            <% if (user.avatar_img_path) { %>
+                <img src="<%= user.avatar_img_path %>" alt="">
+            <% } else { %>
+                <%= user.name ? user.name.charAt(0).toUpperCase() : "U" %>
+            <% } %>
+        </div>
+    </div>
+</header>
+
+<!-- Avatar dropdown -->
+<div class="avatar-dropdown">
+    <a href="/profile"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.6"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Profile</a>
+    <a href="/collections" class="active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>Collections</a>
+    <a href="/pricing"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Recharge DocScore</a>
+    <a href="/logout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Logout</a>
+</div>
+
+<!-- MAIN -->
+<main class="collections-main">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-left">
+            <div class="page-header-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <rect x="2" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                    <rect x="13" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                    <rect x="2" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                    <rect x="13" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="page-title">My Collections</h1>
+                <p class="page-sub"><%= collections.length %> collection<%= collections.length !== 1 ? 's' : '' %> · Organised study playlists</p>
+            </div>
+        </div>
+        <button class="btn-new-collection" id="openCreateModal">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            New Collection
+        </button>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="search-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="search-icon"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input type="text" id="collectionSearch" placeholder="Search collections…" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="controls-right">
+            <select id="sortSelect" class="sort-select">
+                <option value="updated">Recently updated</option>
+                <option value="created">Date created</option>
+                <option value="name">Name A–Z</option>
+                <option value="docs">Most docs</option>
+            </select>
+            <div class="view-toggle">
+                <button class="view-btn active" id="viewGrid" title="Grid view">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.7"/></svg>
+                </button>
+                <button class="view-btn" id="viewList" title="List view">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <% if (collections.length === 0) { %>
+    <div class="empty-state">
+        <div class="empty-icon">
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
+                <rect x="13" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
+                <rect x="2" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
+                <rect x="13" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
+            </svg>
+        </div>
+        <h2>No collections yet</h2>
+        <p>Create your first collection to start organising your documents like playlists.</p>
+        <button class="btn-new-collection" id="openCreateModalEmpty">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Create your first collection
+        </button>
+    </div>
+    <% } else { %>
+
+    <!-- COLLECTIONS GRID -->
+    <div class="collections-grid" id="collectionsGrid">
+        <% collections.forEach((col) => { %>
+        <div class="col-card"
+             data-id="<%= col._id %>"
+             data-name="<%= col.name.toLowerCase() %>"
+             data-docs="<%= col.docCount %>"
+             data-updated="<%= new Date(col.updatedAt).getTime() %>"
+             data-created="<%= new Date(col.createdAt).getTime() %>"
+             style="--col-accent: <%= col.color %>">
+
+            <div class="col-card-bar"></div>
+
+            <div class="col-card-top">
+                <div class="col-emoji"><%= col.emoji %></div>
+                <div class="col-card-actions">
+                    <% if (col.pinned) { %>
+                    <span class="pin-badge" title="Pinned">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 1 1v1l1.5 6H18a1 1 0 0 0-1 1v4l-4 4-4-4v-4a1 1 0 0 0-1-1H6.5L8 5V4a1 1 0 0 1 1-1h7z"/></svg>
+                    </span>
+                    <% } %>
+                    <% if (col.isPublic) { %>
+                    <span class="public-badge" title="Public">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                    </span>
+                    <% } %>
+                    <button class="col-menu-btn"
+                        data-id="<%= col._id %>"
+                        data-name="<%= col.name %>"
+                        data-emoji="<%= col.emoji %>"
+                        data-color="<%= col.color %>"
+                        data-desc="<%= col.description || '' %>"
+                        data-public="<%= col.isPublic %>"
+                        data-pinned="<%= col.pinned %>"
+                        title="More options">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <a href="/collections/<%= col._id %>" class="col-card-body">
+                <h3 class="col-name"><%= col.name %></h3>
+                <% if (col.description) { %>
+                <p class="col-desc"><%= col.description %></p>
+                <% } %>
+            </a>
+
+            <!-- Doc preview strip -->
+            <a href="/collections/<%= col._id %>" class="col-doc-strip">
+                <% if (col.previewDocs.length === 0) { %>
+                <div class="col-strip-empty">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.6"/><path d="M14 2v6h6" stroke="currentColor" stroke-width="1.6"/></svg>
+                    <span>No docs yet</span>
+                </div>
+                <% } else { %>
+                    <% col.previewDocs.slice(0,4).forEach((doc) => { %>
+                    <div class="col-doc-chip">
+                        <span class="col-chip-dot"></span>
+                        <span class="col-chip-subject"><%= doc.subject %></span>
+                    </div>
+                    <% }) %>
+                    <% if (col.docCount > 4) { %>
+                    <div class="col-doc-chip col-chip-more">+<%= col.docCount - 4 %> more</div>
+                    <% } %>
+                <% } %>
+            </a>
+
+            <div class="col-card-footer">
+                <span class="col-doc-count">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor" stroke-width="1.7"/></svg>
+                    <%= col.docCount %> doc<%= col.docCount !== 1 ? 's' : '' %>
+                </span>
+                <span class="col-updated">Updated <%= relativeTime(col.updatedAt) %></span>
+            </div>
+        </div>
+        <% }) %>
+    </div>
+    <% } %>
+
+    <div class="no-results-msg" id="noResultsMsg" style="display:none">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <p>No collections match your search.</p>
+    </div>
+
+</main>
+
+<!-- ════════════  CREATE / EDIT MODAL  ════════════ -->
+<div class="modal-overlay" id="collectionModal">
+    <div class="modal-box" id="collectionModalBox">
+        <button class="modal-close" id="closeModal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+
+        <div class="modal-header">
+            <div class="modal-emoji-display" id="modalEmojiDisplay">📁</div>
+            <div>
+                <h2 class="modal-title" id="modalTitle">New Collection</h2>
+                <p class="modal-sub" id="modalSub">Organise your docs into a themed playlist</p>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Pick an Emoji</label>
+            <div class="emoji-picker">
+                <% ['📁','📚','📖','📝','🎯','🔬','💡','🏆','⚡','🎓','🔭','🧮','📊','🗺️','🧠','💻','🌟','🔥','📌','🎨'].forEach(em => { %>
+                <button type="button" class="emoji-opt" data-emoji="<%= em %>"><%= em %></button>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label" for="colName">Collection Name <span class="required">*</span></label>
+            <input type="text" id="colName" class="field-input" placeholder="e.g. Physics Sem 4 Notes" maxlength="80" spellcheck="false" autocomplete="off">
+            <span class="field-hint"><span id="nameCharCount">0</span>/80</span>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label" for="colDesc">Description <span class="field-optional">(optional)</span></label>
+            <textarea id="colDesc" class="field-input field-textarea" placeholder="What's in this collection?" maxlength="300" rows="3"></textarea>
+            <span class="field-hint"><span id="descCharCount">0</span>/300</span>
+        </div>
+
+        <div class="field-group">
+            <label class="field-label">Accent Colour</label>
+            <div class="color-picker">
+                <% [
+                    { hex: '#ff6a00', label: 'Orange' },
+                    { hex: '#4b9eff', label: 'Blue' },
+                    { hex: '#a78bfa', label: 'Purple' },
+                    { hex: '#34d399', label: 'Teal' },
+                    { hex: '#f472b6', label: 'Pink' },
+                    { hex: '#facc15', label: 'Yellow' },
+                    { hex: '#f87171', label: 'Red' },
+                    { hex: '#94a3b8', label: 'Slate' }
+                ].forEach(c => { %>
+                <button type="button" class="color-swatch" data-color="<%= c.hex %>" title="<%= c.label %>" style="--swatch: <%= c.hex %>"></button>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="modal-toggles">
+            <label class="toggle-row">
+                <div class="toggle-info">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <div>
+                        <span class="toggle-label">Public collection</span>
+                        <span class="toggle-desc">Anyone with the link can view</span>
+                    </div>
+                </div>
+                <div class="toggle-switch" id="publicToggle" role="switch" aria-checked="false">
+                    <div class="toggle-thumb"></div>
+                </div>
+            </label>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" id="cancelModal">Cancel</button>
+            <button class="btn-save" id="saveCollection">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span id="saveBtnText">Create Collection</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu (3-dot) -->
+<div class="context-menu" id="contextMenu">
+    <button class="ctx-item" id="ctxEdit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Edit
+    </button>
+    <button class="ctx-item" id="ctxPin">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2v6m0 0l-3 3m3-3l3 3M5 20l7-7M19 5l-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span id="ctxPinText">Pin to top</span>
+    </button>
+    <button class="ctx-item" id="ctxView">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/></svg>
+        Open
+    </button>
+    <button class="ctx-item" id="ctxShare">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Share link
+    </button>
+    <div class="ctx-divider"></div>
+    <button class="ctx-item ctx-danger" id="ctxDelete">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="1.7"/></svg>
+        Delete
+    </button>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box modal-box-sm">
+        <div class="delete-modal-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3 class="delete-modal-title">Delete Collection?</h3>
+        <p class="delete-modal-body">
+            "<span id="deleteColName"></span>" will be permanently deleted. Documents inside won't be affected.
+        </p>
+        <div class="modal-actions">
+            <button class="btn-cancel" id="cancelDelete">Cancel</button>
+            <button class="btn-danger" id="confirmDelete">Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
+
+<!-- Footer -->
+<div class="footer">
+    <div style="font-family:'Archivo Black',sans-serif;display:flex;align-items:flex-end" class="footer-left">DocUp</div>
+    <div class="footer-right">
+        <a href="/dashboard">FindDocs</a>
+        <a href="/collections">Collections</a>
+        <a href="/uploads">Upload</a>
+        <a href="/profile">Profile</a>
+        <a href="/contact">Contact Us</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<script src="/dashboard2.js"></script>
+<script>
+    window.__COLS__ = <%- JSON.stringify(collections.map(c => ({
+        _id: c._id,
+        name: c.name,
+        emoji: c.emoji,
+        color: c.color,
+        description: c.description,
+        isPublic: c.isPublic,
+        pinned: c.pinned,
+        docCount: c.docCount,
+        updatedAt: c.updatedAt,
+        createdAt: c.createdAt
+    }))) %>;
+</script>
+<script src="/collections.js"></script>
+</body>
+</html>
