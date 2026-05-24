@@ -20,7 +20,8 @@ import fs from "fs";
 import csv from "csv-parser";
 import MongoStore from "connect-mongo";
 import { createClient } from "@supabase/supabase-js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import path from "path";
 const app = express();
 const port = process.env.PORT || 5000;
@@ -6895,6 +6896,59 @@ app.get("/api/collections/check/:docId", async (req, res) => {
         return res.json({ success: true, collections: result });
     } catch (err) {
         return res.status(500).json({ success: false });
+    }
+});
+
+// ─── POST /api/docs/:id/notebook-link ───────────────────────────────────────
+// Generates a 5-minute pre-signed R2 URL for NotebookLM ingestion.
+// Only accessible to authenticated users who have already unlocked the doc.
+app.post("/api/docs/:id/notebook-link", async (req, res) => {
+    if (!req.session.email) {
+        return res.status(401).json({ success: false, message: "Sign in to use this feature." });
+    }
+    try {
+        const docId = req.params.id;
+        const doc = await Docs.findById(docId).select("file_url protected price").lean();
+
+        if (!doc || !doc.file_url) {
+            return res.status(404).json({ success: false, message: "Document not found." });
+        }
+
+        if (doc.protected) {
+            const user = await user_profile
+                .findOne({ email: req.session.email })
+                .select("last_doc_views")
+                .lean();
+
+            if (!user) {
+                return res.status(401).json({ success: false, message: "User not found." });
+            }
+
+            const hasAccess = Array.isArray(user.last_doc_views) &&
+                user.last_doc_views.some(entry => String(entry.doc_id) === String(docId));
+
+            if (!hasAccess) {
+                return res.status(403).json({ success: false, message: "You need to unlock this document first." });
+            }
+        }
+
+        const cdnBase  = process.env.R2_CDN_URL.replace(/\/$/, "");
+        const r2Key    = doc.file_url.replace(cdnBase + "/", "");
+
+        if (!r2Key || r2Key === doc.file_url) {
+            console.error("[notebook-link] Could not derive R2 key from file_url:", doc.file_url);
+            return res.status(500).json({ success: false, message: "Could not generate link." });
+        }
+
+        const command   = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: r2Key });
+        const signedUrl = await getSignedUrl(r2, command, { expiresIn: 60 });
+
+        console.log(`[notebook-link] user=${req.session.email} doc=${docId} ts=${new Date().toISOString()}`);
+        return res.json({ success: true, url: signedUrl, expiresIn: 60 });
+
+    } catch (err) {
+        console.error("[notebook-link] Error:", err);
+        return res.status(500).json({ success: false, message: "Failed to generate link." });
     }
 });
 

@@ -599,6 +599,32 @@ college_data.image : '/images/default.png' %>"
             </button>
         </div>
 
+        <div class="sc notebook-sc">
+            <div class="sc-header">
+                <span class="sc-icon-wrap">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="3" width="13" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M16 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        <path d="M7 8h6M7 12h6M7 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <h2>NotebookLM</h2>
+                <span class="ai-badge capsule-new-badge">Beta ✦</span>
+            </div>
+            <p class="ai-capsule-desc">
+                Open this document in Google NotebookLM — generate audio overviews, ask questions, and build study guides directly from the source.
+            </p>
+            <button type="button" id="notebook-lm-btn" class="discuss-ai-btn notebook-lm-btn"
+                    data-doc-id="<%= doc._id %>">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+                          stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                </svg>
+                Open in NotebookLM ✦
+            </button>
+        </div>
+
+
         <div class="sc info-sc">
             <div class="sc-header">
                 <span class="sc-icon-wrap">
@@ -2901,6 +2927,356 @@ item.user_id.email : '' %>">
     letter-spacing: 0.01em;
 }
 
+.notebook-lm-btn {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    box-shadow: 0 4px 16px rgba(26, 115, 232, 0.25);
+}
+.notebook-lm-btn:hover {
+    background: linear-gradient(135deg, #1565c0 0%, #0a3d91 100%);
+    box-shadow: 0 6px 20px rgba(26, 115, 232, 0.35);
+    transform: translateY(-1px);
+}
+.notebook-lm-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── NotebookLM Modal ── */
+.nlm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    transition: opacity 0.22s ease;
+}
+.nlm-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+.nlm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 8, 14, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.nlm-modal {
+    position: relative;
+    width: min(500px, 100%);
+    background: linear-gradient(160deg, var(--surface-2) 0%, var(--surface) 100%);
+    border: 1px solid var(--border-warm);
+    border-radius: var(--r-xl);
+    padding: 32px 28px 28px;
+    box-shadow: var(--shadow-card), 0 0 60px rgba(26,115,232,0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    transform: translateY(0) scale(1);
+    transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.nlm-modal::-webkit-scrollbar { display: none; }
+.nlm-hidden .nlm-modal {
+    transform: translateY(12px) scale(0.97);
+}
+.nlm-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.03);
+    transition: var(--t);
+    flex-shrink: 0;
+}
+.nlm-close:hover { color: var(--text); border-color: var(--border-warm); background: rgba(255,255,255,0.07); }
+
+.nlm-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-right: 28px;
+}
+.nlm-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(26,115,232,0.22) 0%, rgba(13,71,161,0.15) 100%);
+    border: 1px solid rgba(26,115,232,0.28);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64b5f6;
+    flex-shrink: 0;
+    box-shadow: 0 4px 16px rgba(26,115,232,0.15);
+}
+.nlm-header-text { display: flex; flex-direction: column; gap: 3px; }
+.nlm-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+}
+.nlm-subtitle { font-size: 0.8rem; color: var(--text-3); }
+.nlm-subtitle strong { color: #ffb07c; font-weight: 700; }
+
+.nlm-divider { height: 1px; background: var(--border); margin: 0 -4px; }
+
+/* Steps */
+.nlm-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    list-style: none;
+    padding: 0;
+}
+.nlm-step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.nlm-step-num {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(26,115,232,0.25), rgba(13,71,161,0.2));
+    border: 1px solid rgba(26,115,232,0.3);
+    color: #90caf9;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+}
+.nlm-step-body { display: flex; flex-direction: column; gap: 2px; }
+.nlm-step-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.nlm-step-desc { font-size: 0.78rem; color: var(--text-3); line-height: 1.5; }
+
+/* Step 3 — instruction image */
+.nlm-step-item--img { align-items: flex-start; }
+.nlm-step-body--img { gap: 8px; width: 100%; }
+.nlm-instruction-img-wrap {
+    width: 100%;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--surface-3);
+    margin-top: 4px;
+    line-height: 0;
+}
+.nlm-instruction-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--r-sm);
+    object-fit: cover;
+    transition: opacity 0.2s ease;
+}
+
+/* URL area */
+.nlm-url-wrap {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.nlm-url-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.nlm-url-label { font-size: 0.72rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* Countdown timer pill */
+.nlm-timer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255,176,124,0.1);
+    border: 1px solid rgba(255,176,124,0.22);
+    color: #ffb07c;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: 0.03em;
+    transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+.nlm-timer-pill.urgent {
+    background: rgba(239,68,68,0.12);
+    border-color: rgba(239,68,68,0.3);
+    color: #f87171;
+    animation: nlm-pulse 0.7s ease-in-out infinite alternate;
+}
+@keyframes nlm-pulse {
+    from { opacity: 1; }
+    to   { opacity: 0.6; }
+}
+
+.nlm-url-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+}
+.nlm-url-text {
+    flex: 1;
+    font-size: 0.78rem;
+    color: var(--text-2);
+    font-family: 'DM Mono', 'Courier New', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.nlm-copy-btn {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-xs);
+    background: rgba(26,115,232,0.15);
+    border: 1px solid rgba(26,115,232,0.28);
+    color: #90caf9;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: var(--t);
+    white-space: nowrap;
+}
+.nlm-copy-btn:hover { background: rgba(26,115,232,0.25); border-color: rgba(26,115,232,0.45); }
+.nlm-copy-btn.copied { background: rgba(74,222,128,0.12); border-color: rgba(74,222,128,0.3); color: #4ade80; }
+.nlm-url-warning {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.74rem;
+    color: var(--text-3);
+}
+.nlm-url-warning svg { flex-shrink: 0; color: #ffb07c; opacity: 0.8; }
+
+.nlm-go-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 13px 20px;
+    border-radius: var(--r-md);
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 20px rgba(26,115,232,0.3);
+    transition: var(--t);
+    border: none;
+    cursor: pointer;
+}
+.nlm-go-btn:hover {
+    background: linear-gradient(135deg, #1565c0 0%, #0a3d91 100%);
+    box-shadow: 0 8px 28px rgba(26,115,232,0.4);
+    transform: translateY(-1px);
+    color: #fff;
+}
+.nlm-go-btn:active { transform: translateY(0); }
+
+/* ── Expired state ── */
+.nlm-exp-hidden { display: none !important; }
+.nlm-expired-state {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.nlm-expired-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    background: rgba(239,68,68,0.07);
+    border: 1px solid rgba(239,68,68,0.22);
+    border-radius: var(--r-md);
+}
+.nlm-expired-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f87171;
+}
+.nlm-expired-text { display: flex; flex-direction: column; gap: 4px; }
+.nlm-expired-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f87171;
+}
+.nlm-expired-desc { font-size: 0.8rem; color: var(--text-3); line-height: 1.5; }
+.nlm-regen-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 13px 20px;
+    border-radius: var(--r-md);
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    box-shadow: 0 6px 20px rgba(26,115,232,0.28);
+    transition: var(--t);
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+.nlm-regen-btn:hover {
+    background: linear-gradient(135deg, #1565c0 0%, #0a3d91 100%);
+    box-shadow: 0 8px 28px rgba(26,115,232,0.4);
+    transform: translateY(-1px);
+}
+.nlm-regen-btn:active { transform: translateY(0); }
+.nlm-regen-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+@media (max-width: 520px) {
+    .nlm-modal { padding: 24px 16px 22px; gap: 16px; }
+    .nlm-title { font-size: 1rem; }
+    .nlm-step-num { width: 22px; height: 22px; font-size: 0.7rem; }
+}
+
+
 .discuss-ai-btn {
     width: 100%;
     display: flex;
@@ -3561,9 +3937,270 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 });
+
+/* ── NotebookLM Handler ── */
+document.addEventListener("DOMContentLoaded", function () {
+(function () {
+    const btn         = document.getElementById("notebook-lm-btn");
+    const overlay     = document.getElementById("nlm-overlay");
+    const backdrop    = document.getElementById("nlm-backdrop");
+    const closeBtn    = document.getElementById("nlm-close");
+    const urlDisplay  = document.getElementById("nlm-url-display");
+    const copyBtn     = document.getElementById("nlm-copy-btn");
+    const copyLabel   = document.getElementById("nlm-copy-label");
+    const copyIcon    = document.getElementById("nlm-copy-icon");
+    const checkIcon   = document.getElementById("nlm-check-icon");
+    const timerPill   = document.getElementById("nlm-timer-pill");
+    const timerText   = document.getElementById("nlm-timer-text");
+    const activeState = document.getElementById("nlm-active-state");
+    const expiredState= document.getElementById("nlm-expired-state");
+    const regenBtn    = document.getElementById("nlm-regen-btn");
+    if (!btn || !overlay) return;
+
+    const EXPIRY_SEC  = 60;
+    let currentUrl    = "";
+    let copyResetTimer = null;
+    let countdownTimer = null;
+    let docIdForRegen  = null;
+
+    /* ── Helpers ── */
+    function showActive() {
+        activeState.classList.remove("nlm-exp-hidden");
+        expiredState.classList.add("nlm-exp-hidden");
+    }
+    function showExpired() {
+        activeState.classList.add("nlm-exp-hidden");
+        expiredState.classList.remove("nlm-exp-hidden");
+        timerPill.classList.add("urgent");
+        timerText.textContent = "Expired";
+    }
+    function startCountdown() {
+        clearInterval(countdownTimer);
+        let remaining = EXPIRY_SEC;
+        timerPill.classList.remove("urgent");
+        timerText.textContent = "1:00";
+        countdownTimer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+                clearInterval(countdownTimer);
+                showExpired();
+                return;
+            }
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerText.textContent = mins + ":" + String(secs).padStart(2, "0");
+            if (remaining <= 10) timerPill.classList.add("urgent");
+        }, 1000);
+    }
+
+    function openModal(url) {
+        currentUrl = url;
+        urlDisplay.textContent = url;
+        showActive();
+        overlay.classList.remove("nlm-hidden");
+        document.body.style.overflow = "hidden";
+        startCountdown();
+    }
+    function closeModal() {
+        overlay.classList.add("nlm-hidden");
+        document.body.style.overflow = "";
+        clearInterval(countdownTimer);
+    }
+    function resetCopyBtn() {
+        copyBtn.classList.remove("copied");
+        copyIcon.style.display = "";
+        checkIcon.style.display = "none";
+        copyLabel.textContent = "Copy";
+    }
+
+    /* ── Fetch & open ── */
+    async function generateLink(triggerBtn) {
+        const docId = triggerBtn.dataset.docId || docIdForRegen;
+        if (!docId) return;
+        docIdForRegen = docId;
+
+        triggerBtn.disabled = true;
+        const originalHTML = triggerBtn.innerHTML;
+        triggerBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="animation:spin 0.8s linear infinite"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" stroke-dasharray="40" stroke-dashoffset="20" stroke-linecap="round"/></svg> Generating link…`;
+
+        try {
+            const res  = await fetch(`/api/docs/${docId}/notebook-link`, { method: "POST" });
+            const data = await res.json();
+            if (!data.success) {
+                alert(data.message || "Could not generate link. Please try again.");
+                return;
+            }
+            try { await navigator.clipboard.writeText(data.url); } catch (_) {}
+            openModal(data.url);
+        } catch (err) {
+            console.error("[NotebookLM]", err);
+            alert("Something went wrong. Please try again.");
+        } finally {
+            triggerBtn.disabled  = false;
+            triggerBtn.innerHTML = originalHTML;
+        }
+    }
+
+    /* ── Event listeners ── */
+    closeBtn?.addEventListener("click", closeModal);
+    backdrop?.addEventListener("click", closeModal);
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && !overlay.classList.contains("nlm-hidden")) closeModal();
+    });
+
+    copyBtn?.addEventListener("click", async () => {
+        if (!currentUrl) return;
+        try { await navigator.clipboard.writeText(currentUrl); } catch (_) {}
+        copyBtn.classList.add("copied");
+        copyIcon.style.display = "none";
+        checkIcon.style.display = "";
+        copyLabel.textContent = "Copied!";
+        clearTimeout(copyResetTimer);
+        copyResetTimer = setTimeout(resetCopyBtn, 2500);
+    });
+
+    regenBtn?.addEventListener("click", () => generateLink(regenBtn));
+
+    btn.addEventListener("click", () => generateLink(btn));
+
+    if (!document.getElementById("nlm-spin-style")) {
+        const s = document.createElement("style");
+        s.id = "nlm-spin-style";
+        s.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
+        document.head.appendChild(s);
+    }
+})();
+}); // end DOMContentLoaded — NotebookLM Handler
 </script>
 
 
 <%- include('partials/page-loader') %>
+
+<!-- NotebookLM Modal — direct child of body, outside all stacking contexts -->
+<div id="nlm-overlay" class="nlm-overlay nlm-hidden" aria-modal="true" role="dialog">
+    <div class="nlm-backdrop" id="nlm-backdrop"></div>
+    <div class="nlm-modal">
+
+        <button class="nlm-close" id="nlm-close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <!-- ── Header ── -->
+        <div class="nlm-header">
+            <div class="nlm-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="13" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M16 7h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <path d="M7 8h6M7 12h6M7 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="nlm-header-text">
+                <h2 class="nlm-title">Open in NotebookLM</h2>
+                <p class="nlm-subtitle">Your secure document link is ready — valid for <strong>1 minute</strong></p>
+            </div>
+        </div>
+
+        <div class="nlm-divider"></div>
+
+        <!-- ── Steps ── -->
+        <ol class="nlm-steps">
+            <li class="nlm-step-item">
+                <span class="nlm-step-num">1</span>
+                <div class="nlm-step-body">
+                    <span class="nlm-step-title">Copy the link below</span>
+                    <span class="nlm-step-desc">A secure, time-limited link to your document — copied automatically.</span>
+                </div>
+            </li>
+            <li class="nlm-step-item">
+                <span class="nlm-step-num">2</span>
+                <div class="nlm-step-body">
+                    <span class="nlm-step-title">Click "Go to NotebookLM"</span>
+                    <span class="nlm-step-desc">NotebookLM will open in a new tab.</span>
+                </div>
+            </li>
+            <li class="nlm-step-item nlm-step-item--img">
+                <span class="nlm-step-num">3</span>
+                <div class="nlm-step-body nlm-step-body--img">
+                    <span class="nlm-step-title">Add a URL source &amp; paste the link</span>
+                    <div class="nlm-instruction-img-wrap">
+                        <img src="/images/Instruction_1.png" alt="How to add a URL source in NotebookLM" class="nlm-instruction-img" loading="lazy" />
+                    </div>
+                </div>
+            </li>
+        </ol>
+
+        <!-- ── URL + timer row (ACTIVE state) ── -->
+        <div id="nlm-active-state">
+            <div class="nlm-url-wrap">
+                <div class="nlm-url-top-row">
+                    <div class="nlm-url-label">Document Link</div>
+                    <!-- Countdown timer pill -->
+                    <div class="nlm-timer-pill" id="nlm-timer-pill">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span id="nlm-timer-text">1:00</span>
+                    </div>
+                </div>
+                <div class="nlm-url-row">
+                    <span class="nlm-url-text" id="nlm-url-display">Generating…</span>
+                    <button class="nlm-copy-btn" id="nlm-copy-btn" title="Copy link">
+                        <svg id="nlm-copy-icon" width="15" height="15" viewBox="0 0 24 24" fill="none">
+                            <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                        <svg id="nlm-check-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" style="display:none">
+                            <path d="M5 13l4 4L19 7" stroke="#4ade80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span id="nlm-copy-label">Copy</span>
+                    </button>
+                </div>
+                <p class="nlm-url-warning">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    </svg>
+                    Link expires in 1 minute. Do not share it.
+                </p>
+            </div>
+
+            <a id="nlm-go-btn" href="https://notebooklm.google.com/" target="_blank" rel="noopener noreferrer" class="nlm-go-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    <path d="M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Go to Google NotebookLM
+            </a>
+        </div>
+
+        <!-- ── EXPIRED state (hidden until timer hits 0) ── -->
+        <div id="nlm-expired-state" class="nlm-expired-state nlm-exp-hidden">
+            <div class="nlm-expired-banner">
+                <div class="nlm-expired-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M12 7v5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="16.5" r="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="nlm-expired-text">
+                    <span class="nlm-expired-title">Link Expired</span>
+                    <span class="nlm-expired-desc">This link is no longer valid. Generate a new one to continue.</span>
+                </div>
+            </div>
+            <button class="nlm-regen-btn" id="nlm-regen-btn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                    <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Regenerate Link
+            </button>
+        </div>
+
+    </div>
+</div>
 </body>
 </html>
