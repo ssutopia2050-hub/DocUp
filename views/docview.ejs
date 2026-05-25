@@ -3957,7 +3957,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const regenBtn    = document.getElementById("nlm-regen-btn");
     if (!btn || !overlay) return;
 
-    const EXPIRY_SEC  = 60;
+    const EXPIRY_SEC  = 40;
     let currentUrl    = "";
     let copyResetTimer = null;
     let countdownTimer = null;
@@ -4098,7 +4098,7 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
             <div class="nlm-header-text">
                 <h2 class="nlm-title">Open in NotebookLM</h2>
-                <p class="nlm-subtitle">Your secure document link is ready — valid for <strong>1 minute</strong></p>
+                <p class="nlm-subtitle">Your secure document link is ready — valid for <strong>40 seconds</strong></p>
             </div>
         </div>
 
@@ -4163,7 +4163,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>
                         <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                     </svg>
-                    Link expires in 1 minute. Do not share it.
+                    Link expires in 40 seconds. Do not share it.
                 </p>
             </div>
 

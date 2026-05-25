@@ -2,11 +2,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import mongoose from "mongoose";
-import Docs from "./models/Docs.js"; // adjust path if needed
+import User from "./models/users.js"; // adjust path if needed
 
 const MONGO_URI = process.env.MONGO_URI;
 
-async function updateDocsPrice() {
+async function increaseDocScore() {
     if (!MONGO_URI) {
         console.error("❌ MONGO_URI not found in .env");
         process.exit(1);
@@ -14,32 +14,22 @@ async function updateDocsPrice() {
 
     try {
         await mongoose.connect(MONGO_URI);
-        console.log("✅ Connected");
+        console.log("✅ Connected to MongoDB");
 
-        // OPTION 1: Add price ONLY if missing
-        const result = await Docs.updateMany(
-            {},  // filter
-            { $set: { Doc_score: 2 } }          // default value
-        );
-
-        console.log(`🔥 Updated ${result.modifiedCount} documents (missing price)`);
-
-        // OPTION 2 (alternative): Force update ALL docs
-        /*
-        const result = await Docs.updateMany(
+        // Increase Doc_score by 2 for all users
+        const result = await User.updateMany(
             {},
-            { $set: { price: 1 } }
+            { $inc: { Doc_score: 2 } }
         );
 
-        console.log(`🔥 Updated ${result.modifiedCount} documents (all docs)`);
-        */
+        console.log(`🔥 Increased Doc_score by 2 for ${result.modifiedCount} users`);
 
     } catch (err) {
-        console.error(err);
+        console.error("❌ Error:", err);
     } finally {
         await mongoose.disconnect();
         console.log("🔌 Disconnected");
     }
 }
 
-updateDocsPrice();
+increaseDocScore();

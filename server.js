@@ -6942,10 +6942,10 @@ app.post("/api/docs/:id/notebook-link", async (req, res) => {
         }
 
         const command   = new GetObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: r2Key });
-        const signedUrl = await getSignedUrl(r2, command, { expiresIn: 60 });
+        const signedUrl = await getSignedUrl(r2, command, { expiresIn: 40 });
 
         console.log(`[notebook-link] user=${req.session.email} doc=${docId} ts=${new Date().toISOString()}`);
-        return res.json({ success: true, url: signedUrl, expiresIn: 60 });
+        return res.json({ success: true, url: signedUrl, expiresIn: 40 });
 
     } catch (err) {
         console.error("[notebook-link] Error:", err);
