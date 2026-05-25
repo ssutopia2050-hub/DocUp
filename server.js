@@ -3070,6 +3070,7 @@ app.get("/view/:id", async (req, res) => {
                     msg,
                     trendingColleges,
                     mostViewedColleges,
+                    dashboardCollections: [],
                 });
             }
 
