@@ -50,23 +50,48 @@ const resend = new Resend(process.env.RESEND_API_KEY);
  ******************************/
 import { createClient as createRedisClient } from "redis";
 
+let redisConnected = false;
+
 const redisClient = createRedisClient({
     url: process.env.REDIS_URL || "redis://localhost:6379",
     socket: {
-        // Retry with exponential back-off capped at 10 s — survives Redis blips.
-        reconnectStrategy: (retries) => Math.min(retries * 100, 10_000)
+        // Disable auto-reconnect entirely — we'll handle connection manually
+        reconnectStrategy: () => new Error('No auto-reconnect')
     }
 });
 
 redisClient.on("error",        (err) => console.error("Redis error:", err));
-redisClient.on("connect",      ()    => console.log("Redis connected ✅"));
-redisClient.on("reconnecting", ()    => console.warn("Redis reconnecting…"));
-
-// .catch() so a Redis blip at startup does NOT crash the whole server.
-// All cache helpers (getOrSet/invalidate) already fall back to the DB on error.
-await redisClient.connect().catch((err) => {
-    console.error("Redis initial connect failed — continuing without cache:", err.message);
+redisClient.on("connect",      ()    => {
+    console.log("Redis connected ✅");
+    redisConnected = true;
 });
+
+// Retry logic: try to connect max 2 times at startup
+let connectAttempts = 0;
+const maxAttempts = 2;
+
+async function connectRedis() {
+    while (connectAttempts < maxAttempts) {
+        try {
+            connectAttempts++;
+            console.log(`Redis connection attempt ${connectAttempts}/${maxAttempts}...`);
+            await redisClient.connect();
+            redisConnected = true;
+            return; // Success
+        } catch (err) {
+            console.error(`Redis connection attempt ${connectAttempts} failed:`, err.message);
+            if (connectAttempts >= maxAttempts) {
+                console.warn("Redis: Max 2 connection attempts reached. Skipping Redis — using database only.");
+                redisConnected = false;
+                return; // Give up after 2 attempts
+            }
+            // Wait 100ms before retry
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+}
+
+await connectRedis();
 
 // TTL constants (seconds)
 const TTL = {

@@ -1,7 +1,7 @@
 {
-  "name": "DocUp",
+  "name": "docup",
   "version": "1.0.0",
-  "description": "",
+  "description": "DocUp is a web application designed to facilitate the **sharing and access of academic study materials** among college students. It provides a centralized platform where users can upload lecture notes, PDFs, and other educational resources, fostering a collaborative learning environment. This document serves as an introduction to DocUp, outlining its purpose, key features, and underlying technology.",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -45,5 +45,9 @@
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",
     "ua-parser-js": "^2.0.9"
-  }
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
