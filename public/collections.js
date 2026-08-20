@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════
-   DocUp — collections.js
-   Handles: create/edit/delete, pin, search,
-            sort, view toggle, context menu
+   DocUp — collections.js  (v2)
+   Handles: create/edit/delete/duplicate, pin, search,
+            sort, view toggle, context menu, bulk select
 ═══════════════════════════════════════════════ */
 
 (function () {
@@ -11,10 +11,12 @@
     let cols        = window.__COLS__ || [];
     let editTarget  = null;   // id of collection being edited
     let ctxTarget   = null;   // {id, name, pinned} for context menu
-    let deleteTarget = null;  // id pending deletion
-    let selectedEmoji = "📁";
+    let deleteTarget = null;  // id pending deletion, or "__bulk__" for bulk delete
+    let selectedEmoji = "folder";
     let selectedColor = "#ff6a00";
     let isPublic = false;
+    let selectMode = false;
+    let selectedIds = new Set();
 
     // ── DOM refs ──────────────────────────────────
     const modal          = document.getElementById("collectionModal");
@@ -31,6 +33,7 @@
 
     const contextMenu    = document.getElementById("contextMenu");
     const ctxEdit        = document.getElementById("ctxEdit");
+    const ctxDuplicate   = document.getElementById("ctxDuplicate");
     const ctxPin         = document.getElementById("ctxPin");
     const ctxPinText     = document.getElementById("ctxPinText");
     const ctxView        = document.getElementById("ctxView");
@@ -38,6 +41,8 @@
     const ctxDelete      = document.getElementById("ctxDelete");
 
     const deleteModal    = document.getElementById("deleteModal");
+    const deleteModalTitle = document.getElementById("deleteModalTitle");
+    const deleteModalBody  = document.getElementById("deleteModalBody");
     const deleteColName  = document.getElementById("deleteColName");
     const confirmDelete  = document.getElementById("confirmDelete");
     const cancelDelete   = document.getElementById("cancelDelete");
@@ -49,6 +54,13 @@
     const viewList       = document.getElementById("viewList");
     const noResultsMsg   = document.getElementById("noResultsMsg");
     const toastStack     = document.getElementById("toastStack");
+
+    const toggleSelectModeBtn = document.getElementById("toggleSelectMode");
+    const bulkActionBar  = document.getElementById("bulkActionBar");
+    const bulkCount      = document.getElementById("bulkCount");
+    const bulkSelectAll  = document.getElementById("bulkSelectAll");
+    const bulkDeleteBtn  = document.getElementById("bulkDeleteBtn");
+    const bulkCancel     = document.getElementById("bulkCancel");
 
     // ── Toast ─────────────────────────────────────
     function showToast(msg, type = "success") {
@@ -71,6 +83,22 @@
         return r.json();
     }
 
+    // ── Icon display helper ──────────────────────
+    // The picker buttons already contain the rendered SVG; we just copy
+    // that markup into the modal header display rather than keeping a
+    // second icon map in JS. Falls back to raw text for legacy emoji.
+    function setIconDisplay(slug) {
+        const btn = document.querySelector(`.emoji-opt[data-emoji="${CSS.escape(slug)}"]`);
+        if (btn) {
+            modalEmojiDisp.innerHTML = btn.innerHTML;
+        } else {
+            modalEmojiDisp.textContent = slug || "📁";
+        }
+        document.querySelectorAll(".emoji-opt").forEach(b => {
+            b.classList.toggle("selected", b.dataset.emoji === slug);
+        });
+    }
+
     // ── Modal helpers ─────────────────────────────
     function openModal(mode = "create", data = {}) {
         editTarget = mode === "edit" ? data._id : null;
@@ -80,20 +108,15 @@
         saveBtnText.textContent = mode === "edit" ? "Save Changes" : "Create Collection";
 
         // Pre-fill for edit
-        selectedEmoji = data.emoji || "📁";
+        selectedEmoji = data.emoji || "folder";
         selectedColor = data.color || "#ff6a00";
         isPublic      = !!data.isPublic;
 
-        modalEmojiDisp.textContent = selectedEmoji;
+        setIconDisplay(selectedEmoji);
         colNameInput.value         = data.name || "";
         colDescInput.value         = data.description || "";
         nameCharCount.textContent  = (data.name || "").length;
         descCharCount.textContent  = (data.description || "").length;
-
-        // Emoji picker sync
-        document.querySelectorAll(".emoji-opt").forEach(btn => {
-            btn.classList.toggle("selected", btn.dataset.emoji === selectedEmoji);
-        });
 
         // Color swatch sync
         document.querySelectorAll(".color-swatch").forEach(s => {
@@ -158,13 +181,11 @@
     document.getElementById("cancelModal")?.addEventListener("click", closeModal);
     modal?.addEventListener("click", e => { if (e.target === modal) closeModal(); });
 
-    // ── Emoji picker ──────────────────────────────
+    // ── Icon picker ────────────────────────────────
     document.querySelectorAll(".emoji-opt").forEach(btn => {
         btn.addEventListener("click", () => {
             selectedEmoji = btn.dataset.emoji;
-            modalEmojiDisp.textContent = selectedEmoji;
-            document.querySelectorAll(".emoji-opt").forEach(b => b.classList.remove("selected"));
-            btn.classList.add("selected");
+            setIconDisplay(selectedEmoji);
         });
     });
 
@@ -206,7 +227,7 @@
 
             // Position menu
             const rect = btn.getBoundingClientRect();
-            const mw = 160, mh = 170;
+            const mw = 160, mh = 210;
             let top  = rect.bottom + window.scrollY + 6;
             let left = rect.right  + window.scrollX - mw;
 
@@ -243,7 +264,6 @@
             await navigator.clipboard.writeText(url);
             showToast("Share link copied to clipboard!");
         } catch {
-            // Fallback for browsers that block clipboard access
             const tmp = document.createElement("input");
             tmp.value = url;
             document.body.appendChild(tmp);
@@ -259,6 +279,21 @@
         closeCtxMenu();
         const col = cols.find(c => String(c._id) === String(ctxTarget.id));
         if (col) openModal("edit", col);
+    });
+
+    ctxDuplicate?.addEventListener("click", async () => {
+        if (!ctxTarget) return;
+        const id = ctxTarget.id;
+        closeCtxMenu();
+        try {
+            const data = await api("POST", `/api/collections/${id}/duplicate`);
+            if (data.success) {
+                showToast(`"${ctxTarget.name}" duplicated`);
+                setTimeout(() => location.reload(), 700);
+            } else {
+                showToast(data.message || "Could not duplicate collection", "error");
+            }
+        } catch { showToast("Network error", "error"); }
     });
 
     ctxPin?.addEventListener("click", async () => {
@@ -277,7 +312,8 @@
     ctxDelete?.addEventListener("click", () => {
         if (!ctxTarget) return;
         deleteTarget = ctxTarget.id;
-        deleteColName.textContent = ctxTarget.name;
+        deleteModalTitle.textContent = "Delete Collection?";
+        deleteModalBody.innerHTML = `"<span id="deleteColName">${ctxTarget.name}</span>" will be permanently deleted. Documents inside won't be affected.`;
         closeCtxMenu();
         deleteModal.classList.add("open");
     });
@@ -288,7 +324,20 @@
     confirmDelete?.addEventListener("click", async () => {
         if (!deleteTarget) return;
         confirmDelete.disabled = true;
+
         try {
+            if (deleteTarget === "__bulk__") {
+                const data = await api("POST", "/api/collections/bulk-delete", { ids: Array.from(selectedIds) });
+                if (data.success) {
+                    showToast(`${data.deletedCount} collection${data.deletedCount !== 1 ? "s" : ""} deleted`);
+                    setTimeout(() => location.reload(), 700);
+                } else {
+                    showToast(data.message || "Bulk delete failed", "error");
+                    confirmDelete.disabled = false;
+                }
+                return;
+            }
+
             const data = await api("DELETE", `/api/collections/${deleteTarget}`);
             if (data.success) {
                 showToast("Collection deleted");
@@ -346,12 +395,87 @@
         viewGrid?.classList.remove("active");
     });
 
+    // ── Bulk select mode ──────────────────────────
+    function updateBulkUI() {
+        bulkCount.textContent = `${selectedIds.size} selected`;
+        bulkActionBar.classList.toggle("visible", selectMode && selectedIds.size > 0);
+    }
+
+    function exitSelectMode() {
+        selectMode = false;
+        selectedIds.clear();
+        grid?.classList.remove("select-mode");
+        toggleSelectModeBtn?.classList.remove("active");
+        document.querySelectorAll(".col-select-input").forEach(cb => cb.checked = false);
+        updateBulkUI();
+    }
+
+    toggleSelectModeBtn?.addEventListener("click", () => {
+        selectMode = !selectMode;
+        grid?.classList.toggle("select-mode", selectMode);
+        toggleSelectModeBtn.classList.toggle("active", selectMode);
+        if (!selectMode) exitSelectMode();
+        else updateBulkUI();
+    });
+
+    grid?.addEventListener("click", e => {
+        const checkLabel = e.target.closest(".col-select-check");
+        if (checkLabel && selectMode) {
+            // let the native checkbox toggle happen, just stop the card link navigating
+            e.preventDefault();
+            const cb = checkLabel.querySelector(".col-select-input");
+            cb.checked = !cb.checked;
+            cb.dispatchEvent(new Event("change"));
+            return;
+        }
+        if (selectMode) {
+            // In select mode, clicking anywhere on the card toggles selection
+            // instead of navigating into it.
+            const card = e.target.closest(".col-card");
+            if (card && !e.target.closest(".col-menu-btn")) {
+                e.preventDefault();
+                const cb = card.querySelector(".col-select-input");
+                cb.checked = !cb.checked;
+                cb.dispatchEvent(new Event("change"));
+            }
+        }
+    }, true);
+
+    document.querySelectorAll(".col-select-input").forEach(cb => {
+        cb.addEventListener("change", () => {
+            const id = cb.dataset.id;
+            if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+            cb.closest(".col-card")?.classList.toggle("card-selected", cb.checked);
+            updateBulkUI();
+        });
+    });
+
+    bulkSelectAll?.addEventListener("click", () => {
+        document.querySelectorAll(".col-select-input").forEach(cb => {
+            cb.checked = true;
+            selectedIds.add(cb.dataset.id);
+            cb.closest(".col-card")?.classList.add("card-selected");
+        });
+        updateBulkUI();
+    });
+
+    bulkCancel?.addEventListener("click", exitSelectMode);
+
+    bulkDeleteBtn?.addEventListener("click", () => {
+        if (selectedIds.size === 0) return;
+        deleteTarget = "__bulk__";
+        deleteModalTitle.textContent = "Delete selected collections?";
+        deleteModalBody.innerHTML = `<span id="deleteColName">${selectedIds.size} collection${selectedIds.size !== 1 ? "s" : ""}</span> will be permanently deleted. Documents inside won't be affected.`;
+        deleteModal.classList.add("open");
+    });
+
     // ── Keyboard close ────────────────────────────
     document.addEventListener("keydown", e => {
         if (e.key === "Escape") {
             closeModal();
             deleteModal.classList.remove("open");
             closeCtxMenu();
+            if (selectMode) exitSelectMode();
         }
     });
 

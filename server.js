@@ -6978,6 +6978,150 @@ app.post("/api/docs/:id/notebook-link", async (req, res) => {
     }
 });
 
+/* ══════════════════════════════════════════════════════════════════════
+   server-collections-additions.js
+
+   WHAT THIS IS
+   A drop-in patch for server.js. It does three things:
+
+   1. Registers a shared icon helper (app.locals.renderIcon / ICON_LIST)
+      so every EJS template can call `renderIcon(slug, size)` directly —
+      no per-file duplication, no partial-scoping headaches.
+
+   2. Adds POST /api/collections/:id/duplicate — clones a collection
+      (name, icon, color, docs) as a new private, unpinned copy.
+
+   3. Adds POST /api/collections/bulk-delete — deletes many owned
+      collections in one call, used by the new "Select" mode on
+      the collections page.
+
+   HOW TO APPLY
+   — Paste block (1) anywhere after `app.set("views", "./views");`
+     near the top of server.js (before any routes render EJS).
+   — Paste blocks (2) and (3) anywhere near your other
+     `/api/collections/...` routes in server.js (they use the same
+     `user_profile`, `Collection`, and `mongoose` imports you already
+     have, so no new imports are needed).
+
+   NOTE ON LEGACY DATA
+   Existing collections in your DB have `emoji` set to a raw unicode
+   character (e.g. "📁") from before this update. `renderIcon()` below
+   falls back to printing that character as-is if it's not a known
+   icon slug, so nothing breaks — old collections just keep showing
+   their old emoji until someone edits them and picks a new icon from
+   the redesigned picker (which now saves a slug like "folder" into
+   the same `emoji` field).
+   ══════════════════════════════════════════════════════════════════════ */
+
+
+/* ────────────────────────────────────────────────────────────────────
+   (1) SHARED ICON HELPER — paste near the top of server.js
+   ──────────────────────────────────────────────────────────────────── */
+
+const ICONS = {
+    folder:     '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/>',
+    book:       '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5V6.5"/>',
+    bookmark:   '<path d="M6 3h12v18l-6-4-6 4z"/>',
+    notebook:   '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v18"/>',
+    target:     '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    flask:      '<path d="M9 2v6L4 20a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2L15 8V2"/><path d="M9 2h6"/>',
+    idea:       '<path d="M9 18h6M10 22h4M12 2a6 6 0 0 0-4 10.5c.5.5 1 1.2 1 2.5h6c0-1.3.5-2 1-2.5A6 6 0 0 0 12 2z"/>',
+    trophy:     '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 4h3a3 3 0 0 1-3 5M7 4H4a3 3 0 0 0 3 5"/>',
+    zap:        '<path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/>',
+    graduation: '<path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/>',
+    telescope:  '<path d="M3 12l14-8 2 3.5-14 8z"/><path d="M14 8l3 6"/><circle cx="6" cy="17" r="2"/>',
+    calculator: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
+    chart:      '<path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>',
+    map:        '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',
+    brain:      '<path d="M9 4a3 3 0 0 0-3 3v1a3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 3 3 3 3 0 0 0 3-3V7a3 3 0 0 0-3-3z"/><path d="M15 4a3 3 0 0 1 3 3v1a3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-3 3 3 3 0 0 1-3-3V7a3 3 0 0 1 3-3z"/>',
+    laptop:     '<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M2 20h20"/>',
+    star:       '<path d="M12 2l3 7h7l-5.5 4.5 2 7L12 16l-6.5 4.5 2-7L2 9h7z"/>',
+    flame:      '<path d="M12 2c1 3-2 4-2 7a4 4 0 0 0 8 0c0-1-.5-2-1-3 2 1 3 3 3 6a6 6 0 1 1-12 0c0-4 2-7 4-10z"/>',
+    pin:        '<path d="M12 2a5 5 0 0 0-5 5c0 3 5 11 5 11s5-8 5-11a5 5 0 0 0-5-5z"/><circle cx="12" cy="7" r="2"/>',
+    palette:    '<circle cx="8" cy="10" r="1.2"/><circle cx="12" cy="8" r="1.2"/><circle cx="16" cy="10" r="1.2"/><circle cx="9" cy="15" r="1.2"/><path d="M12 21a9 9 0 0 1 0-18 2 2 0 0 1 0 4h.5a1.5 1.5 0 0 1 0 3H12a2 2 0 0 0 0 11z"/>'
+};
+
+const ICON_LIST = Object.keys(ICONS);
+
+function renderIcon(slug, size) {
+    size = size || 20;
+    if (ICONS[slug]) {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[slug]}</svg>`;
+    }
+    // Legacy fallback: pre-redesign collections stored a raw emoji character.
+    return slug || ICONS.folder;
+}
+
+// Makes `renderIcon(...)` and `ICON_LIST` available in every EJS template
+// automatically (no need to pass them into each res.render call).
+app.locals.renderIcon = renderIcon;
+app.locals.ICON_LIST  = ICON_LIST;
+
+
+/* ────────────────────────────────────────────────────────────────────
+   (2) DUPLICATE A COLLECTION
+   POST /api/collections/:id/duplicate
+   ──────────────────────────────────────────────────────────────────── */
+
+app.post("/api/collections/:id/duplicate", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const source = await Collection.findById(req.params.id);
+
+        if (!source) return res.status(404).json({ success: false, message: "Collection not found" });
+        if (String(source.owner) !== String(user._id)) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
+        }
+
+        const copy = await Collection.create({
+            owner:       user._id,
+            name:        `${source.name} (Copy)`.slice(0, 80),
+            description: source.description || "",
+            emoji:       source.emoji,
+            color:       source.color,
+            docs:        [...source.docs],
+            isPublic:    false,
+            pinned:      false
+        });
+
+        return res.json({ success: true, collection: copy });
+    } catch (err) {
+        console.error("[Collections duplicate]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
+
+/* ────────────────────────────────────────────────────────────────────
+   (3) BULK DELETE
+   POST /api/collections/bulk-delete   Body: { ids: ["...", "..."] }
+   ──────────────────────────────────────────────────────────────────── */
+
+app.post("/api/collections/bulk-delete", async (req, res) => {
+    if (!req.session.email) return res.status(401).json({ success: false, message: "Not authenticated" });
+
+    try {
+        const user = await user_profile.findOne({ email: req.session.email });
+        const { ids } = req.body;
+
+        if (!Array.isArray(ids) || !ids.length) {
+            return res.status(400).json({ success: false, message: "No collections selected" });
+        }
+
+        const result = await Collection.deleteMany({
+            _id:   { $in: ids },
+            owner: user._id           // guarantees users can only delete their own
+        });
+
+        return res.json({ success: true, deletedCount: result.deletedCount });
+    } catch (err) {
+        console.error("[Collections bulk-delete]", err);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+});
+
 /* ============================================================
  *  404 CATCH-ALL  — must be AFTER all app.get / app.post routes
  * ============================================================ */

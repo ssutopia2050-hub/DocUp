@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import User from "./models/users.js";
+import Docs from "./models/Docs.js";
 
 dotenv.config();
 
@@ -9,21 +9,18 @@ async function run() {
         await mongoose.connect(process.env.MONGO_URI);
         console.log("MongoDB connected");
 
-        const result = await User.updateMany(
-            {},
-            {
-                $push: {
-                    notifications: {
-                        email: "system@docup.in",
-                        content: "The Notification and reply to comments update is added check it out ....",
-                        isRead: false,
-                        createdAt: new Date()
-                    }
-                }
-            }
-        );
+        const countBefore = await Docs.countDocuments({ reviewed: false });
+        console.log(`Found ${countBefore} unreviewed doc(s).`);
 
-        console.log("Update result:", result);
+        if (countBefore === 0) {
+            console.log("Nothing to update.");
+        } else {
+            const result = await Docs.updateMany(
+                { reviewed: false },
+                { $set: { reviewed: true } }
+            );
+            console.log(`Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+        }
 
         await mongoose.disconnect();
         console.log("Disconnected");

@@ -10,6 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/collections.css">
+    <!-- Redesign additions: icon system, stats strip, bulk select. Loaded after
+         collections.css so its rules take priority without editing the original file. -->
+    <link rel="stylesheet" href="/collections-v2.css">
 </head>
 <body>
 
@@ -26,6 +29,14 @@ function relativeTime(date) {
     if (days < 7)  return `${days}d ago`;
     return new Date(date).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
 }
+
+// renderIcon / ICON_LIST come from app.locals (see server-collections-additions.js).
+// This local fallback keeps the page working even before that patch is applied.
+const _renderIcon = typeof renderIcon === 'function' ? renderIcon : (slug) => slug || '📁';
+const _iconList    = typeof ICON_LIST !== 'undefined' ? ICON_LIST : ['folder','book','bookmark','notebook','target','flask','idea','trophy','zap','graduation','telescope','calculator','chart','map','brain','laptop','star','flame','pin','palette'];
+
+const totalDocsAcrossCollections = collections.reduce((sum, c) => sum + (c.docCount || 0), 0);
+const publicCollectionCount = collections.filter(c => c.isPublic).length;
 %>
 
 <!-- TOPBAR -->
@@ -99,10 +110,49 @@ function relativeTime(date) {
                 <p class="page-sub"><%= collections.length %> collection<%= collections.length !== 1 ? 's' : '' %> · Organised study playlists</p>
             </div>
         </div>
-        <button class="btn-new-collection" id="openCreateModal">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            New Collection
-        </button>
+        <div class="page-header-actions">
+            <button class="btn-select-mode" id="toggleSelectMode" <%= collections.length === 0 ? 'style="display:none"' : '' %>>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Select
+            </button>
+            <button class="btn-new-collection" id="openCreateModal">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                New Collection
+            </button>
+        </div>
+    </div>
+
+    <!-- ── STATS STRIP ── -->
+    <% if (collections.length > 0) { %>
+    <div class="col-stats-strip">
+        <div class="col-stat">
+            <span class="col-stat-value"><%= collections.length %></span>
+            <span class="col-stat-label">Collection<%= collections.length !== 1 ? 's' : '' %></span>
+        </div>
+        <div class="col-stat-divider"></div>
+        <div class="col-stat">
+            <span class="col-stat-value"><%= totalDocsAcrossCollections %></span>
+            <span class="col-stat-label">Docs Organised</span>
+        </div>
+        <div class="col-stat-divider"></div>
+        <div class="col-stat">
+            <span class="col-stat-value"><%= publicCollectionCount %></span>
+            <span class="col-stat-label">Public</span>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Bulk action bar (shown when Select mode is on and >=1 selected) -->
+    <div class="bulk-action-bar" id="bulkActionBar">
+        <span class="bulk-count" id="bulkCount">0 selected</span>
+        <div class="bulk-action-btns">
+            <button class="bulk-btn" id="bulkSelectAll">Select all</button>
+            <button class="bulk-btn danger" id="bulkDeleteBtn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                Delete Selected
+            </button>
+            <button class="bulk-btn" id="bulkCancel">Cancel</button>
+        </div>
     </div>
 
     <!-- Controls Bar -->
@@ -133,12 +183,7 @@ function relativeTime(date) {
     <% if (collections.length === 0) { %>
     <div class="empty-state">
         <div class="empty-icon">
-            <svg width="52" height="52" viewBox="0 0 24 24" fill="none">
-                <rect x="2" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
-                <rect x="13" y="3" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
-                <rect x="2" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
-                <rect x="13" y="14" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3" stroke-dasharray="3 2"/>
-            </svg>
+            <%- _renderIcon('folder', 30) %>
         </div>
         <h2>No collections yet</h2>
         <p>Create your first collection to start organising your documents like playlists.</p>
@@ -162,17 +207,24 @@ function relativeTime(date) {
 
             <div class="col-card-bar"></div>
 
+            <label class="col-select-check">
+                <input type="checkbox" class="col-select-input" data-id="<%= col._id %>">
+                <span class="col-select-box">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+            </label>
+
             <div class="col-card-top">
-                <div class="col-emoji"><%= col.emoji %></div>
+                <div class="col-emoji"><%- _renderIcon(col.emoji, 20) %></div>
                 <div class="col-card-actions">
                     <% if (col.pinned) { %>
                     <span class="pin-badge" title="Pinned">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 1 1v1l1.5 6H18a1 1 0 0 0-1 1v4l-4 4-4-4v-4a1 1 0 0 0-1-1H6.5L8 5V4a1 1 0 0 1 1-1h7z"/></svg>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M16 3a1 1 0 0 1 1 1v1l1.5 6H18a1 1 0 0 0-1 1v4l-4 4-4-4v-4a1 1 0 0 0-1-1H6.5L8 5V4a1 1 0 0 1 1-1h7z"/></svg>
                     </span>
                     <% } %>
                     <% if (col.isPublic) { %>
                     <span class="public-badge" title="Public">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 3C10 7 10 17 12 21M12 3C14 7 14 17 12 21M3 12h18" stroke="currentColor" stroke-width="1.5"/></svg>
                     </span>
                     <% } %>
                     <button class="col-menu-btn"
@@ -243,7 +295,7 @@ function relativeTime(date) {
         </button>
 
         <div class="modal-header">
-            <div class="modal-emoji-display" id="modalEmojiDisplay">📁</div>
+            <div class="modal-emoji-display" id="modalEmojiDisplay"><%- _renderIcon('folder', 24) %></div>
             <div>
                 <h2 class="modal-title" id="modalTitle">New Collection</h2>
                 <p class="modal-sub" id="modalSub">Organise your docs into a themed playlist</p>
@@ -251,10 +303,10 @@ function relativeTime(date) {
         </div>
 
         <div class="field-group">
-            <label class="field-label">Pick an Emoji</label>
+            <label class="field-label">Pick an Icon</label>
             <div class="emoji-picker">
-                <% ['📁','📚','📖','📝','🎯','🔬','💡','🏆','⚡','🎓','🔭','🧮','📊','🗺️','🧠','💻','🌟','🔥','📌','🎨'].forEach(em => { %>
-                <button type="button" class="emoji-opt" data-emoji="<%= em %>"><%= em %></button>
+                <% _iconList.forEach(slug => { %>
+                <button type="button" class="emoji-opt <%= slug === 'folder' ? 'selected' : '' %>" data-emoji="<%= slug %>" title="<%= slug %>"><%- _renderIcon(slug, 18) %></button>
                 <% }) %>
             </div>
         </div>
@@ -320,6 +372,10 @@ function relativeTime(date) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Edit
     </button>
+    <button class="ctx-item" id="ctxDuplicate">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Duplicate
+    </button>
     <button class="ctx-item" id="ctxPin">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2v6m0 0l-3 3m3-3l3 3M5 20l7-7M19 5l-7 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         <span id="ctxPinText">Pin to top</span>
@@ -329,7 +385,7 @@ function relativeTime(date) {
         Open
     </button>
     <button class="ctx-item" id="ctxShare">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
         Share link
     </button>
     <div class="ctx-divider"></div>
@@ -345,8 +401,8 @@ function relativeTime(date) {
         <div class="delete-modal-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
-        <h3 class="delete-modal-title">Delete Collection?</h3>
-        <p class="delete-modal-body">
+        <h3 class="delete-modal-title" id="deleteModalTitle">Delete Collection?</h3>
+        <p class="delete-modal-body" id="deleteModalBody">
             "<span id="deleteColName"></span>" will be permanently deleted. Documents inside won't be affected.
         </p>
         <div class="modal-actions">

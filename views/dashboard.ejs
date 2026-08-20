@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/dashboard.css">
     <link rel="stylesheet" href="/page-loader.css">
+    <link rel="stylesheet" href="/dashboard-collections-v2.css">
     <script defer src="https://cloud.umami.is/script.js" data-website-id="fb0fa4fe-2b54-4d33-8482-1efac75331d2"></script>
     <link rel="shortcut icon" href="/images/android-chrome-512x512.png" type="image/x-icon">
     <meta charset="UTF-8">
@@ -400,6 +401,13 @@ function fullTime(date) {
         </section>
 
         <!-- ── MY COLLECTIONS ── -->
+        <%
+        // renderIcon / ICON_LIST come from app.locals (see server-collections-additions.js).
+        // Shared by both branches below — the populated grid AND the empty state — so icon
+        // slugs chosen on /collections (e.g. "folder", "book", "target") render as the actual
+        // SVG instead of printing the raw slug text.
+        const _renderIcon = typeof renderIcon === 'function' ? renderIcon : (slug) => slug || '📁';
+        %>
         <% if (dashboardCollections && dashboardCollections.length > 0) { %>
         <section class="discovery-section dash-collections-section">
             <div class="discovery-section-header dash-col-section-header">
@@ -419,7 +427,7 @@ function fullTime(date) {
                     <div class="dash-col-accent-bar"></div>
 
                     <div class="dash-col-card-head">
-                        <span class="dash-col-emoji"><%= col.emoji || '📁' %></span>
+                        <span class="dash-col-emoji"><%- _renderIcon(col.emoji, 18) %></span>
                         <div class="dash-col-badges">
                             <% if (col.pinned) { %>
                             <span class="dash-col-badge dash-col-badge-pin" title="Pinned">
@@ -477,6 +485,29 @@ function fullTime(date) {
                 </a>
             </div>
         </section>
+        <% } else { %>
+            <!-- ── MY COLLECTIONS — EMPTY STATE ──
+         Previously this section rendered nothing when the user had no
+         collections. That silence is what made the feature feel absent
+         from the dashboard entirely. ── -->
+            <section class="discovery-section dash-collections-section">
+                <div class="discovery-section-header">
+                    <h2 class="discovery-section-title">My Collections</h2>
+                    <p class="discovery-section-sub">Group notes, PYQs and references into playlists you can revisit anytime</p>
+                </div>
+
+                <a href="/collections" class="dash-col-empty-cta">
+                    <div class="dash-col-empty-glow"></div>
+                    <div class="dash-col-empty-icon"><%- _renderIcon('folder', 26) %></div>
+                    <div class="dash-col-empty-text">
+                        <span class="dash-col-empty-title">Create your first collection</span>
+                        <span class="dash-col-empty-sub">Bundle related docs — a subject's full syllabus, an exam's PYQs, or your own study set — into one place you can share or come back to.</span>
+                    </div>
+                    <span class="dash-col-empty-arrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+                </a>
+            </section>
         <% } %>
 
     </div>

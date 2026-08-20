@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════
-   DocUp — collection_view.js
+   DocUp — collection_view.js  (v2)
    Handles: Edit, Remove Doc, Search/Sort, View Toggle,
-            Drag-and-Drop Reorder, Share Link
+            Drag-and-Drop Reorder, Share Link, Duplicate
 ═══════════════════════════════════════════════════ */
 
 (function () {
@@ -12,7 +12,7 @@
     const isOwner = window.__IS_OWNER__;
     let colData = window.__COL_DATA__ || {};
     let removeTargetId = null;
-    let editEmoji = colData.emoji || "📁";
+    let editEmoji = colData.emoji || "folder";
     let editColor = colData.color || "#ff6a00";
     let editIsPublic = colData.isPublic || false;
 
@@ -26,6 +26,7 @@
     const viewGridBtn = document.getElementById("viewGrid");
     const viewListBtn = document.getElementById("viewList");
     const toastStack = document.getElementById("toastStack");
+    const duplicateBtn = document.getElementById("duplicateColBtn");
 
     // Modals
     const removeModal = document.getElementById("removeModal");
@@ -44,6 +45,7 @@
             t.addEventListener("transitionend", () => t.remove());
         }, 3000);
     }
+ const helper = 5;
 
     // ── API Helper ────────────────────────────────
     async function api(method, url, body) {
@@ -91,7 +93,6 @@
             return c.dataset.subject.includes(q) || c.dataset.college.includes(q);
         });
 
-        // Sort logic
         visible.sort((a, b) => {
             if (sort === "order") return Number(a.dataset.idx) - Number(b.dataset.idx);
             if (sort === "subject") return a.dataset.subject.localeCompare(b.dataset.subject);
@@ -160,6 +161,26 @@
         }
     });
 
+    // ── Duplicate Collection ──────────────────────
+    duplicateBtn?.addEventListener("click", async () => {
+        duplicateBtn.disabled = true;
+        try {
+            const res = await api("POST", `/api/collections/${colId}/duplicate`);
+            if (res.success) {
+                showToast("Collection duplicated — redirecting…");
+                setTimeout(() => {
+                    window.location.href = `/collections/${res.collection._id}`;
+                }, 700);
+            } else {
+                showToast(res.message || "Could not duplicate collection", "error");
+                duplicateBtn.disabled = false;
+            }
+        } catch (err) {
+            showToast("Network error", "error");
+            duplicateBtn.disabled = false;
+        }
+    });
+
     // ── Edit Collection ───────────────────────────
     if (isOwner) {
         const editColName = document.getElementById("editColName");
@@ -174,13 +195,24 @@
         document.getElementById("closeEditModal")?.addEventListener("click", () => editModal.classList.remove("active"));
         document.getElementById("cancelEditModal")?.addEventListener("click", () => editModal.classList.remove("active"));
 
-        // Emojis & Colors
+        // Icon picker — copy the button's own rendered SVG into the header
+        // display rather than keeping a second icon map in JS.
+        function setIconDisplay(slug) {
+            const btn = document.querySelector(`.emoji-opt[data-emoji="${CSS.escape(slug)}"]`);
+            if (btn) {
+                modalEmojiDisp.innerHTML = btn.innerHTML;
+            } else {
+                modalEmojiDisp.textContent = slug || "📁";
+            }
+            document.querySelectorAll(".emoji-opt").forEach(b => {
+                b.classList.toggle("active", b.dataset.emoji === slug);
+            });
+        }
+
         document.querySelectorAll(".emoji-opt").forEach(btn => {
             btn.addEventListener("click", () => {
                 editEmoji = btn.dataset.emoji;
-                modalEmojiDisp.textContent = editEmoji;
-                document.querySelectorAll(".emoji-opt").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
+                setIconDisplay(editEmoji);
             });
         });
 
@@ -303,5 +335,9 @@
             });
         });
     }
+
+    // Empty state already correctly reflects docs.length via server render;
+    // nothing else needed here now that the dead zero-docs `<% if %>` block
+    // has been removed from collection_view.ejs.
 
 })();

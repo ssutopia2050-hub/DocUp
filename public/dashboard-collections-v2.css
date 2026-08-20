@@ -1,0 +1,374 @@
+/* ═══════════════════════════════════════════════════
+   DocUp — dashboard-collections-v2.css
+   Styles the "My Collections" block on the dashboard.
+
+   Design language: quiet glass cards, a soft gradient
+   "cover" strip with the icon overlapping it (Notion/
+   Linear style), metadata collapsed to one muted line,
+   and actions that reveal on hover instead of sitting
+   there permanently as chrome. No pill-chip lists, no
+   flat accent stripes, no boxed badges.
+═══════════════════════════════════════════════════ */
+
+.dash-collections-section {
+    margin: 40px 0;
+}
+
+/* ── Section header ── */
+.dash-col-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.dash-col-view-all {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-3, rgba(240,244,247,0.4));
+    padding: 4px 2px;
+    white-space: nowrap;
+    transition: color var(--t, 0.2s ease), gap var(--t, 0.2s ease);
+}
+.dash-col-view-all:hover {
+    color: var(--accent, #ff6a00);
+    gap: 8px;
+}
+.dash-col-view-all svg { transition: transform var(--t, 0.2s ease); }
+.dash-col-view-all:hover svg { transform: translateX(2px); }
+
+/* ── Grid ── */
+.dash-col-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: 14px;
+}
+
+/* ── Card — quiet glass panel, no border by default ── */
+.dash-col-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: 20px;
+    background: color-mix(in srgb, var(--surface-2, #0b1c26) 88%, transparent);
+    border: 1px solid transparent;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    isolation: isolate;
+    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1),
+    background var(--t, 0.2s ease),
+    border-color var(--t, 0.2s ease),
+    box-shadow 0.28s ease;
+}
+.dash-col-card:hover {
+    transform: translateY(-4px);
+    background: color-mix(in srgb, var(--surface-2, #0b1c26) 100%, transparent);
+    border-color: color-mix(in srgb, var(--col-accent, var(--accent, #ff6a00)) 30%, transparent);
+    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.45),
+    0 0 0 1px color-mix(in srgb, var(--col-accent, var(--accent, #ff6a00)) 10%, transparent);
+}
+
+/* ── Cover strip: soft mesh gradient in the collection's own accent,
+   icon floats on top and overlaps into the body below it ── */
+.dash-col-card-head {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    height: 58px;
+    padding: 12px 12px 0;
+    background:
+            radial-gradient(120% 160% at 15% -20%,
+            color-mix(in srgb, var(--col-accent, var(--accent, #ff6a00)) 38%, transparent) 0%,
+            transparent 60%),
+            color-mix(in srgb, var(--col-accent, var(--accent, #ff6a00)) 7%, var(--bg-2, #001820));
+    overflow: visible;
+}
+
+.dash-col-emoji {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin-bottom: -20px; /* overlap into the body */
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    color: var(--col-accent, var(--accent, #ff6a00));
+    background: var(--surface-2, #0b1c26);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35),
+    0 0 0 1px color-mix(in srgb, var(--col-accent, var(--accent, #ff6a00)) 26%, transparent);
+    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+    z-index: 2;
+}
+.dash-col-card:hover .dash-col-emoji { transform: translateY(-2px) scale(1.06); }
+
+.dash-col-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+.dash-col-badge {
+    width: 22px;
+    height: 22px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(6px);
+}
+.dash-col-badge-pin { color: #facc15; }
+.dash-col-badge-pub { color: #34d399; }
+
+/* ── Body ── */
+.dash-col-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 16px 0;
+    min-height: 0;
+}
+
+.dash-col-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text, #f0f4f7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dash-col-desc {
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--text-3, rgba(240,244,247,0.4));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── Doc list — collapsed to one quiet metadata line,
+   no pill/chip boxes, dot-separated like a caption ── */
+.dash-col-docs {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 7px 16px 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.dash-col-doc-chip {
+    display: inline-flex;
+    align-items: center;
+    max-width: fit-content;
+    overflow: hidden;
+}
+.dash-col-doc-chip:not(:last-child) .dash-col-chip-text::after {
+    content: "·";
+    margin: 0 6px;
+    color: var(--text-3, rgba(240,244,247,0.3));
+}
+
+.dash-col-chip-dot { display: none; }
+
+.dash-col-chip-text {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--text-3, rgba(240,244,247,0.45));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+    display: inline-block;
+}
+
+.dash-col-empty-hint {
+    font-size: 11px;
+    color: var(--text-3, rgba(240,244,247,0.3));
+}
+
+/* ── Footer — minimal, arrow only appears on hover ── */
+.dash-col-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding: 14px 16px 16px;
+}
+
+.dash-col-count {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3, rgba(240,244,247,0.35));
+}
+.dash-col-count svg { opacity: 0.6; }
+
+.dash-col-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    color: var(--col-accent, var(--accent, #ff6a00));
+    opacity: 0;
+    transform: translate(-4px, 4px);
+    transition: all 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.dash-col-card:hover .dash-col-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+}
+
+/* ── "New collection" tile — understated, plus-only until hover ── */
+.dash-col-new-card {
+    align-items: center;
+    justify-content: center;
+    min-height: 148px;
+    background: transparent;
+    border: 1px dashed color-mix(in srgb, var(--text-3, rgba(240,244,247,0.3)) 45%, transparent);
+}
+.dash-col-new-card:hover {
+    background: color-mix(in srgb, var(--accent, #ff6a00) 5%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--accent, #ff6a00) 45%, transparent);
+    box-shadow: none;
+}
+.dash-col-new-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-3, rgba(240,244,247,0.35));
+    transition: color var(--t, 0.2s ease);
+}
+.dash-col-new-card:hover .dash-col-new-inner { color: var(--accent, #ff6a00); }
+.dash-col-new-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid currentColor;
+    opacity: 0.85;
+    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.dash-col-new-card:hover .dash-col-new-icon { transform: rotate(90deg); }
+.dash-col-new-label {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0;
+    max-height: 0;
+    transition: opacity var(--t, 0.2s ease);
+}
+.dash-col-new-card:hover .dash-col-new-label { opacity: 1; max-height: none; }
+
+/* ── Empty state (no collections yet) ── */
+.dash-col-empty-cta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 22px 24px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--surface-2, #0b1c26) 90%, transparent);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color var(--t, 0.2s ease), transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.dash-col-empty-cta:hover {
+    border-color: color-mix(in srgb, var(--accent, #ff6a00) 28%, transparent);
+    transform: translateY(-2px);
+}
+
+.dash-col-empty-glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(70% 140% at 0% 0%, rgba(255,106,0,0.14) 0%, transparent 65%);
+    pointer-events: none;
+}
+
+.dash-col-empty-icon {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent, #ff6a00);
+    background: var(--bg-2, #001820);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #ff6a00) 24%, transparent);
+    z-index: 1;
+}
+
+.dash-col-empty-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    z-index: 1;
+    flex: 1;
+    min-width: 0;
+}
+
+.dash-col-empty-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text, #f0f4f7);
+}
+
+.dash-col-empty-sub {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--text-3, rgba(240,244,247,0.45));
+}
+
+.dash-col-empty-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--accent, #ff6a00);
+    flex-shrink: 0;
+    z-index: 1;
+    opacity: 0.7;
+    transition: transform 0.28s cubic-bezier(0.22,1,0.36,1);
+}
+.dash-col-empty-cta:hover .dash-col-empty-arrow { transform: translateX(4px); opacity: 1; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .dash-col-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    .dash-col-new-card { min-height: 130px; }
+    .dash-col-new-label { opacity: 1; max-height: none; } /* no hover on touch — show label always */
+    .dash-col-arrow { opacity: 1; transform: none; } /* same — no hover state on touch */
+    .dash-col-empty-cta { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .dash-col-empty-arrow { display: none; }
+}

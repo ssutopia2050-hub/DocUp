@@ -3928,3 +3928,110 @@ a.view-doc-link:hover {
         grid-template-columns: 1fr;
     }
 }
+/* ═══════════════════════════════════════════════════
+   DocUp — dashboard-collections-v2.css
+   Loaded AFTER dashboard.css. Fixes the emoji icon
+   treatment on the mini collection cards and adds the
+   empty-state CTA for when the user has zero collections.
+═══════════════════════════════════════════════════ */
+
+.dash-col-emoji {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--col-accent, var(--accent));
+    background: linear-gradient(155deg,
+    color-mix(in srgb, var(--col-accent, var(--accent)) 20%, transparent) 0%,
+    color-mix(in srgb, var(--col-accent, var(--accent)) 6%, transparent) 100%);
+    border: 1px solid color-mix(in srgb, var(--col-accent, var(--accent)) 30%, transparent);
+}
+
+.dash-col-badge {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* ── Empty state CTA — mirrors the visual language of your existing
+   .saved-zero-state card so it doesn't look like a bolted-on afterthought ── */
+.dash-col-empty-cta {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 26px 28px;
+    border-radius: 20px;
+    border: 1px dashed rgba(255,106,0,0.24);
+    background: linear-gradient(160deg, rgba(255,106,0,0.055) 0%, rgba(255,106,0,0.015) 60%, transparent 100%);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.26s cubic-bezier(0.22,1,0.36,1), border-color 0.26s ease, background 0.26s ease;
+}
+.dash-col-empty-cta:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,106,0,0.42);
+    background: linear-gradient(160deg, rgba(255,106,0,0.09) 0%, rgba(255,106,0,0.02) 60%, transparent 100%);
+}
+
+.dash-col-empty-glow {
+    position: absolute;
+    top: -60px; left: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,106,0,0.14) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.dash-col-empty-icon {
+    position: relative;
+    width: 56px; height: 56px; flex-shrink: 0;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    background: rgba(255,106,0,0.10);
+    border: 1px solid rgba(255,106,0,0.22);
+    box-shadow: 0 0 0 8px rgba(255,106,0,0.04);
+}
+
+.dash-col-empty-text {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+.dash-col-empty-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.1px;
+}
+.dash-col-empty-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.86rem;
+    color: var(--text-3);
+    line-height: 1.55;
+    max-width: 560px;
+}
+
+.dash-col-empty-arrow {
+    position: relative;
+    width: 34px; height: 34px; flex-shrink: 0;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,106,0,0.6);
+    background: rgba(255,106,0,0.08);
+    border: 1px solid rgba(255,106,0,0.16);
+    transition: transform 0.22s ease, color 0.22s ease, background 0.22s ease;
+}
+.dash-col-empty-cta:hover .dash-col-empty-arrow {
+    transform: translateX(3px);
+    color: #fff;
+    background: var(--accent);
+}
+
+@media (max-width: 640px) {
+    .dash-col-empty-cta { flex-direction: column; align-items: flex-start; text-align: left; padding: 22px; }
+    .dash-col-empty-arrow { align-self: flex-end; margin-top: -34px; }
+}
