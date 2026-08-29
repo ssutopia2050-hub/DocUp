@@ -57,6 +57,7 @@ body {
     font-size: 15px;
     line-height: 1.6;
     user-select: none;
+    overflow-x: hidden;
 }
 
 a, a:visited { text-decoration: none; color: inherit; }
@@ -162,6 +163,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     top: calc(100% + 14px);
     right: 0;
     width: 360px;
+    max-width: calc(100vw - 28px);
     max-height: 440px;
     border-radius: var(--r-lg);
     border: 1px solid rgba(255,255,255,0.07);

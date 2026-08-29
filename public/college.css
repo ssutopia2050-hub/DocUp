@@ -38,6 +38,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden;
 }
 
 /* ====================================================
@@ -149,7 +150,7 @@ body {
 .notification-dropdown {
     position: absolute;
     top: calc(100% + 14px); right: 0;
-    width: 360px; max-height: 440px;
+    width: 360px; max-width: calc(100vw - 28px); max-height: 440px;
     border-radius: var(--radius-xl);
     border: 1px solid var(--border);
     background: rgba(6,18,26,0.98);
@@ -260,6 +261,8 @@ body {
     display: block;
 }
 
+.stree-branch-wrap { margin-bottom: 2px; }
+
 .stree-branch {
     display: flex; align-items: center; gap: 8px;
     padding: 7px 16px;
@@ -277,6 +280,27 @@ body {
 .stree-branch-name { font-size: 0.83rem; color: var(--text2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stree-branch:hover .stree-branch-name { color: var(--text); }
 .stree-count { font-size: 0.7rem; color: var(--text3); background: rgba(255,255,255,0.07); padding: 2px 6px; border-radius: 999px; flex-shrink: 0; }
+
+/* Subject-level entries nested under a branch, so users can jump straight
+   to a specific subject instead of only the top of the branch. */
+.stree-subject-list {
+    margin: 2px 6px 6px 22px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+}
+.stree-subject {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.stree-subject-name {
+    display: block;
+    font-size: 0.78rem; color: var(--text3);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.stree-subject:hover { background: rgba(255,255,255,0.05); }
+.stree-subject:hover .stree-subject-name { color: var(--text); }
 
 /* ====================================================
    MAIN CONTENT
@@ -364,6 +388,11 @@ body {
 .college-chat-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 10px 30px rgba(255,90,0,0.55), inset 0 1px 0 rgba(255,255,255,0.2); }
 .college-chat-btn:hover::after { left: 120%; }
 .college-chat-btn svg { flex-shrink: 0; }
+button.college-chat-btn { border: none; cursor: pointer; font-family: inherit; }
+.college-chat-btn.share-copied {
+    background: linear-gradient(135deg, #1fae5c, #12894a);
+    box-shadow: 0 6px 20px rgba(31,174,92,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+}
 
 /* ====================================================
    CONTROLS BAR
@@ -564,6 +593,28 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 16px;
 }
+
+/* Subject group headers inside a branch's docs-grid. Docs are sorted by
+   subject then chapter server-side, so these mark where each subject's
+   documents start and give the sidebar something to jump to. */
+.subject-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 -2px;
+    scroll-margin-top: 96px;
+}
+.subject-divider:first-child { margin-top: 0; }
+.subject-divider-line { flex: 1; height: 1px; background: var(--border); }
+.subject-divider-label {
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text3);
+    white-space: nowrap;
+    transition: color 0.3s ease;
+}
+.subject-divider.subject-highlight .subject-divider-label { color: var(--accent); }
+.subject-divider.subject-highlight .subject-divider-line { background: var(--accent); }
 
 /* ====================================================
    DOC CARD
