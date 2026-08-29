@@ -289,7 +289,7 @@ function fullTime(date) {
                             <div class="saved-rich-card-glow"></div>
                             <div class="saved-rich-card-top">
                                 <div class="saved-rich-logo">
-                                    <img src="<%= collegeImageMap[clg.toLowerCase()] || '/images/default.png' %>" alt="<%= clg %>">
+                                    <img src="<%= collegeImageMap[normalizeSearchText(clg)] || '/images/default.png' %>" alt="<%= clg %>">
                                 </div>
                                 <div class="saved-rich-arrow">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H7M17 7v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -315,7 +315,7 @@ function fullTime(date) {
                         <div class="saved-sparse-glow"></div>
                         <div class="saved-sparse-left">
                             <div class="saved-sparse-img-wrap">
-                                <img src="<%= collegeImageMap[savedColleges[0].toLowerCase()] || '/images/default.png' %>" alt="<%= savedColleges[0] %>">
+                                <img src="<%= collegeImageMap[normalizeSearchText(savedColleges[0])] || '/images/default.png' %>" alt="<%= savedColleges[0] %>">
                             </div>
                             <div class="saved-sparse-info">
                                 <span class="saved-sparse-label">Your first save</span>

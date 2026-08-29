@@ -192,6 +192,15 @@
                         </svg>
                         <span>Exam Tracker</span>
                     </a>
+                    <button type="button" id="shareCollegeBtn" class="college-chat-btn" data-college-name="<%= collegeInfo.name %>">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                            <circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="1.7"/>
+                            <circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/>
+                            <circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="1.7"/>
+                            <path d="M8.59 10.51l6.83-4.02M8.59 13.49l6.83 4.02" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                        </svg>
+                        <span id="shareCollegeBtnLabel">Share</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -369,6 +378,20 @@
                 </div>
 
                 <% Object.keys(docsByBranch).sort((a, b) => a.localeCompare(b)).forEach((branch, branchIdx) => { %>
+                <%
+                // Sort docs within this branch by subject first, then by chapter,
+                // so related documents cluster together instead of appearing in
+                // whatever order they happened to be uploaded/queried in.
+                const branchDocsSorted = docsByBranch[branch].slice().sort((a, b) => {
+                    const subjA = ((a.subject || "General").trim() || "General").toLowerCase();
+                    const subjB = ((b.subject || "General").trim() || "General").toLowerCase();
+                    if (subjA !== subjB) return subjA.localeCompare(subjB);
+                    const chapA = (a.chapter || "").trim().toLowerCase();
+                    const chapB = (b.chapter || "").trim().toLowerCase();
+                    return chapA.localeCompare(chapB);
+                });
+                const branchSlug = branch.toLowerCase().replace(/\s+/g, '-');
+                %>
                 <div class="branch-block" data-branch-block="<%= branch.toLowerCase() %>" data-branch-color="<%= branchIdx % 8 %>">
                     <div class="branch-header">
                         <div class="branch-title">
@@ -379,7 +402,18 @@
                     </div>
 
                     <div class="docs-grid">
-                        <% docsByBranch[branch].forEach(doc => { %>
+                        <% let lastSubject = null; %>
+                        <% branchDocsSorted.forEach(doc => { %>
+                        <% const subjName = (doc.subject && doc.subject.trim()) ? doc.subject.trim() : "General"; %>
+                        <% if (subjName !== lastSubject) { %>
+                        <% const subjSlug = subjName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general'; %>
+                        <div class="subject-divider" id="subj-<%= year %>-<%= sem %>-<%= branchSlug %>-<%= subjSlug %>" data-subject-name="<%= subjName %>">
+                            <span class="subject-divider-line"></span>
+                            <span class="subject-divider-label"><%= subjName %></span>
+                            <span class="subject-divider-line"></span>
+                        </div>
+                        <% lastSubject = subjName; %>
+                        <% } %>
                         <a
                                 href="/view/<%= doc._id %>"
                                 class="doc-card"
@@ -523,6 +557,19 @@
         applyBranchColors();
 
         // 4. Update Sidebar Helper
+        // Switches to the given year/sem tab (if not already active) and then
+        // runs `after` once the corresponding content is visible. Shared by both
+        // the branch-level and subject-level sidebar entries below.
+        function jumpToYearSem(yearKey, semKey, after) {
+            const yearTab = document.querySelector(`.year-tab[data-year="${yearKey}"]`);
+            if (yearTab) yearTab.click();
+            setTimeout(() => {
+                const semTab = document.querySelector(`.sem-tab[data-sem="${semKey}"][data-year="${yearKey}"]`);
+                if (semTab) semTab.click();
+                setTimeout(after, 100);
+            }, 100);
+        }
+
         function updateSidebar() {
             const tree = document.getElementById("sidebarTree");
             if (!tree) return;
@@ -544,13 +591,20 @@
                         tree.appendChild(semNode);
 
                         sb.querySelectorAll(".branch-block").forEach(bb => {
+                            if (bb.style.display === "none") return;
                             const bTitle = bb.querySelector(".branch-title");
                             if (!bTitle) return;
                             const bName = bTitle.textContent.trim();
-                            const bCount = bb.querySelectorAll(".doc-card").length;
+                            const visibleCards = Array.from(bb.querySelectorAll(".doc-card")).filter(c => c.style.display !== "none");
+                            const bCount = visibleCards.length;
+                            if (bCount === 0) return;
 
                             const bbColor = parseInt(bb.dataset.branchColor || '0', 10);
                             const dotColor = BRANCH_COLORS[bbColor % BRANCH_COLORS.length]?.dot || '#ff6a00';
+
+                            const branchWrap = document.createElement("div");
+                            branchWrap.className = "stree-branch-wrap";
+
                             const branchNode = document.createElement("div");
                             branchNode.className = "stree-branch";
                             branchNode.innerHTML = `
@@ -559,19 +613,42 @@
                             <span class="stree-count">${bCount}</span>
                         `;
                             branchNode.addEventListener("click", () => {
-                                const yearTab = document.querySelector(`.year-tab[data-year="${yearKey}"]`);
-                                if (yearTab) yearTab.click();
-                                setTimeout(() => {
-                                    const semTab = document.querySelector(`.sem-tab[data-sem="${semKey}"][data-year="${yearKey}"]`);
-                                    if (semTab) semTab.click();
-                                    setTimeout(() => {
-                                        bb.scrollIntoView({ behavior: "smooth", block: "start" });
-                                        bb.classList.add("branch-highlight");
-                                        setTimeout(() => bb.classList.remove("branch-highlight"), 1500);
-                                    }, 100);
-                                }, 100);
+                                jumpToYearSem(yearKey, semKey, () => {
+                                    bb.scrollIntoView({ behavior: "smooth", block: "start" });
+                                    bb.classList.add("branch-highlight");
+                                    setTimeout(() => bb.classList.remove("branch-highlight"), 1500);
+                                });
                             });
-                            tree.appendChild(branchNode);
+                            branchWrap.appendChild(branchNode);
+
+                            // Subject-level entries so a branch with several subjects
+                            // can be jumped into directly, instead of only landing on
+                            // the top of the branch and having to scroll manually.
+                            const dividers = Array.from(bb.querySelectorAll(".subject-divider"))
+                                .filter(div => div.style.display !== "none");
+                            if (dividers.length > 1) {
+                                const subjList = document.createElement("div");
+                                subjList.className = "stree-subject-list";
+                                dividers.forEach(div => {
+                                    const subjName = div.dataset.subjectName || "General";
+                                    const subjNode = document.createElement("div");
+                                    subjNode.className = "stree-subject";
+                                    subjNode.title = subjName;
+                                    subjNode.innerHTML = `<span class="stree-subject-name">${subjName}</span>`;
+                                    subjNode.addEventListener("click", (e) => {
+                                        e.stopPropagation();
+                                        jumpToYearSem(yearKey, semKey, () => {
+                                            div.scrollIntoView({ behavior: "smooth", block: "start" });
+                                            div.classList.add("subject-highlight");
+                                            setTimeout(() => div.classList.remove("subject-highlight"), 1500);
+                                        });
+                                    });
+                                    subjList.appendChild(subjNode);
+                                });
+                                branchWrap.appendChild(subjList);
+                            }
+
+                            tree.appendChild(branchWrap);
                         });
                     });
                 }
@@ -629,12 +706,38 @@
                             if (show) branchVisible = true;
                         });
 
-                        // Sort visible cards
+                        // Sort visible cards. When sorting by likes/comments/newest we
+                        // re-append cards in that order (which breaks the subject
+                        // grouping below, on purpose). At "default" we leave the DOM
+                        // order untouched so documents stay clustered by subject.
                         const visible = cards.filter(c => c.style.display !== "none");
                         if (sortVal === "likes")    visible.sort((a,b) => +b.dataset.likes - +a.dataset.likes);
                         if (sortVal === "comments") visible.sort((a,b) => +b.dataset.comments - +a.dataset.comments);
                         if (sortVal === "newest")   visible.sort((a,b) => String(b.dataset.id).localeCompare(String(a.dataset.id)));
-                        visible.forEach(c => grid.appendChild(c));
+                        if (sortVal !== "default") {
+                            visible.forEach(c => grid.appendChild(c));
+                        }
+
+                        // Show/hide subject dividers: hide entirely once a non-default
+                        // sort breaks up the grouping, otherwise hide a divider only if
+                        // every card under it got filtered out by search/branch filter.
+                        const dividers = Array.from(grid.querySelectorAll(".subject-divider"));
+                        dividers.forEach(div => {
+                            if (sortVal !== "default") {
+                                div.style.display = "none";
+                                return;
+                            }
+                            let node = div.nextElementSibling;
+                            let hasVisible = false;
+                            while (node && !node.classList.contains("subject-divider")) {
+                                if (node.classList.contains("doc-card") && node.style.display !== "none") {
+                                    hasVisible = true;
+                                    break;
+                                }
+                                node = node.nextElementSibling;
+                            }
+                            div.style.display = hasVisible ? "flex" : "none";
+                        });
 
                         // Show/hide per-branch empty state
                         const branchEmptyEl = branchBlock.querySelector('.branch-empty');
@@ -778,6 +881,51 @@
         // Initial Execution
         applyControls();
         updateSidebar();
+
+        // 9b. Share button — copies a canonical /college/<name> link to clipboard.
+        // Guests who open this link are redirected to sign in and are then sent
+        // straight back here afterward (handled server-side via ?next=).
+        const shareBtn = document.getElementById("shareCollegeBtn");
+        if (shareBtn) {
+            shareBtn.addEventListener("click", async () => {
+                const label = document.getElementById("shareCollegeBtnLabel");
+                const collegeName = shareBtn.dataset.collegeName || "";
+                const shareUrl = `${window.location.origin}/college/${encodeURIComponent(collegeName)}`;
+
+                const showCopied = () => {
+                    if (!label) return;
+                    const original = label.textContent;
+                    label.textContent = "Copied!";
+                    shareBtn.classList.add("share-copied");
+                    setTimeout(() => {
+                        label.textContent = original;
+                        shareBtn.classList.remove("share-copied");
+                    }, 1800);
+                };
+
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(shareUrl);
+                    } else {
+                        // Fallback for older/non-secure contexts
+                        const temp = document.createElement("textarea");
+                        temp.value = shareUrl;
+                        temp.style.position = "fixed";
+                        temp.style.opacity = "0";
+                        document.body.appendChild(temp);
+                        temp.focus();
+                        temp.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(temp);
+                    }
+                    showCopied();
+                } catch (err) {
+                    console.error("Copy failed:", err);
+                    // Last resort — let the user copy manually
+                    window.prompt("Copy this link:", shareUrl);
+                }
+            });
+        }
 
         // 10. Sidebar Toggle (Mobile)
         const sidebar = document.getElementById("sidebarNav");

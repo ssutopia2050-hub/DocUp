@@ -1577,6 +1577,12 @@ function normalizeSearchText(text = "") {
         .replace(/\s+/g, " ")
         .trim();
 }
+// Exposed to EJS templates (e.g. dashboard.ejs) so college-name lookups
+// against maps like collegeImageMap use the exact same normalization as
+// the server does when building those maps — stray commas/whitespace
+// differences between the `college` collection and the `college` field
+// stored on documents shouldn't make a logo fail to resolve.
+app.locals.normalizeSearchText = normalizeSearchText;
 
 function expandAliases(text = "") {
     const COLLEGE_SLUG_ALIASES = {
@@ -2253,7 +2259,10 @@ app.get("/dashboard", async (req, res) => {
         const msg = { err: null };
         const collegeImageMap = {};
         clg.forEach(c => {
-            collegeImageMap[c.college_name.toLowerCase()] = c.image;
+            // Normalized (punctuation/whitespace-insensitive) so this still
+            // resolves even if a college's `college` field on a saved doc
+            // doesn't match `college_name` byte-for-byte.
+            collegeImageMap[normalizeSearchText(c.college_name)] = c.image;
         });
 
         // Cache trending colleges aggregation
@@ -2477,6 +2486,11 @@ app.post("/api/dashboard-search", async (req, res) => {
     }
 });
 app.get("/college/:collegeName", async (req, res) => {
+    if (!req.session.email) {
+        const next = req.originalUrl;
+        return res.redirect(`/signin?next=${encodeURIComponent(next)}`);
+    }
+
     try {
         const collegeName = decodeURIComponent(req.params.collegeName).trim();
 
@@ -3059,7 +3073,7 @@ app.get("/view/:id", async (req, res) => {
 
                 const collegeImageMap = {};
                 clg.forEach(c => {
-                    collegeImageMap[c.college_name.toLowerCase()] = c.image;
+                    collegeImageMap[normalizeSearchText(c.college_name)] = c.image;
                 });
 
                 const trendingColleges = await getOrSet("stats:trending_colleges", TTL.TRENDING_COLLEGES, async () => {
@@ -6239,15 +6253,21 @@ app.get("/exam-tracker/:collegeName", async (req, res) => {
         const user = await user_profile.findOne({ email: req.session.email }).lean();
         if (!user) return res.redirect("/signin");
 
-        const collegeData = await college
-            .findOne({ name: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
-            .lean();
+        // Same punctuation/whitespace-insensitive lookup used on the college
+        // page (see /college/:collegeName) — a strict regex match here was
+        // failing whenever the college_name stored in the `college`
+        // collection didn't match the URL string byte-for-byte (stray
+        // commas, double spaces, etc. between the two collections).
+        const allCollegeRows = await getOrSet("college:list", TTL.COLLEGE_LIST, () =>
+            college.find({}).lean()
+        );
+        const requestedName = normalizeSearchText(collegeName);
+        const collegeData = allCollegeRows.find(c => normalizeSearchText(c.college_name) === requestedName) || null;
 
         const examData = await CollegeExam
             .find({ college: { $regex: new RegExp("^" + escapeRegexSEO(collegeName) + "$", "i") } })
             .sort({ date: 1 })
             .lean();
-        const college_data = await college.find({college_name: req.params.collegeName});
         return res.render("college_exam_tracker", {
             user,
             collegeInfo: {
@@ -6256,8 +6276,7 @@ app.get("/exam-tracker/:collegeName", async (req, res) => {
             },
             examData,
             collegeNotices: [],   // reserved for future notice system
-            quickResources: [] ,
-            clg_data: college_data// reserved for future resource system
+            quickResources: [],   // reserved for future resource system
         });
 
     } catch (err) {

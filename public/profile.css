@@ -16,6 +16,7 @@ body{
     flex-direction: column;
     gap: 4vh;
     color: white;
+    overflow-x: hidden;
 }
 
 /* ===== TOPBAR ===== */
@@ -1658,6 +1659,7 @@ button {
     top: calc(100% + 12px);
     right: 0;
     width: 370px;
+    max-width: calc(100vw - 28px);
     max-height: 460px;
     padding: 10px;
     display: none;
